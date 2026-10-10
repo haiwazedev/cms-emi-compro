@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticated.about-us'
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
@@ -27,6 +29,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAboutUsRoute = AuthenticatedAboutUsRouteImport.update({
+  id: '/about-us',
+  path: '/about-us',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
   id: '/articles',
   path: '/articles',
@@ -35,6 +42,11 @@ const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
@@ -62,8 +74,10 @@ const AuthenticatedArticlesArticleIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -71,8 +85,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -82,8 +98,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated/about-us': typeof AuthenticatedAboutUsRoute
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -93,8 +111,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about-us'
     | '/articles'
     | '/dashboard'
+    | '/home'
     | '/media'
     | '/auth/login'
     | '/articles/create'
@@ -102,8 +122,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about-us'
     | '/articles'
     | '/dashboard'
+    | '/home'
     | '/media'
     | '/auth/login'
     | '/articles/create'
@@ -112,8 +134,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_authenticated/about-us'
     | '/_authenticated/articles'
     | '/_authenticated/dashboard'
+    | '/_authenticated/home'
     | '/_authenticated/media'
     | '/auth/login'
     | '/_authenticated/articles/create'
@@ -142,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/about-us': {
+      id: '/_authenticated/about-us'
+      path: '/about-us'
+      fullPath: '/about-us'
+      preLoaderRoute: typeof AuthenticatedAboutUsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/articles': {
       id: '/_authenticated/articles'
       path: '/articles'
@@ -154,6 +185,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/media': {
@@ -204,14 +242,18 @@ const AuthenticatedArticlesRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAboutUsRoute: typeof AuthenticatedAboutUsRoute
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAboutUsRoute: AuthenticatedAboutUsRoute,
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
 

@@ -56,7 +56,7 @@ export const NAVIGATION_TOPBAR_LABELS = {
 type NavigationItem = {
   label: string
   href?: '#'
-  to?: '/articles' | '/media'
+  to?: '/home' | '/about-us' | '/articles' | '/media'
   icon: LucideIcon
   count?: string
 }
@@ -72,13 +72,13 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
     items: [
       {
         label: NAVIGATION_LABELS.home,
-        href: '#',
+        to: '/home',
         icon: HouseIcon,
         count: NAVIGATION_LABELS.single,
       },
       {
         label: NAVIGATION_LABELS.aboutUs,
-        href: '#',
+        to: '/about-us',
         icon: Building2Icon,
         count: NAVIGATION_LABELS.single,
       },
