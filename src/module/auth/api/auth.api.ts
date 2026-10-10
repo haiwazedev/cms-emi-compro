@@ -23,6 +23,10 @@ export async function login(credentials: LoginCredentials) {
   return data.user
 }
 
+export async function logout(): Promise<void> {
+  await apiClient.post('/auth/logout')
+}
+
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
     const { data } = await apiClient.get<AuthResponse>('/auth/me')

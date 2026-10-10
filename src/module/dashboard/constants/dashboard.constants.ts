@@ -9,4 +9,8 @@ export const DASHBOARD_LABELS = {
   languages: ['ID', 'EN'],
   profile: 'Profil pengguna',
   profileInitials: 'NA',
+  logout: 'Keluar',
+  loggingOut: 'Sedang keluar...',
+  logoutSuccess: 'Berhasil keluar.',
+  logoutFailed: 'Gagal keluar. Silakan coba lagi.',
 } as const
