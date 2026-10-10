@@ -1,5 +1,5 @@
-import { cn } from '@/shared/lib/utils'
 import { toast } from '@/shared/lib/toast'
+import { cn } from '@/shared/lib/utils'
 import { Toast } from '@base-ui/react/toast'
 import { CircleCheckIcon, CircleXIcon, XIcon } from 'lucide-react'
 
@@ -9,12 +9,17 @@ function ToastList() {
   return toasts.map((toastItem) => {
     const isSuccess = toastItem.type === 'success'
     const isError = toastItem.type === 'error'
+    const titleColor = isSuccess
+      ? 'text-success'
+      : isError
+        ? 'text-danger'
+        : 'text-accent'
 
     return (
       <Toast.Root key={toastItem.id} toast={toastItem}>
         <Toast.Content
           className={cn(
-            'bg-background text-foreground focus-visible:ring-accent/50 pointer-events-auto flex items-start gap-3 rounded-lg border p-4 shadow-lg transition-all duration-200 outline-none focus-visible:ring-2 data-[ending-style]:translate-y-2 data-[ending-style]:opacity-0 data-[starting-style]:translate-y-2 data-[starting-style]:opacity-0',
+            'bg-background text-foreground focus-visible:ring-accent/50 pointer-events-auto flex items-start gap-3 rounded-lg border p-4 shadow-lg transition-all duration-200 ease-out outline-none focus-visible:ring-2 data-[ending-style]:-translate-y-2 data-[ending-style]:opacity-0 data-[starting-style]:-translate-y-2 data-[starting-style]:opacity-0',
             isSuccess && 'border-success/40',
             isError && 'border-danger/40',
             !isSuccess && !isError && 'border-border/20',
@@ -23,17 +28,17 @@ function ToastList() {
           {isSuccess && (
             <CircleCheckIcon
               aria-hidden="true"
-              className="text-success size-4 shrink-0"
+              className="text-success size-8 shrink-0"
             />
           )}
           {isError && (
             <CircleXIcon
               aria-hidden="true"
-              className="text-danger size-4 shrink-0"
+              className="text-danger size-8 shrink-0"
             />
           )}
           <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <Toast.Title className="text-sm font-semibold" />
+            <Toast.Title className={cn('text-base font-bold', titleColor)} />
             {toastItem.description && (
               <Toast.Description className="text-foreground/70 text-sm" />
             )}

@@ -18,13 +18,18 @@ function LoginForm() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (user) => {
-      toast.add({ title: LOGIN_LABELS.loginSuccess, type: 'success' })
+      toast.add({
+        title: 'Success',
+        description: LOGIN_LABELS.loginSuccess,
+        type: 'success',
+      })
       queryClient.setQueryData(authQueryKey, user)
       await navigate({ to: '/dashboard' })
     },
     onError: (error) => {
       toast.add({
-        title:
+        title: 'Error',
+        description:
           error instanceof Error ? error.message : LOGIN_LABELS.loginFailed,
         type: 'error',
       })

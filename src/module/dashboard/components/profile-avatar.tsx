@@ -20,12 +20,17 @@ function ProfileAvatar() {
     mutationFn: logout,
     onSuccess: async () => {
       queryClient.setQueryData(authQueryKey, null)
-      toast.add({ title: DASHBOARD_LABELS.logoutSuccess, type: 'success' })
+      toast.add({
+        title: 'Success',
+        description: DASHBOARD_LABELS.logoutSuccess,
+        type: 'success',
+      })
       await navigate({ to: '/auth/login' })
     },
     onError: (error) => {
       toast.add({
-        title:
+        title: 'Error',
+        description:
           error instanceof Error
             ? error.message
             : DASHBOARD_LABELS.logoutFailed,
