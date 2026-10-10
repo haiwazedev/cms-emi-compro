@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
+import { Route as AuthenticatedArticlesArticleIdEditRouteImport } from './routes/_authenticated/articles.$articleId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
+  id: '/articles',
+  path: '/articles',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -33,35 +41,71 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedArticlesCreateRoute =
+  AuthenticatedArticlesCreateRouteImport.update({
+    id: '/create',
+    path: '/create',
+    getParentRoute: () => AuthenticatedArticlesRoute,
+  } as any)
+const AuthenticatedArticlesArticleIdEditRoute =
+  AuthenticatedArticlesArticleIdEditRouteImport.update({
+    id: '/$articleId/edit',
+    path: '/$articleId/edit',
+    getParentRoute: () => AuthenticatedArticlesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/login': typeof AuthLoginRoute
+  '/articles/create': typeof AuthenticatedArticlesCreateRoute
+  '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/login': typeof AuthLoginRoute
+  '/articles/create': typeof AuthenticatedArticlesCreateRoute
+  '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/auth/login': typeof AuthLoginRoute
+  '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
+  '/_authenticated/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/auth/login'
+  fullPaths:
+    | '/'
+    | '/articles'
+    | '/dashboard'
+    | '/auth/login'
+    | '/articles/create'
+    | '/articles/$articleId/edit'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/auth/login'
+  to:
+    | '/'
+    | '/articles'
+    | '/dashboard'
+    | '/auth/login'
+    | '/articles/create'
+    | '/articles/$articleId/edit'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_authenticated/articles'
     | '/_authenticated/dashboard'
     | '/auth/login'
+    | '/_authenticated/articles/create'
+    | '/_authenticated/articles/$articleId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -86,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/articles': {
+      id: '/_authenticated/articles'
+      path: '/articles'
+      fullPath: '/articles'
+      preLoaderRoute: typeof AuthenticatedArticlesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -100,14 +151,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/articles/create': {
+      id: '/_authenticated/articles/create'
+      path: '/create'
+      fullPath: '/articles/create'
+      preLoaderRoute: typeof AuthenticatedArticlesCreateRouteImport
+      parentRoute: typeof AuthenticatedArticlesRoute
+    }
+    '/_authenticated/articles/$articleId/edit': {
+      id: '/_authenticated/articles/$articleId/edit'
+      path: '/$articleId/edit'
+      fullPath: '/articles/$articleId/edit'
+      preLoaderRoute: typeof AuthenticatedArticlesArticleIdEditRouteImport
+      parentRoute: typeof AuthenticatedArticlesRoute
+    }
   }
 }
 
+interface AuthenticatedArticlesRouteChildren {
+  AuthenticatedArticlesCreateRoute: typeof AuthenticatedArticlesCreateRoute
+  AuthenticatedArticlesArticleIdEditRoute: typeof AuthenticatedArticlesArticleIdEditRoute
+}
+
+const AuthenticatedArticlesRouteChildren: AuthenticatedArticlesRouteChildren = {
+  AuthenticatedArticlesCreateRoute: AuthenticatedArticlesCreateRoute,
+  AuthenticatedArticlesArticleIdEditRoute:
+    AuthenticatedArticlesArticleIdEditRoute,
+}
+
+const AuthenticatedArticlesRouteWithChildren =
+  AuthenticatedArticlesRoute._addFileChildren(
+    AuthenticatedArticlesRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
+  AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
 }
 

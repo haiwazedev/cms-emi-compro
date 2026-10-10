@@ -1,0 +1,892 @@
+import type {
+  Article,
+  ArticleStatus,
+  ArticleWriteFields,
+} from '@/module/article/api/article.api'
+import { createArticle, updateArticle } from '@/module/article/api/article.api'
+import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
+import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
+import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import {
+  articleCategoriesQueryOptions,
+  articleQueryKeys,
+} from '@/module/article/queries/article.queries'
+import type { ArticleFormValues } from '@/module/article/schemas/article-form.schema'
+import { articleFormSchema } from '@/module/article/schemas/article-form.schema'
+import { Badge } from '@/shared/components/ui/badge'
+import { Button } from '@/shared/components/ui/button'
+import { Calendar } from '@/shared/components/ui/calendar'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/shared/components/ui/card'
+import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/shared/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
+import { Textarea } from '@/shared/components/ui/textarea'
+import { ApiError } from '@/shared/lib/api-client'
+import { toast } from '@/shared/lib/toast'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from '@tanstack/react-router'
+import {
+  ArrowLeftIcon,
+  CalendarDaysIcon,
+  EyeIcon,
+  ImageIcon,
+  LoaderCircleIcon,
+} from 'lucide-react'
+import type { ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Controller, useForm, useWatch } from 'react-hook-form'
+
+const MAX_PHOTO_SIZE = 2 * 1024 * 1024
+const PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+const PHOTO_EXTENSIONS = /\.(png|jpe?g|webp)$/i
+
+interface PhotoDimensions {
+  width: number
+  height: number
+}
+
+interface ArticleFormProps {
+  mode: 'create' | 'edit'
+  article?: Article
+}
+
+function ArticleForm({ mode, article }: ArticleFormProps) {
+  const isEditing = mode === 'edit'
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const categoriesQuery = useQuery(articleCategoriesQueryOptions())
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<File>()
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string>()
+  const [photoDimensions, setPhotoDimensions] =
+    useState<PhotoDimensions | null>()
+  const [photoError, setPhotoError] = useState<string>()
+  const objectUrlRef = useRef<string | undefined>(undefined)
+  const initialTitle = article?.title ?? ''
+  const initialSlug = article?.slug ?? ''
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(
+    isEditing && initialSlug !== slugify(initialTitle),
+  )
+
+  const {
+    formState: { errors },
+    control,
+    handleSubmit,
+    register,
+    setError,
+    setValue,
+  } = useForm<ArticleFormValues>({
+    resolver: zodResolver(articleFormSchema),
+    defaultValues: {
+      article_category_id: article?.article_category_id ?? 0,
+      title: initialTitle,
+      slug: initialSlug,
+      summary: article?.summary ?? '',
+      content: article?.content ?? '',
+      issue_date: article?.issue_date?.slice(0, 10) ?? '',
+      press_release_number: article?.press_release_number ?? '',
+      cp_name: article?.cp_name ?? '',
+      cp_role: article?.cp_role ?? '',
+      cp_phone_number: article?.cp_phone_number ?? '',
+      cp_email: article?.cp_email ?? '',
+    },
+  })
+
+  const titleValue = useWatch({ control, name: 'title' }) ?? ''
+  const slugValue = useWatch({ control, name: 'slug' }) ?? ''
+  const contentValue = useWatch({ control, name: 'content' }) ?? ''
+  const categoryId = useWatch({ control, name: 'article_category_id' })
+  const handleContentChange = useCallback(
+    (content: string) => {
+      setValue('content', content, {
+        shouldDirty: true,
+        shouldValidate: true,
+      })
+    },
+    [setValue],
+  )
+
+  const articleMutation = useMutation({
+    mutationFn: ({
+      values,
+      status,
+      photo,
+    }: {
+      values: ArticleFormValues
+      status: ArticleStatus
+      photo?: File
+    }) => {
+      const fields: ArticleWriteFields = {
+        ...values,
+        issue_date: values.issue_date.trim(),
+        status,
+      }
+
+      if (isEditing && article) {
+        return updateArticle(article.id, fields, photo)
+      }
+
+      if (!photo) {
+        throw new Error(ARTICLE_LABELS.photoRequired)
+      }
+
+      return createArticle(fields, photo)
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: articleQueryKeys.all,
+      })
+      toast.add({
+        title: 'Berhasil',
+        description: ARTICLE_LABELS.articleSaved,
+        type: 'success',
+      })
+      await navigate({ to: '/articles' })
+    },
+    onError: (error) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : ARTICLE_LABELS.articleSaveFailed
+
+      if (error instanceof ApiError && error.status === 409) {
+        setError('slug', { message })
+      }
+
+      toast.add({
+        title: 'Gagal',
+        description: message,
+        type: 'error',
+      })
+    },
+  })
+
+  useEffect(
+    () => () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+      }
+    },
+    [],
+  )
+
+  function handleTitleChange(value: string) {
+    if (slugManuallyEdited) return
+
+    setValue('slug', slugify(value), {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+  }
+
+  function handlePhotoChange(file: File | undefined, input: HTMLInputElement) {
+    if (!file) return
+
+    const isAllowedType =
+      PHOTO_MIME_TYPES.includes(file.type) && PHOTO_EXTENSIONS.test(file.name)
+    if (!isAllowedType || file.size > MAX_PHOTO_SIZE) {
+      setPhotoError(ARTICLE_LABELS.photoInvalid)
+      input.value = ''
+      return
+    }
+
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+    }
+
+    const objectUrl = URL.createObjectURL(file)
+    objectUrlRef.current = objectUrl
+    setSelectedPhoto(file)
+    setSelectedPhotoUrl(objectUrl)
+    setPhotoDimensions(undefined)
+    setPhotoError(undefined)
+  }
+
+  function submitArticle(values: ArticleFormValues, status: ArticleStatus) {
+    if (photoError) return
+
+    if (!isEditing && !selectedPhoto) {
+      setPhotoError(ARTICLE_LABELS.photoRequired)
+      return
+    }
+
+    setPhotoError(undefined)
+    articleMutation.mutate({ values, status, photo: selectedPhoto })
+  }
+
+  const existingPhotoUrl = article?.primary_photo_url
+    ? getPhotoUrl(article.primary_photo_url)
+    : undefined
+  const previewPhotoUrl = selectedPhotoUrl ?? existingPhotoUrl
+
+  return (
+    <>
+      <form
+        noValidate
+        onSubmit={handleSubmit((values) => submitArticle(values, 'DRAFT'))}
+        className="bg-primary flex min-h-full flex-col gap-5 p-4 lg:p-8"
+      >
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-2">
+            <Button
+              asChild
+              variant="link"
+              className="text-secondary h-auto self-start px-0"
+            >
+              <Link to="/articles">
+                <ArrowLeftIcon aria-hidden="true" className="size-4" />
+                {ARTICLE_LABELS.backToArticles}
+              </Link>
+            </Button>
+            <div className="flex flex-col gap-1">
+              <h1 className="text-accent text-2xl font-bold lg:text-3xl">
+                {isEditing
+                  ? ARTICLE_LABELS.editPageTitle
+                  : ARTICLE_LABELS.createPageTitle}
+              </h1>
+              {article?.updated_at && (
+                <p className="text-foreground/55 text-sm">
+                  Terakhir disimpan {formatMetaDate(article.updated_at)}
+                  {article.updated_by ? ' oleh ' + article.updated_by : ''}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPreviewOpen(true)}
+            >
+              <EyeIcon aria-hidden="true" className="size-4" />
+              {ARTICLE_LABELS.preview}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={articleMutation.isPending}
+              onClick={() =>
+                void handleSubmit((values) => submitArticle(values, 'DRAFT'))()
+              }
+            >
+              {articleMutation.isPending ? (
+                <LoaderCircleIcon
+                  aria-hidden="true"
+                  className="size-4 animate-spin"
+                />
+              ) : null}
+              {ARTICLE_LABELS.saveDraft}
+            </Button>
+            <Button
+              type="button"
+              disabled={articleMutation.isPending}
+              onClick={() =>
+                void handleSubmit((values) =>
+                  submitArticle(values, 'PUBLISHED'),
+                )()
+              }
+              className="bg-success hover:bg-success/90"
+            >
+              {articleMutation.isPending ? (
+                <LoaderCircleIcon
+                  aria-hidden="true"
+                  className="size-4 animate-spin"
+                />
+              ) : null}
+              {ARTICLE_LABELS.publishArticle}
+            </Button>
+          </div>
+        </header>
+
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <div className="flex min-w-0 flex-1 flex-col gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{ARTICLE_LABELS.mainContent}</CardTitle>
+                <Badge variant="secondary">Bahasa Indonesia</Badge>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  id="article-title"
+                  label={ARTICLE_LABELS.titleField}
+                  required
+                  error={errors.title?.message}
+                  hint={titleValue.length + ' / 120 karakter'}
+                >
+                  <Input
+                    id="article-title"
+                    maxLength={120}
+                    aria-invalid={Boolean(errors.title)}
+                    aria-describedby={
+                      errors.title ? 'article-title-error' : undefined
+                    }
+                    {...register('title', {
+                      onChange: (event) =>
+                        handleTitleChange(event.currentTarget.value),
+                    })}
+                  />
+                </FormField>
+
+                <FormField
+                  id="article-slug"
+                  label={ARTICLE_LABELS.slugField}
+                  required
+                  error={errors.slug?.message}
+                  hint="Dibuat otomatis dari judul dan dapat diedit."
+                >
+                  <Input
+                    id="article-slug"
+                    maxLength={255}
+                    aria-invalid={Boolean(errors.slug)}
+                    aria-describedby={
+                      errors.slug ? 'article-slug-error' : undefined
+                    }
+                    {...register('slug', {
+                      onChange: () => setSlugManuallyEdited(true),
+                    })}
+                    value={slugValue}
+                  />
+                </FormField>
+
+                <FormField
+                  id="article-summary"
+                  label={ARTICLE_LABELS.summaryField}
+                  required
+                  error={errors.summary?.message}
+                  hint="Tampil pada kartu berita di halaman Media & Informasi."
+                >
+                  <Textarea
+                    id="article-summary"
+                    aria-invalid={Boolean(errors.summary)}
+                    aria-describedby={
+                      errors.summary ? 'article-summary-error' : undefined
+                    }
+                    {...register('summary')}
+                  />
+                </FormField>
+
+                <FormField
+                  id="article-content"
+                  label={ARTICLE_LABELS.bodyField}
+                  required
+                  error={errors.content?.message}
+                >
+                  <div
+                    className="border-border/20 overflow-hidden rounded-lg border"
+                    aria-invalid={Boolean(errors.content)}
+                  >
+                    <ArticleRichTextEditor
+                      id="article-content"
+                      ariaLabel={ARTICLE_LABELS.bodyField}
+                      content={article?.content ?? ''}
+                      onChange={handleContentChange}
+                    />
+                  </div>
+                </FormField>
+
+                <FormField
+                  id="article-press-release-number"
+                  label={ARTICLE_LABELS.pressReleaseNumberField}
+                  error={errors.press_release_number?.message}
+                >
+                  <Input
+                    id="article-press-release-number"
+                    maxLength={255}
+                    aria-invalid={Boolean(errors.press_release_number)}
+                    {...register('press_release_number')}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>{ARTICLE_LABELS.contactSection}</CardTitle>
+                <span className="text-foreground/50 text-sm">Komponen</span>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col gap-5 lg:flex-row">
+                  <FormField
+                    id="article-contact-name"
+                    label={ARTICLE_LABELS.contactNameField}
+                    error={errors.cp_name?.message}
+                  >
+                    <Input
+                      id="article-contact-name"
+                      maxLength={100}
+                      aria-invalid={Boolean(errors.cp_name)}
+                      {...register('cp_name')}
+                    />
+                  </FormField>
+                  <FormField
+                    id="article-contact-role"
+                    label={ARTICLE_LABELS.contactRoleField}
+                    error={errors.cp_role?.message}
+                  >
+                    <Input
+                      id="article-contact-role"
+                      maxLength={100}
+                      aria-invalid={Boolean(errors.cp_role)}
+                      {...register('cp_role')}
+                    />
+                  </FormField>
+                </div>
+                <div className="flex flex-col gap-5 lg:flex-row">
+                  <FormField
+                    id="article-contact-phone"
+                    label={ARTICLE_LABELS.contactPhoneField}
+                    error={errors.cp_phone_number?.message}
+                  >
+                    <Input
+                      id="article-contact-phone"
+                      maxLength={100}
+                      aria-invalid={Boolean(errors.cp_phone_number)}
+                      {...register('cp_phone_number')}
+                    />
+                  </FormField>
+                  <FormField
+                    id="article-contact-email"
+                    label={ARTICLE_LABELS.contactEmailField}
+                    error={errors.cp_email?.message}
+                  >
+                    <Input
+                      id="article-contact-email"
+                      type="email"
+                      maxLength={100}
+                      aria-invalid={Boolean(errors.cp_email)}
+                      {...register('cp_email')}
+                    />
+                  </FormField>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <aside className="flex w-full flex-col gap-6 lg:w-80 lg:shrink-0">
+            <Card>
+              <CardContent>
+                <h2 className="text-foreground/60 text-xs font-semibold tracking-wide uppercase">
+                  {ARTICLE_LABELS.publicationStatus}
+                </h2>
+                <div className="border-border/10 flex items-center justify-between border-b pb-3 text-sm">
+                  <span className="text-foreground/60">Status</span>
+                  <Badge
+                    variant="outline"
+                    className={
+                      article?.status === 'PUBLISHED'
+                        ? 'border-success/20 bg-success/10 text-success'
+                        : 'border-warning/20 bg-warning/10 text-warning'
+                    }
+                  >
+                    {article?.status === 'PUBLISHED'
+                      ? ARTICLE_LABELS.published
+                      : ARTICLE_LABELS.draft}
+                  </Badge>
+                </div>
+                {article && (
+                  <div className="flex flex-col gap-3 text-sm">
+                    <MetaRow
+                      label="Dibuat"
+                      value={formatMetaDate(article.created_at)}
+                    />
+                    <MetaRow
+                      label="Penulis"
+                      value={article.updated_by ?? article.created_by}
+                    />
+                    {article.updated_at && (
+                      <MetaRow
+                        label="Diperbarui"
+                        value={formatMetaDate(article.updated_at)}
+                      />
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="px-4 py-3">
+                <CardTitle className="text-xs tracking-wide uppercase">
+                  {ARTICLE_LABELS.primaryPhoto}
+                  {!isEditing && <span className="text-danger"> *</span>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-4">
+                {previewPhotoUrl ? (
+                  <img
+                    src={previewPhotoUrl}
+                    alt=""
+                    className="aspect-video w-full rounded-lg object-cover"
+                    onLoad={(event) => {
+                      if (
+                        !selectedPhoto ||
+                        event.currentTarget.currentSrc !== selectedPhotoUrl
+                      ) {
+                        return
+                      }
+
+                      setPhotoDimensions({
+                        width: event.currentTarget.naturalWidth,
+                        height: event.currentTarget.naturalHeight,
+                      })
+                    }}
+                    onError={(event) => {
+                      if (
+                        selectedPhoto &&
+                        event.currentTarget.currentSrc === selectedPhotoUrl
+                      ) {
+                        setPhotoDimensions(null)
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="bg-primary text-foreground/40 flex aspect-video items-center justify-center rounded-lg">
+                    <ImageIcon aria-hidden="true" className="size-8" />
+                  </div>
+                )}
+                <FormField
+                  id="article-primary-photo"
+                  label={
+                    isEditing
+                      ? ARTICLE_LABELS.photoReplace
+                      : ARTICLE_LABELS.photoSelect
+                  }
+                  required={!isEditing}
+                  error={photoError}
+                  hint={ARTICLE_LABELS.photoHelp}
+                >
+                  <Input
+                    id="article-primary-photo"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    aria-invalid={Boolean(photoError)}
+                    aria-describedby={
+                      photoError ? 'article-primary-photo-error' : undefined
+                    }
+                    onChange={(event) =>
+                      handlePhotoChange(
+                        event.currentTarget.files?.[0],
+                        event.currentTarget,
+                      )
+                    }
+                    className="file:bg-primary file:text-foreground h-auto min-h-10 py-2 text-xs file:mr-3 file:rounded file:border-0 file:px-3 file:py-1"
+                  />
+                </FormField>
+                {selectedPhoto && (
+                  <div className="text-foreground/55 flex min-w-0 items-center gap-1 text-xs">
+                    <span className="min-w-0 flex-1 truncate">
+                      {selectedPhoto.name}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span className="shrink-0">
+                      {photoDimensions
+                        ? `${photoDimensions.width} × ${photoDimensions.height}`
+                        : photoDimensions === null
+                          ? ARTICLE_LABELS.photoDimensionsUnavailable
+                          : ARTICLE_LABELS.photoDimensionsLoading}
+                    </span>
+                    <span aria-hidden="true">·</span>
+                    <span className="shrink-0">
+                      {formatFileSize(selectedPhoto.size)}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="px-4 py-3">
+                <CardTitle className="text-xs tracking-wide uppercase">
+                  {ARTICLE_LABELS.articleGrouping}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 p-4">
+                <FormField
+                  id="article-category"
+                  label={ARTICLE_LABELS.category}
+                  required
+                  error={errors.article_category_id?.message}
+                >
+                  <Select
+                    value={categoryId > 0 ? String(categoryId) : undefined}
+                    onValueChange={(value) =>
+                      setValue('article_category_id', Number(value), {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })
+                    }
+                    disabled={
+                      categoriesQuery.isPending || categoriesQuery.isError
+                    }
+                  >
+                    <SelectTrigger
+                      id="article-category"
+                      aria-invalid={Boolean(errors.article_category_id)}
+                      aria-describedby={
+                        errors.article_category_id
+                          ? 'article-category-error'
+                          : undefined
+                      }
+                    >
+                      <SelectValue
+                        placeholder={
+                          categoriesQuery.isPending
+                            ? 'Memuat kategori...'
+                            : ARTICLE_LABELS.chooseCategory
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoriesQuery.data?.map((category) => (
+                        <SelectItem
+                          key={category.id}
+                          value={String(category.id)}
+                        >
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {categoriesQuery.isError && (
+                    <div className="flex flex-col gap-2">
+                      <p role="alert" className="text-danger text-sm">
+                        {ARTICLE_LABELS.categoriesFailed}
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void categoriesQuery.refetch()}
+                      >
+                        {ARTICLE_LABELS.retry}
+                      </Button>
+                    </div>
+                  )}
+                </FormField>
+
+                <FormField
+                  id="article-issue-date"
+                  label={ARTICLE_LABELS.issueDateField}
+                  error={errors.issue_date?.message}
+                >
+                  <Controller
+                    control={control}
+                    name="issue_date"
+                    render={({ field }) => (
+                      <Popover
+                        open={datePickerOpen}
+                        onOpenChange={setDatePickerOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            ref={field.ref}
+                            id="article-issue-date"
+                            type="button"
+                            variant="outline"
+                            aria-invalid={Boolean(errors.issue_date)}
+                            aria-describedby={
+                              errors.issue_date
+                                ? 'article-issue-date-error'
+                                : undefined
+                            }
+                            onBlur={field.onBlur}
+                            className="h-10 w-full justify-between font-normal"
+                          >
+                            <span
+                              className={
+                                field.value ? undefined : 'text-foreground/55'
+                              }
+                            >
+                              {formatIssueDate(field.value) ??
+                                ARTICLE_LABELS.chooseIssueDate}
+                            </span>
+                            <CalendarDaysIcon
+                              aria-hidden="true"
+                              className="size-4 opacity-60"
+                            />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={parseIssueDate(field.value)}
+                            onSelect={(date) => {
+                              field.onChange(date ? toIssueDate(date) : '')
+                              field.onBlur()
+                              setDatePickerOpen(false)
+                            }}
+                          />
+                          <div className="border-border/15 flex justify-end border-t p-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              disabled={!field.value}
+                              onClick={() => {
+                                field.onChange('')
+                                field.onBlur()
+                                setDatePickerOpen(false)
+                              }}
+                            >
+                              {ARTICLE_LABELS.clearIssueDate}
+                            </Button>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  />
+                </FormField>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+      </form>
+
+      <ArticlePreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        title={titleValue}
+        photoUrl={previewPhotoUrl}
+        content={contentValue}
+      />
+    </>
+  )
+}
+
+function FormField({
+  id,
+  label,
+  required = false,
+  error,
+  hint,
+  children,
+}: {
+  id: string
+  label: string
+  required?: boolean
+  error?: string
+  hint?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 flex-col gap-2">
+      <Label htmlFor={id} className="text-accent">
+        {label}
+        {required && <span className="text-danger"> *</span>}
+      </Label>
+      {children}
+      {error && (
+        <p id={id + '-error'} role="alert" className="text-danger text-sm">
+          {error}
+        </p>
+      )}
+      {!error && hint && <p className="text-foreground/55 text-xs">{hint}</p>}
+    </div>
+  )
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
+      <span className="text-foreground/60">{label}</span>
+      <span className="text-accent text-right font-medium">{value}</span>
+    </div>
+  )
+}
+
+function slugify(value: string) {
+  return value
+    .toLocaleLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function parseIssueDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return undefined
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const date = new Date(year, month - 1, day)
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return undefined
+  }
+
+  return date
+}
+
+function formatIssueDate(value: string) {
+  const date = parseIssueDate(value)
+  if (!date) return undefined
+
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+
+  return `${day}/${month}/${date.getFullYear()}`
+}
+
+function toIssueDate(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function formatFileSize(bytes: number) {
+  const units = ['B', 'KB', 'MB']
+  const unitIndex = bytes < 1024 ? 0 : bytes < 1024 * 1024 ? 1 : 2
+  const value = bytes / 1024 ** unitIndex
+  const formattedValue = new Intl.NumberFormat('id-ID', {
+    maximumFractionDigits: unitIndex === 0 ? 0 : 1,
+  }).format(value)
+
+  return `${formattedValue} ${units[unitIndex]}`
+}
+
+function getPhotoUrl(photoUrl: string) {
+  if (/^https?:\/\//.test(photoUrl)) return photoUrl
+
+  const apiBaseUrl = (
+    import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  ).replace(/\/+$/, '')
+
+  return new URL(photoUrl, apiBaseUrl + '/').toString()
+}
+
+function formatMetaDate(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return new Intl.DateTimeFormat('id-ID', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
+}
+
+export { ArticleForm }

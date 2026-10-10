@@ -15,7 +15,7 @@ function AuthenticatedLayout() {
 
   return (
     <div className="bg-primary flex min-h-screen">
-      <div className="hidden lg:flex">
+      <div className="sticky top-0 hidden h-screen lg:flex">
         <NavigationSidebar />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">

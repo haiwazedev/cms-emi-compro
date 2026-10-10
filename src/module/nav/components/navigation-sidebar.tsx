@@ -1,5 +1,6 @@
 import { Badge } from '@/shared/components/ui/badge'
 import { cn } from '@/shared/lib/utils'
+import { Link, useRouterState } from '@tanstack/react-router'
 import type { ComponentProps } from 'react'
 import {
   NAVIGATION_LABELS,
@@ -9,6 +10,10 @@ import {
 type NavigationSidebarProps = Pick<ComponentProps<'aside'>, 'className'>
 
 function NavigationSidebar({ className }: NavigationSidebarProps) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+
   return (
     <aside
       aria-label={NAVIGATION_LABELS.navigation}
@@ -37,7 +42,10 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
             <ul className="space-y-1">
               {section.items.map((item) => (
                 <li key={item.label}>
-                  <NavigationItemLink item={item} />
+                  <NavigationItemLink
+                    item={item}
+                    isCurrent={item.to === pathname}
+                  />
                 </li>
               ))}
             </ul>
@@ -50,20 +58,18 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
 
 function NavigationItemLink({
   item,
+  isCurrent,
 }: {
   item: (typeof NAVIGATION_SECTIONS)[number]['items'][number]
+  isCurrent: boolean
 }) {
   const Icon = item.icon
-
-  return (
-    <a
-      href={item.href}
-      aria-current={item.current ? 'page' : undefined}
-      className={cn(
-        'flex min-h-9 items-center gap-3 rounded-md px-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white',
-        item.current && 'bg-white/10 text-white',
-      )}
-    >
+  const linkClassName = cn(
+    'flex min-h-9 items-center gap-3 rounded-md px-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white',
+    isCurrent && 'bg-white/10 text-white',
+  )
+  const content = (
+    <>
       <Icon aria-hidden="true" className="size-4 shrink-0" />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
       {item.count && (
@@ -78,6 +84,29 @@ function NavigationItemLink({
           {item.count}
         </Badge>
       )}
+    </>
+  )
+
+  if (item.to) {
+    return (
+      <Link
+        to={item.to}
+        search={{}}
+        aria-current={isCurrent ? 'page' : undefined}
+        className={linkClassName}
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <a
+      href={item.href ?? '#'}
+      aria-current={isCurrent ? 'page' : undefined}
+      className={linkClassName}
+    >
+      {content}
     </a>
   )
 }
