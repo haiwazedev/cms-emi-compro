@@ -1,14 +1,14 @@
-import { DASHBOARD_LABELS } from '../constants/dashboard.constants'
+import { NAVIGATION_TOPBAR_LABELS } from '../constants/navigation.constants'
 
 function LanguageSelector() {
   return (
     <div
       role="group"
-      aria-label={DASHBOARD_LABELS.languageSelector}
+      aria-label={NAVIGATION_TOPBAR_LABELS.languageSelector}
       className="border-border/20 flex shrink-0 items-center overflow-hidden rounded-full border text-xs font-semibold"
     >
-      {DASHBOARD_LABELS.languages.map((language) => {
-        const isActive = language === DASHBOARD_LABELS.activeLanguage
+      {NAVIGATION_TOPBAR_LABELS.languages.map((language) => {
+        const isActive = language === NAVIGATION_TOPBAR_LABELS.activeLanguage
 
         return (
           <span

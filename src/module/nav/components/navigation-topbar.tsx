@@ -1,18 +1,19 @@
-import { MobileNavigationDrawer } from '@/module/nav/components/mobile-navigation-drawer'
-import { DASHBOARD_LABELS } from '../constants/dashboard.constants'
+import { MobileNavigationDrawer } from './mobile-navigation-drawer'
 import { ContentSearchBar } from './content-search-bar'
 import { LanguageSelector } from './language-selector'
 import { ProfileAvatar } from './profile-avatar'
 
-function DashboardTopbar() {
+type NavigationTopbarProps = {
+  title: string
+}
+
+function NavigationTopbar({ title }: NavigationTopbarProps) {
   return (
     <header className="bg-background px-4 py-3 lg:flex lg:h-16 lg:items-center lg:justify-between lg:px-8 lg:py-0">
       <div className="flex flex-1 items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <MobileNavigationDrawer />
-          <p className="text-accent truncate text-sm font-semibold">
-            {DASHBOARD_LABELS.pageTitle}
-          </p>
+          <p className="text-accent truncate text-sm font-semibold">{title}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2 lg:gap-4">
@@ -31,4 +32,4 @@ function DashboardTopbar() {
   )
 }
 
-export { DashboardTopbar }
+export { NavigationTopbar }

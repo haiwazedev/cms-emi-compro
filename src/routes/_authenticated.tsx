@@ -1,9 +1,8 @@
 import { authQueryOptions } from '@/module/auth/queries/auth.queries'
-import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
-import { DashboardPage } from '@/module/dashboard/pages/dashboard-page'
+import { AuthenticatedLayout } from '@/module/nav/layouts/authenticated-layout'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/dashboard')({
+export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async ({ context }) => {
     const user = await context.queryClient.query(authQueryOptions())
 
@@ -11,8 +10,5 @@ export const Route = createFileRoute('/dashboard')({
       throw redirect({ to: '/auth/login' })
     }
   },
-  component: DashboardPage,
-  head: () => ({
-    meta: [{ title: DASHBOARD_LABELS.documentTitle }],
-  }),
+  component: AuthenticatedLayout,
 })

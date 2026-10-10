@@ -16,6 +16,7 @@ import {
 
 export const NAVIGATION_LABELS = {
   navigation: 'Navigasi utama',
+  mainContent: 'Konten utama',
   openNavigation: 'Buka navigasi',
   closeNavigation: 'Tutup navigasi',
   contentManager: 'CONTENT MANAGER',
@@ -36,6 +37,20 @@ export const NAVIGATION_LABELS = {
   single: 'SINGLE',
   companyName: 'Energy Management Indonesia',
   companyMark: 'PLN',
+} as const
+
+export const NAVIGATION_TOPBAR_LABELS = {
+  searchPlaceholder: 'Cari konten...',
+  searchLabel: 'Cari konten',
+  languageSelector: 'Pilihan bahasa',
+  activeLanguage: 'ID',
+  languages: ['ID', 'EN'],
+  profile: 'Profil pengguna',
+  profileInitials: 'NA',
+  logout: 'Keluar',
+  loggingOut: 'Sedang keluar...',
+  logoutSuccess: 'Berhasil keluar.',
+  logoutFailed: 'Gagal keluar. Silakan coba lagi.',
 } as const
 
 type NavigationItem = {
