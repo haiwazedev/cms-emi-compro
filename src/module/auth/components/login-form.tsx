@@ -1,14 +1,26 @@
 import { LOGIN_LABELS } from '@/module/auth/constants/login.constants'
+import { login } from '@/module/auth/api/auth.api'
+import { authQueryKey } from '@/module/auth/queries/auth.queries'
 import { Button } from '@/shared/components/ui/button'
-import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowRightIcon } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+import { ArrowRightIcon, LoaderCircleIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { loginSchema, type LoginFormValues } from '../schemas/login.schema'
 
 function LoginForm() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: async (user) => {
+      queryClient.setQueryData(authQueryKey, user)
+      await navigate({ to: '/dashboard' })
+    },
+  })
   const {
     formState: { errors },
     handleSubmit,
@@ -18,7 +30,6 @@ function LoginForm() {
     defaultValues: {
       email: '',
       password: '',
-      rememberMe: true,
     },
   })
 
@@ -26,7 +37,9 @@ function LoginForm() {
     <form
       className="space-y-6"
       noValidate
-      onSubmit={handleSubmit(() => undefined)}
+      onSubmit={handleSubmit(({ email, password }) =>
+        loginMutation.mutate({ email, password }),
+      )}
     >
       <div className="space-y-2">
         <Label htmlFor="email" className="text-accent">
@@ -70,25 +83,40 @@ function LoginForm() {
         )}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Checkbox id="remember-me" {...register('rememberMe')} />
-          <Label htmlFor="remember-me" className="text-secondary">
-            {LOGIN_LABELS.rememberMe}
-          </Label>
-        </div>
+      <div className="flex justify-end">
         <span className="text-secondary text-sm font-medium">
           {LOGIN_LABELS.forgotPassword}
         </span>
       </div>
 
+      {loginMutation.isError && (
+        <p role="alert" className="text-danger text-sm">
+          {loginMutation.error instanceof Error
+            ? loginMutation.error.message
+            : LOGIN_LABELS.loginFailed}
+        </p>
+      )}
+
       <Button
         type="submit"
         size="lg"
+        disabled={loginMutation.isPending}
         className="h-14 w-full rounded-xl text-base"
       >
-        {LOGIN_LABELS.submit}
-        <ArrowRightIcon aria-hidden="true" className="size-4" />
+        {loginMutation.isPending ? (
+          <>
+            {LOGIN_LABELS.submitting}
+            <LoaderCircleIcon
+              aria-hidden="true"
+              className="size-4 animate-spin"
+            />
+          </>
+        ) : (
+          <>
+            {LOGIN_LABELS.submit}
+            <ArrowRightIcon aria-hidden="true" className="size-4" />
+          </>
+        )}
       </Button>
     </form>
   )

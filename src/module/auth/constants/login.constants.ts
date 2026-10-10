@@ -13,7 +13,8 @@ export const LOGIN_LABELS = {
   emailInvalid: 'Format email tidak valid.',
   password: 'Kata Sandi',
   passwordRequired: 'Kata sandi wajib diisi.',
-  rememberMe: 'Ingat saya di perangkat ini',
   forgotPassword: 'Lupa kata sandi?',
   submit: 'Masuk',
+  submitting: 'Memproses...',
+  loginFailed: 'Gagal masuk. Silakan coba lagi.',
 } as const

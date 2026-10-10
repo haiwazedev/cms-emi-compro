@@ -15,3 +15,4 @@
 - Prioritize refactor child item / multiple occurences UI to own component if possible
 - Prioritize using existing tailwind color variables instead of creating a new one, notify user if new one is needed
 - Do not modify global index.css unless told so, use available colors provided.
+- Add and use new shadcn components if needed, supported and matched the UI

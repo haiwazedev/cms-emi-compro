@@ -1,13 +1,12 @@
 # API Reference
 
-This document describes the API currently provided by the server for frontend
-integration.
+This document describes the API for frontend integration.
 
 ## Base URL and Requests
 
 The default local base URL is `http://localhost:8000`. Replace it with the
 server's deployed URL when integrating with another environment. The port can
-be changed with the server's `PORT` environment variable.
+be changed with the `PORT` environment variable.
 
 Send JSON request bodies with the `Content-Type: application/json` header.
 Errors use this shape:
@@ -18,12 +17,26 @@ Errors use this shape:
 }
 ```
 
-Registration and login return a JWT that expires three hours after it is
-issued. Send it to protected endpoints in the `Authorization` header as
-`Bearer <token>`. There is no token refresh endpoint; log in again after the
-token expires.
+The server requires `REDIS_URL`, `SESSION_SECRET`, and `FRONTEND_ORIGIN`. Use a
+random session secret of at least 32 bytes. The configured frontend origin must
+be an exact HTTP or HTTPS origin, such as `http://localhost:3000`. The server
+does not start if it cannot connect to Redis.
 
-For the Fetch examples below, define the base URL once:
+## Browser Sessions
+
+Registration and login create a server-side session in Redis and set the
+host-only `pln_emi.sid` HttpOnly cookie. The cookie is `SameSite=Lax`, lasts
+three hours, and is marked `Secure` in production. Its lifetime is fixed and is
+not extended by activity. JavaScript cannot read the session cookie.
+
+The frontend and API may use different origins on the same site. The API allows
+credentialed browser requests only from the configured `FRONTEND_ORIGIN`. Use
+`credentials: 'include'` in Fetch requests so the browser sends and receives the
+session cookie. State-changing requests must include an `Origin` or `Referer`
+that matches `FRONTEND_ORIGIN`; browsers add these headers automatically.
+Bearer JWTs are no longer accepted. Sign in again to create a session.
+
+For Fetch examples, define the base URL once:
 
 ```js
 const API_BASE_URL = 'http://localhost:8000';
@@ -33,15 +46,15 @@ const API_BASE_URL = 'http://localhost:8000';
 
 `POST /auth/register`
 
-Create an account and receive an access token.
+Create an account and start a session.
 
 ### Request body
 
-| Field      | Type   | Rules                                                              |
-| ---------- | ------ | ------------------------------------------------------------------ |
-| `name`     | string | Required; whitespace around the value is trimmed.                  |
-| `email`    | string | Required; must be a valid email. It is trimmed and lowercased.     |
-| `password` | string | Required and non-empty. It is sent as provided and is not trimmed. |
+| Field      | Type   | Rules                                                           |
+| ---------- | ------ | --------------------------------------------------------------- |
+| `name`     | string | Required; whitespace around the value is trimmed.               |
+| `email`    | string | Required; must be a valid email. It is trimmed and lowercased.  |
+| `password` | string | Required and non-empty. It is sent as provided and not trimmed. |
 
 ```json
 {
@@ -53,9 +66,10 @@ Create an account and receive an access token.
 
 ### Success response — `201 Created`
 
+The response sets the session cookie and returns:
+
 ```json
 {
-  "token": "eyJ...",
   "user": {
     "name": "Ari Putra",
     "email": "ari@example.com"
@@ -65,16 +79,19 @@ Create an account and receive an access token.
 
 ### Errors
 
-| Status            | Message                                                                                                             |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `400 Bad Request` | `Name, email, and password are required.` for missing or empty fields; `Email must be valid.` for an invalid email. |
-| `409 Conflict`    | `Email is already registered.`                                                                                      |
+| Status                    | Message                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `400 Bad Request`         | `Name, email, and password are required.` for missing or empty fields; `Email must be valid.` for an invalid email. |
+| `403 Forbidden`           | `Request origin is not allowed.` when `Origin`/`Referer` is missing or does not match the configured origin.        |
+| `409 Conflict`            | `Email is already registered.`                                                                                      |
+| `503 Service Unavailable` | `Session service is unavailable.` when Redis session storage fails.                                                 |
 
 ### Fetch example
 
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/register`, {
   method: 'POST',
+  credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     name: 'Ari Putra',
@@ -86,29 +103,31 @@ const response = await fetch(`${API_BASE_URL}/auth/register`, {
 const data = await response.json();
 if (!response.ok) throw new Error(data.message);
 
-const { token, user } = data;
+const { user } = data;
 ```
 
 ### cURL example
 
 ```sh
-curl -X POST http://localhost:8000/auth/register \
+curl -i -X POST http://localhost:8000/auth/register \
+  -H 'Origin: http://localhost:3000' \
   -H 'Content-Type: application/json' \
-  -d '{"name":"Ari Putra","email":"ari@example.com","password":"correct-horse-battery-staple"}'
+  -d '{"name":"Ari Putra","email":"ari@example.com","password":"correct-horse-battery-staple"}' \
+  -c cookies.txt
 ```
 
 ## Login
 
 `POST /auth/login`
 
-Authenticate an existing account and receive an access token.
+Authenticate an existing account and start a session.
 
-### Request body
+| Field      | Type   | Rules                                                           |
+| ---------- | ------ | --------------------------------------------------------------- |
+| `email`    | string | Required; must be a valid email. It is trimmed and lowercased.  |
+| `password` | string | Required and non-empty. It is sent as provided and not trimmed. |
 
-| Field      | Type   | Rules                                                              |
-| ---------- | ------ | ------------------------------------------------------------------ |
-| `email`    | string | Required; must be a valid email. It is trimmed and lowercased.     |
-| `password` | string | Required and non-empty. It is sent as provided and is not trimmed. |
+The request body is:
 
 ```json
 {
@@ -117,86 +136,29 @@ Authenticate an existing account and receive an access token.
 }
 ```
 
-### Success response — `200 OK`
-
-```json
-{
-  "token": "eyJ...",
-  "user": {
-    "name": "Ari Putra",
-    "email": "ari@example.com"
-  }
-}
-```
+The `200 OK` response sets the session cookie and returns the same
+`{ "user": ... }` shape as registration.
 
 ### Errors
 
-| Status             | Message                                                                                                      |
-| ------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `400 Bad Request`  | `Email and password are required.` for missing or empty fields; `Email must be valid.` for an invalid email. |
-| `401 Unauthorized` | `Invalid email or password.`                                                                                 |
+| Status                    | Message                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `400 Bad Request`         | `Email and password are required.` for missing or empty fields; `Email must be valid.` for an invalid email. |
+| `401 Unauthorized`        | `Invalid email or password.`                                                                                 |
+| `403 Forbidden`           | `Request origin is not allowed.` when `Origin`/`Referer` is missing or does not match the configured origin. |
+| `503 Service Unavailable` | `Session service is unavailable.` when Redis session storage fails.                                          |
 
 ### Fetch example
 
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/login`, {
   method: 'POST',
+  credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-});
-
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
-
-const { token, user } = data;
-```
-
-### cURL example
-
-```sh
-curl -X POST http://localhost:8000/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"ari@example.com","password":"correct-horse-battery-staple"}'
-```
-
-## Get the Current User
-
-`GET /auth/me`
-
-Validate an access token and return the current user's name and email.
-
-### Headers
-
-| Header          | Value            |
-| --------------- | ---------------- |
-| `Authorization` | `Bearer <token>` |
-
-### Success response — `200 OK`
-
-```json
-{
-  "user": {
-    "name": "Ari Putra",
-    "email": "ari@example.com"
-  }
-}
-```
-
-### Errors
-
-| Status             | Message                                                                           |
-| ------------------ | --------------------------------------------------------------------------------- |
-| `401 Unauthorized` | `Authentication is required.` when the header is missing or malformed.            |
-| `401 Unauthorized` | `Invalid or expired token.` when verification fails or the user no longer exists. |
-
-### Fetch example
-
-```js
-const response = await fetch(`${API_BASE_URL}/auth/me`, {
-  headers: { Authorization: `Bearer ${token}` },
 });
 
 const data = await response.json();
@@ -208,8 +170,91 @@ const { user } = data;
 ### cURL example
 
 ```sh
-curl http://localhost:8000/auth/me \
-  -H 'Authorization: Bearer YOUR_TOKEN'
+curl -i -X POST http://localhost:8000/auth/login \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ari@example.com","password":"correct-horse-battery-staple"}' \
+  -c cookies.txt
+```
+
+## Get the Current User
+
+`GET /auth/me`
+
+Return the current user's name and email using the session cookie.
+
+### Success response — `200 OK`
+
+```json
+{
+  "user": {
+    "name": "Ari Putra",
+    "email": "ari@example.com"
+  }
+}
+```
+
+### Errors
+
+| Status                    | Message                                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| `401 Unauthorized`        | `Authentication is required.` when no valid session exists or its user no longer exists. |
+| `503 Service Unavailable` | `Session service is unavailable.` when Redis session storage fails.                      |
+
+### Fetch example
+
+```js
+const response = await fetch(`${API_BASE_URL}/auth/me`, {
+  credentials: 'include',
+});
+
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
+
+const { user } = data;
+```
+
+### cURL example
+
+```sh
+curl http://localhost:8000/auth/me -b cookies.txt
+```
+
+## Logout
+
+`POST /auth/logout`
+
+Destroy the current Redis session and clear the cookie. The route is safe to
+repeat and does not require an active session. Success returns `204 No Content`
+with no response body.
+
+### Errors
+
+| Status                    | Message                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `403 Forbidden`           | `Request origin is not allowed.` when `Origin`/`Referer` is missing or does not match the configured origin. |
+| `503 Service Unavailable` | `Session service is unavailable.` when Redis session storage fails.                                          |
+
+### Fetch example
+
+```js
+const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+  method: 'POST',
+  credentials: 'include',
+});
+
+if (!response.ok) {
+  const data = await response.json();
+  throw new Error(data.message);
+}
+```
+
+### cURL example
+
+```sh
+curl -i -X POST http://localhost:8000/auth/logout \
+  -H 'Origin: http://localhost:3000' \
+  -b cookies.txt
 ```
 
 ## Health Check
@@ -221,12 +266,6 @@ curl http://localhost:8000/auth/me \
   "message": "OK"
 }
 ```
-
-## Browser Cross-Origin Requests
-
-The server currently does not configure CORS. A browser frontend served from a
-different origin needs the server to allow that frontend's origin or needs to
-route API requests through a same-origin proxy.
 
 ## Common Errors
 
