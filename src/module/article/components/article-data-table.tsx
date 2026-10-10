@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import { cn } from '@/shared/lib/utils'
 import { Link } from '@tanstack/react-router'
 import {
@@ -284,25 +285,13 @@ function ArticlePhoto({ article }: { article: Article }) {
     )
   }
 
-  const baseUrl = apiBaseUrl()
-  const photoUrl = /^https?:\/\//.test(article.primary_photo_url)
-    ? article.primary_photo_url
-    : new URL(article.primary_photo_url, `${baseUrl}/`).toString()
-
   return (
     <img
-      src={photoUrl}
+      src={getMediaAssetUrl(article.primary_photo_url)}
       alt=""
       className="size-11 rounded-md object-cover"
       loading="lazy"
     />
-  )
-}
-
-function apiBaseUrl() {
-  return (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(
-    /\/+$/,
-    '',
   )
 }
 

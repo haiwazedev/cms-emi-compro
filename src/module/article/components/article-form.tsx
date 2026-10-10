@@ -7,6 +7,9 @@ import { createArticle, updateArticle } from '@/module/article/api/article.api'
 import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import type { Media } from '@/module/media/api/media.api'
+import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import {
   articleCategoriesQueryOptions,
   articleQueryKeys,
@@ -50,17 +53,8 @@ import {
   LoaderCircleIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
-
-const MAX_PHOTO_SIZE = 2 * 1024 * 1024
-const PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
-const PHOTO_EXTENSIONS = /\.(png|jpe?g|webp)$/i
-
-interface PhotoDimensions {
-  width: number
-  height: number
-}
 
 interface ArticleFormProps {
   mode: 'create' | 'edit'
@@ -74,12 +68,9 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
   const categoriesQuery = useQuery(articleCategoriesQueryOptions())
   const [previewOpen, setPreviewOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
-  const [selectedPhoto, setSelectedPhoto] = useState<File>()
-  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string>()
-  const [photoDimensions, setPhotoDimensions] =
-    useState<PhotoDimensions | null>()
+  const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<Media>()
   const [photoError, setPhotoError] = useState<string>()
-  const objectUrlRef = useRef<string | undefined>(undefined)
   const initialTitle = article?.title ?? ''
   const initialSlug = article?.slug ?? ''
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(
@@ -128,27 +119,29 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
     mutationFn: ({
       values,
       status,
-      photo,
+      primaryPhotoId,
     }: {
       values: ArticleFormValues
       status: ArticleStatus
-      photo?: File
+      primaryPhotoId: number
     }) => {
       const fields: ArticleWriteFields = {
         ...values,
-        issue_date: values.issue_date.trim(),
+        issue_date: toNullableText(values.issue_date),
+        press_release_number: toNullableText(values.press_release_number),
+        cp_name: toNullableText(values.cp_name),
+        cp_role: toNullableText(values.cp_role),
+        cp_phone_number: toNullableText(values.cp_phone_number),
+        cp_email: toNullableText(values.cp_email),
+        primary_photo: primaryPhotoId,
         status,
       }
 
       if (isEditing && article) {
-        return updateArticle(article.id, fields, photo)
+        return updateArticle(article.id, fields)
       }
 
-      if (!photo) {
-        throw new Error(ARTICLE_LABELS.photoRequired)
-      }
-
-      return createArticle(fields, photo)
+      return createArticle(fields)
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -179,15 +172,6 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
     },
   })
 
-  useEffect(
-    () => () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-      }
-    },
-    [],
-  )
-
   function handleTitleChange(value: string) {
     if (slugManuallyEdited) return
 
@@ -197,45 +181,28 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
     })
   }
 
-  function handlePhotoChange(file: File | undefined, input: HTMLInputElement) {
-    if (!file) return
-
-    const isAllowedType =
-      PHOTO_MIME_TYPES.includes(file.type) && PHOTO_EXTENSIONS.test(file.name)
-    if (!isAllowedType || file.size > MAX_PHOTO_SIZE) {
-      setPhotoError(ARTICLE_LABELS.photoInvalid)
-      input.value = ''
-      return
-    }
-
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current)
-    }
-
-    const objectUrl = URL.createObjectURL(file)
-    objectUrlRef.current = objectUrl
-    setSelectedPhoto(file)
-    setSelectedPhotoUrl(objectUrl)
-    setPhotoDimensions(undefined)
+  function handlePhotoSelect(media: Media) {
+    setSelectedPhoto(media)
     setPhotoError(undefined)
   }
 
   function submitArticle(values: ArticleFormValues, status: ArticleStatus) {
-    if (photoError) return
-
-    if (!isEditing && !selectedPhoto) {
+    const primaryPhotoId = selectedPhoto?.id ?? article?.primary_photo
+    if (primaryPhotoId == null) {
       setPhotoError(ARTICLE_LABELS.photoRequired)
       return
     }
 
     setPhotoError(undefined)
-    articleMutation.mutate({ values, status, photo: selectedPhoto })
+    articleMutation.mutate({ values, status, primaryPhotoId })
   }
 
   const existingPhotoUrl = article?.primary_photo_url
-    ? getPhotoUrl(article.primary_photo_url)
+    ? getMediaAssetUrl(article.primary_photo_url)
     : undefined
-  const previewPhotoUrl = selectedPhotoUrl ?? existingPhotoUrl
+  const previewPhotoUrl = selectedPhoto
+    ? getMediaAssetUrl(selectedPhoto.path)
+    : existingPhotoUrl
 
   return (
     <>
@@ -526,7 +493,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
               <CardHeader className="px-4 py-3">
                 <CardTitle className="text-xs tracking-wide uppercase">
                   {ARTICLE_LABELS.primaryPhoto}
-                  {!isEditing && <span className="text-danger"> *</span>}
+                  <span className="text-danger"> *</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 p-4">
@@ -535,27 +502,6 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                     src={previewPhotoUrl}
                     alt=""
                     className="aspect-video w-full rounded-lg object-cover"
-                    onLoad={(event) => {
-                      if (
-                        !selectedPhoto ||
-                        event.currentTarget.currentSrc !== selectedPhotoUrl
-                      ) {
-                        return
-                      }
-
-                      setPhotoDimensions({
-                        width: event.currentTarget.naturalWidth,
-                        height: event.currentTarget.naturalHeight,
-                      })
-                    }}
-                    onError={(event) => {
-                      if (
-                        selectedPhoto &&
-                        event.currentTarget.currentSrc === selectedPhotoUrl
-                      ) {
-                        setPhotoDimensions(null)
-                      }
-                    }}
                   />
                 ) : (
                   <div className="bg-primary text-foreground/40 flex aspect-video items-center justify-center rounded-lg">
@@ -569,43 +515,43 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                       ? ARTICLE_LABELS.photoReplace
                       : ARTICLE_LABELS.photoSelect
                   }
-                  required={!isEditing}
+                  required
                   error={photoError}
                   hint={ARTICLE_LABELS.photoHelp}
                 >
-                  <Input
+                  <Button
                     id="article-primary-photo"
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
+                    type="button"
+                    variant="outline"
                     aria-invalid={Boolean(photoError)}
                     aria-describedby={
                       photoError ? 'article-primary-photo-error' : undefined
                     }
-                    onChange={(event) =>
-                      handlePhotoChange(
-                        event.currentTarget.files?.[0],
-                        event.currentTarget,
-                      )
-                    }
-                    className="file:bg-primary file:text-foreground h-auto min-h-10 py-2 text-xs file:mr-3 file:rounded file:border-0 file:px-3 file:py-1"
-                  />
+                    onClick={() => setPhotoPickerOpen(true)}
+                    className="w-full justify-start"
+                  >
+                    <ImageIcon aria-hidden="true" className="size-4" />
+                    {selectedPhoto
+                      ? ARTICLE_LABELS.photoReplace
+                      : ARTICLE_LABELS.photoSelect}
+                  </Button>
                 </FormField>
                 {selectedPhoto && (
                   <div className="text-foreground/55 flex min-w-0 items-center gap-1 text-xs">
                     <span className="min-w-0 flex-1 truncate">
-                      {selectedPhoto.name}
+                      {selectedPhoto.filename}
                     </span>
+                    {selectedPhoto.metadata && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span className="shrink-0">
+                          {`${selectedPhoto.metadata.width} × ${selectedPhoto.metadata.height}`}
+                        </span>
+                      </>
+                    )}
                     <span aria-hidden="true">·</span>
                     <span className="shrink-0">
-                      {photoDimensions
-                        ? `${photoDimensions.width} × ${photoDimensions.height}`
-                        : photoDimensions === null
-                          ? ARTICLE_LABELS.photoDimensionsUnavailable
-                          : ARTICLE_LABELS.photoDimensionsLoading}
-                    </span>
-                    <span aria-hidden="true">·</span>
-                    <span className="shrink-0">
-                      {formatFileSize(selectedPhoto.size)}
+                      {formatMediaSize(selectedPhoto.size)}
                     </span>
                   </div>
                 )}
@@ -767,6 +713,16 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
         photoUrl={previewPhotoUrl}
         content={contentValue}
       />
+      {photoPickerOpen && (
+        <MediaPickerDialog
+          open={photoPickerOpen}
+          onOpenChange={setPhotoPickerOpen}
+          selectedMediaId={
+            selectedPhoto?.id ?? article?.primary_photo ?? undefined
+          }
+          onSelect={handlePhotoSelect}
+        />
+      )}
     </>
   )
 }
@@ -858,25 +814,14 @@ function toIssueDate(date: Date) {
   return `${year}-${month}-${day}`
 }
 
-function formatFileSize(bytes: number) {
-  const units = ['B', 'KB', 'MB']
-  const unitIndex = bytes < 1024 ? 0 : bytes < 1024 * 1024 ? 1 : 2
-  const value = bytes / 1024 ** unitIndex
-  const formattedValue = new Intl.NumberFormat('id-ID', {
-    maximumFractionDigits: unitIndex === 0 ? 0 : 1,
-  }).format(value)
-
-  return `${formattedValue} ${units[unitIndex]}`
+function formatMediaSize(sizeInKb: number) {
+  return sizeInKb >= 1024
+    ? `${(sizeInKb / 1024).toFixed(1)} MB`
+    : `${sizeInKb} KB`
 }
 
-function getPhotoUrl(photoUrl: string) {
-  if (/^https?:\/\//.test(photoUrl)) return photoUrl
-
-  const apiBaseUrl = (
-    import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  ).replace(/\/+$/, '')
-
-  return new URL(photoUrl, apiBaseUrl + '/').toString()
+function toNullableText(value: string) {
+  return value.trim() || null
 }
 
 function formatMetaDate(value: string) {

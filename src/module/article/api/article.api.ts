@@ -11,6 +11,7 @@ export interface Article {
   content: string
   issue_date: string | null
   press_release_number: string | null
+  primary_photo: number | null
   primary_photo_url: string | null
   cp_name: string | null
   cp_role: string | null
@@ -66,12 +67,13 @@ export interface ArticleWriteFields {
   slug: string
   summary: string
   content: string
-  issue_date: string
-  press_release_number: string
-  cp_name: string
-  cp_role: string
-  cp_phone_number: string
-  cp_email: string
+  issue_date: string | null
+  press_release_number: string | null
+  cp_name: string | null
+  cp_role: string | null
+  cp_phone_number: string | null
+  cp_email: string | null
+  primary_photo: number
   status: ArticleStatus
 }
 
@@ -99,12 +101,8 @@ export async function getArticle(articleId: number) {
   return data.article
 }
 
-export async function createArticle(
-  fields: ArticleWriteFields,
-  primaryPhoto: File,
-) {
-  const formData = createArticleFormData(fields, primaryPhoto)
-  const { data } = await apiClient.post<ArticleResponse>('/articles', formData)
+export async function createArticle(fields: ArticleWriteFields) {
+  const { data } = await apiClient.post<ArticleResponse>('/articles', fields)
 
   return data.article
 }
@@ -112,12 +110,10 @@ export async function createArticle(
 export async function updateArticle(
   articleId: number,
   fields: ArticleWriteFields,
-  primaryPhoto?: File,
 ) {
-  const formData = createArticleFormData(fields, primaryPhoto)
   const { data } = await apiClient.put<ArticleResponse>(
     '/articles/' + articleId,
-    formData,
+    fields,
   )
 
   return data.article
@@ -125,21 +121,4 @@ export async function updateArticle(
 
 export async function deleteArticle(articleId: number) {
   await apiClient.delete<void>('/articles/' + articleId)
-}
-
-function createArticleFormData(
-  fields: ArticleWriteFields,
-  primaryPhoto?: File,
-) {
-  const formData = new FormData()
-
-  Object.entries(fields).forEach(([key, value]) => {
-    formData.append(key, String(value))
-  })
-
-  if (primaryPhoto) {
-    formData.append('primary_photo', primaryPhoto)
-  }
-
-  return formData
 }

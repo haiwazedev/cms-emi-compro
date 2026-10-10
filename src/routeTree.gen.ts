@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
 import { Route as AuthenticatedArticlesArticleIdEditRouteImport } from './routes/_authenticated/articles.$articleId.edit'
@@ -34,6 +35,11 @@ const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/_authenticated/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
     | '/'
     | '/articles'
     | '/dashboard'
+    | '/media'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -94,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/articles'
     | '/dashboard'
+    | '/media'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -103,6 +114,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/articles'
     | '/_authenticated/dashboard'
+    | '/_authenticated/media'
     | '/auth/login'
     | '/_authenticated/articles/create'
     | '/_authenticated/articles/$articleId/edit'
@@ -142,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/media': {
+      id: '/_authenticated/media'
+      path: '/media'
+      fullPath: '/media'
+      preLoaderRoute: typeof AuthenticatedMediaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/auth/login': {
@@ -187,11 +206,13 @@ const AuthenticatedArticlesRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

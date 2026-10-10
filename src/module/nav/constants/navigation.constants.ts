@@ -56,7 +56,7 @@ export const NAVIGATION_TOPBAR_LABELS = {
 type NavigationItem = {
   label: string
   href?: '#'
-  to?: '/articles'
+  to?: '/articles' | '/media'
   icon: LucideIcon
   count?: string
 }
@@ -131,7 +131,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
     items: [
       {
         label: NAVIGATION_LABELS.mediaLibrary,
-        href: '#',
+        to: '/media',
         icon: ImagesIcon,
       },
     ],
