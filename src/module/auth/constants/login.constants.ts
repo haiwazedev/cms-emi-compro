@@ -16,5 +16,6 @@ export const LOGIN_LABELS = {
   forgotPassword: 'Lupa kata sandi?',
   submit: 'Masuk',
   submitting: 'Memproses...',
+  loginSuccess: 'Berhasil masuk.',
   loginFailed: 'Gagal masuk. Silakan coba lagi.',
 } as const

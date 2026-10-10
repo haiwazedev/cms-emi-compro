@@ -4,6 +4,7 @@ import { authQueryKey } from '@/module/auth/queries/auth.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { toast } from '@/shared/lib/toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -17,8 +18,16 @@ function LoginForm() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (user) => {
+      toast.add({ title: LOGIN_LABELS.loginSuccess, type: 'success' })
       queryClient.setQueryData(authQueryKey, user)
       await navigate({ to: '/dashboard' })
+    },
+    onError: (error) => {
+      toast.add({
+        title:
+          error instanceof Error ? error.message : LOGIN_LABELS.loginFailed,
+        type: 'error',
+      })
     },
   })
   const {
@@ -88,14 +97,6 @@ function LoginForm() {
           {LOGIN_LABELS.forgotPassword}
         </span>
       </div>
-
-      {loginMutation.isError && (
-        <p role="alert" className="text-danger text-sm">
-          {loginMutation.error instanceof Error
-            ? loginMutation.error.message
-            : LOGIN_LABELS.loginFailed}
-        </p>
-      )}
 
       <Button
         type="submit"
