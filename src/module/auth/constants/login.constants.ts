@@ -1,0 +1,19 @@
+export const LOGIN_LABELS = {
+  pageTitle: 'Masuk ke CMS | PLN EMI Admin',
+  brandTitle: 'Content',
+  brandTitleAccent: 'Management System',
+  brandDescription:
+    'Kelola berita, dokumen komitmen, layanan, dan profil perusahaan PT Energy Management Indonesia (Persero) dalam satu tempat.',
+  copyright: '© {year} PT Energy Management Indonesia (Persero)',
+  eyebrow: 'Panel Administrator',
+  title: 'Masuk ke CMS',
+  description: 'Gunakan akun yang telah didaftarkan oleh administrator.',
+  email: 'Email',
+  emailRequired: 'Email wajib diisi.',
+  emailInvalid: 'Format email tidak valid.',
+  password: 'Kata Sandi',
+  passwordRequired: 'Kata sandi wajib diisi.',
+  rememberMe: 'Ingat saya di perangkat ini',
+  forgotPassword: 'Lupa kata sandi?',
+  submit: 'Masuk',
+} as const
