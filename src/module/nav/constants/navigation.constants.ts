@@ -56,7 +56,7 @@ export const NAVIGATION_TOPBAR_LABELS = {
 type NavigationItem = {
   label: string
   href?: '#'
-  to?: '/home' | '/about-us' | '/articles' | '/media'
+  to?: '/home' | '/about-us' | '/articles' | '/divisions' | '/media'
   icon: LucideIcon
   count?: string
 }
@@ -90,7 +90,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.divisionsAndServices,
-        href: '#',
+        to: '/divisions',
         icon: ZapIcon,
         count: '5',
       },

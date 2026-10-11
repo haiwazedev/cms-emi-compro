@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticated.about-us'
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDivisionsRouteImport } from './routes/_authenticated.divisions'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
@@ -42,6 +43,11 @@ const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDivisionsRoute = AuthenticatedDivisionsRouteImport.update({
+  id: '/divisions',
+  path: '/divisions',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/divisions': typeof AuthenticatedDivisionsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/divisions': typeof AuthenticatedDivisionsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_authenticated/about-us': typeof AuthenticatedAboutUsRoute
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/divisions': typeof AuthenticatedDivisionsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/about-us'
     | '/articles'
     | '/dashboard'
+    | '/divisions'
     | '/home'
     | '/media'
     | '/auth/login'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/about-us'
     | '/articles'
     | '/dashboard'
+    | '/divisions'
     | '/home'
     | '/media'
     | '/auth/login'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/_authenticated/about-us'
     | '/_authenticated/articles'
     | '/_authenticated/dashboard'
+    | '/_authenticated/divisions'
     | '/_authenticated/home'
     | '/_authenticated/media'
     | '/auth/login'
@@ -185,6 +197,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/divisions': {
+      id: '/_authenticated/divisions'
+      path: '/divisions'
+      fullPath: '/divisions'
+      preLoaderRoute: typeof AuthenticatedDivisionsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/home': {
@@ -245,6 +264,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAboutUsRoute: typeof AuthenticatedAboutUsRoute
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDivisionsRoute: typeof AuthenticatedDivisionsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
@@ -253,6 +273,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutUsRoute: AuthenticatedAboutUsRoute,
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDivisionsRoute: AuthenticatedDivisionsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
