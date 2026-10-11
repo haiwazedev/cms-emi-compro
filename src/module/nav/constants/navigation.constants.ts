@@ -56,7 +56,13 @@ export const NAVIGATION_TOPBAR_LABELS = {
 type NavigationItem = {
   label: string
   href?: '#'
-  to?: '/home' | '/about-us' | '/articles' | '/divisions' | '/media'
+  to?:
+    | '/home'
+    | '/about-us'
+    | '/articles'
+    | '/divisions'
+    | '/document_commitments'
+    | '/media'
   icon: LucideIcon
   count?: string
 }
@@ -96,7 +102,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.commitmentDocuments,
-        href: '#',
+        to: '/document_commitments',
         icon: FileTextIcon,
         count: '12',
       },

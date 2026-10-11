@@ -15,6 +15,8 @@ import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDivisionsRouteImport } from './routes/_authenticated.divisions'
+import { Route as AuthenticatedDocument_commitment_categoriesRouteImport } from './routes/_authenticated.document_commitment_categories'
+import { Route as AuthenticatedDocument_commitmentsRouteImport } from './routes/_authenticated.document_commitments'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
@@ -50,6 +52,18 @@ const AuthenticatedDivisionsRoute = AuthenticatedDivisionsRouteImport.update({
   path: '/divisions',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDocument_commitment_categoriesRoute =
+  AuthenticatedDocument_commitment_categoriesRouteImport.update({
+    id: '/document_commitment_categories',
+    path: '/document_commitment_categories',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedDocument_commitmentsRoute =
+  AuthenticatedDocument_commitmentsRouteImport.update({
+    id: '/document_commitments',
+    path: '/document_commitments',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -84,6 +98,8 @@ export interface FileRoutesByFullPath {
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
+  '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
+  '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -96,6 +112,8 @@ export interface FileRoutesByTo {
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
+  '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
+  '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -110,6 +128,8 @@ export interface FileRoutesById {
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/divisions': typeof AuthenticatedDivisionsRoute
+  '/_authenticated/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
+  '/_authenticated/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -124,6 +144,8 @@ export interface FileRouteTypes {
     | '/articles'
     | '/dashboard'
     | '/divisions'
+    | '/document_commitment_categories'
+    | '/document_commitments'
     | '/home'
     | '/media'
     | '/auth/login'
@@ -136,6 +158,8 @@ export interface FileRouteTypes {
     | '/articles'
     | '/dashboard'
     | '/divisions'
+    | '/document_commitment_categories'
+    | '/document_commitments'
     | '/home'
     | '/media'
     | '/auth/login'
@@ -149,6 +173,8 @@ export interface FileRouteTypes {
     | '/_authenticated/articles'
     | '/_authenticated/dashboard'
     | '/_authenticated/divisions'
+    | '/_authenticated/document_commitment_categories'
+    | '/_authenticated/document_commitments'
     | '/_authenticated/home'
     | '/_authenticated/media'
     | '/auth/login'
@@ -204,6 +230,20 @@ declare module '@tanstack/react-router' {
       path: '/divisions'
       fullPath: '/divisions'
       preLoaderRoute: typeof AuthenticatedDivisionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/document_commitment_categories': {
+      id: '/_authenticated/document_commitment_categories'
+      path: '/document_commitment_categories'
+      fullPath: '/document_commitment_categories'
+      preLoaderRoute: typeof AuthenticatedDocument_commitment_categoriesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/document_commitments': {
+      id: '/_authenticated/document_commitments'
+      path: '/document_commitments'
+      fullPath: '/document_commitments'
+      preLoaderRoute: typeof AuthenticatedDocument_commitmentsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/home': {
@@ -265,6 +305,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDivisionsRoute: typeof AuthenticatedDivisionsRoute
+  AuthenticatedDocument_commitment_categoriesRoute: typeof AuthenticatedDocument_commitment_categoriesRoute
+  AuthenticatedDocument_commitmentsRoute: typeof AuthenticatedDocument_commitmentsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
@@ -274,6 +316,10 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDivisionsRoute: AuthenticatedDivisionsRoute,
+  AuthenticatedDocument_commitment_categoriesRoute:
+    AuthenticatedDocument_commitment_categoriesRoute,
+  AuthenticatedDocument_commitmentsRoute:
+    AuthenticatedDocument_commitmentsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
