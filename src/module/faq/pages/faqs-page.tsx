@@ -77,20 +77,6 @@ function FaqsPage() {
     onError: (error) => showError(error, FAQ_LABELS.saveFailed),
   })
 
-  const duplicateMutation = useMutation({
-    mutationFn: (faq: Faq) =>
-      createFaq({
-        question: faq.question + FAQ_LABELS.copySuffix,
-        answer: faq.answer,
-        status: 'DRAFT',
-      }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: faqQueryKeys.all })
-      showSuccess(FAQ_LABELS.duplicated)
-    },
-    onError: (error) => showError(error, FAQ_LABELS.duplicateFailed),
-  })
-
   const deleteMutation = useMutation({
     mutationFn: (faq: Faq) => deleteFaq(faq.id),
     onSuccess: async (_data, faq) => {
@@ -128,15 +114,14 @@ function FaqsPage() {
     reorderMutation.mutate(reordered.map((faq) => faq.id))
   }
 
-  const rowsDisabled =
-    reorderMutation.isPending ||
-    duplicateMutation.isPending ||
-    deleteMutation.isPending
+  const rowsDisabled = reorderMutation.isPending || deleteMutation.isPending
 
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
       <div className="bg-primary flex min-h-full flex-col gap-4 p-4 lg:gap-6 lg:p-8">
+        {/* Page Header */}
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          {/* Page Title */}
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {FAQ_LABELS.pageTitle}
@@ -145,6 +130,8 @@ function FaqsPage() {
               {FAQ_LABELS.description}
             </p>
           </div>
+
+          {/* Add FAQ Button */}
           <Button
             type="button"
             className="self-start lg:self-auto"
@@ -156,6 +143,7 @@ function FaqsPage() {
           </Button>
         </header>
 
+        {/* Content */}
         <Card aria-label={FAQ_LABELS.pageTitle}>
           {faqsQuery.isPending ? (
             <SectionMessage message={FAQ_LABELS.loadingFaqs} />
@@ -189,7 +177,6 @@ function FaqsPage() {
                       selected={faq.id === form?.faq?.id}
                       disabled={rowsDisabled}
                       onEdit={() => setForm({ faq })}
-                      onDuplicate={() => duplicateMutation.mutate(faq)}
                       onDelete={() => setDeleteTarget(faq)}
                     />
                   ))}

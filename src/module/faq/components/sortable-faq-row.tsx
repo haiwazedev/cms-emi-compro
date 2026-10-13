@@ -4,12 +4,7 @@ import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
 import { cn } from '@/shared/lib/utils'
 import { useSortable } from '@dnd-kit/react/sortable'
-import {
-  CopyIcon,
-  GripVerticalIcon,
-  PencilIcon,
-  Trash2Icon,
-} from 'lucide-react'
+import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 
 interface SortableFaqRowProps {
   faq: Faq
@@ -17,7 +12,6 @@ interface SortableFaqRowProps {
   selected: boolean
   disabled: boolean
   onEdit: () => void
-  onDuplicate: () => void
   onDelete: () => void
 }
 
@@ -27,7 +21,6 @@ function SortableFaqRow({
   selected,
   disabled,
   onEdit,
-  onDuplicate,
   onDelete,
 }: SortableFaqRowProps) {
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
@@ -43,6 +36,7 @@ function SortableFaqRow({
       data-state={selected ? 'selected' : undefined}
       className={selected ? 'bg-primary/70' : undefined}
     >
+      {/* Draggable Button */}
       <TableCell className="w-12 px-2">
         <button
           ref={dragHandleRef}
@@ -54,7 +48,11 @@ function SortableFaqRow({
           <GripVerticalIcon aria-hidden="true" className="size-4" />
         </button>
       </TableCell>
+
+      {/* Index */}
       <TableCell className="w-20">{index + 1}</TableCell>
+
+      {/* Question */}
       <TableCell className="min-w-64">
         <button
           type="button"
@@ -64,6 +62,8 @@ function SortableFaqRow({
           {faq.question}
         </button>
       </TableCell>
+
+      {/* Status */}
       <TableCell>
         <span
           className={cn(
@@ -83,8 +83,11 @@ function SortableFaqRow({
           {published ? FAQ_LABELS.published : FAQ_LABELS.draft}
         </span>
       </TableCell>
+
+      {/* Actions */}
       <TableCell className="min-w-32 text-right">
         <div className="flex items-center justify-end gap-1">
+          {/* Edit Button */}
           <Button
             type="button"
             variant="outline"
@@ -96,17 +99,8 @@ function SortableFaqRow({
           >
             <PencilIcon aria-hidden="true" className="size-4" />
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            disabled={disabled}
-            aria-label={FAQ_LABELS.duplicateAction(faq.question)}
-            onClick={onDuplicate}
-          >
-            <CopyIcon aria-hidden="true" className="size-4" />
-          </Button>
+
+          {/* Delete Button */}
           <Button
             type="button"
             variant="outline"
