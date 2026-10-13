@@ -63,6 +63,7 @@ type NavigationItem = {
     | '/divisions'
     | '/document_commitments'
     | '/faqs'
+    | '/clients'
     | '/media'
   icon: LucideIcon
   count?: string
@@ -121,7 +122,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.clients,
-        href: '#',
+        to: '/clients',
         icon: HandshakeIcon,
         count: '8',
       },

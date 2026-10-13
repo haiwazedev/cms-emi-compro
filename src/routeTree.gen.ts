@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticated.about-us'
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
+import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated.clients'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDivisionsRouteImport } from './routes/_authenticated.divisions'
 import { Route as AuthenticatedDocument_commitment_categoriesRouteImport } from './routes/_authenticated.document_commitment_categories'
@@ -41,6 +42,11 @@ const AuthenticatedAboutUsRoute = AuthenticatedAboutUsRouteImport.update({
 const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
   id: '/articles',
   path: '/articles',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
+  '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
+  '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/about-us': typeof AuthenticatedAboutUsRoute
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
+  '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/divisions': typeof AuthenticatedDivisionsRoute
   '/_authenticated/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/articles'
+    | '/clients'
     | '/dashboard'
     | '/divisions'
     | '/document_commitment_categories'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/articles'
+    | '/clients'
     | '/dashboard'
     | '/divisions'
     | '/document_commitment_categories'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/about-us'
     | '/_authenticated/articles'
+    | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/divisions'
     | '/_authenticated/document_commitment_categories'
@@ -228,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/articles'
       fullPath: '/articles'
       preLoaderRoute: typeof AuthenticatedArticlesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/clients': {
+      id: '/_authenticated/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AuthenticatedClientsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -322,6 +341,7 @@ const AuthenticatedArticlesRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAboutUsRoute: typeof AuthenticatedAboutUsRoute
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
+  AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDivisionsRoute: typeof AuthenticatedDivisionsRoute
   AuthenticatedDocument_commitment_categoriesRoute: typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -334,6 +354,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutUsRoute: AuthenticatedAboutUsRoute,
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
+  AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDivisionsRoute: AuthenticatedDivisionsRoute,
   AuthenticatedDocument_commitment_categoriesRoute:
