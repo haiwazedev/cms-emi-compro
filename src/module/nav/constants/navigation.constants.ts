@@ -62,6 +62,7 @@ type NavigationItem = {
     | '/articles'
     | '/divisions'
     | '/document_commitments'
+    | '/board_members'
     | '/media'
   icon: LucideIcon
   count?: string
@@ -108,7 +109,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.management,
-        href: '#',
+        to: '/board_members',
         icon: UsersIcon,
         count: '6',
       },

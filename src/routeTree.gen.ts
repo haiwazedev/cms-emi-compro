@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticated.about-us'
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
+import { Route as AuthenticatedBoard_member_typesRouteImport } from './routes/_authenticated.board_member_types'
+import { Route as AuthenticatedBoard_membersRouteImport } from './routes/_authenticated.board_members'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDivisionsRouteImport } from './routes/_authenticated.divisions'
 import { Route as AuthenticatedDocument_commitment_categoriesRouteImport } from './routes/_authenticated.document_commitment_categories'
@@ -42,6 +44,18 @@ const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
   path: '/articles',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedBoard_member_typesRoute =
+  AuthenticatedBoard_member_typesRouteImport.update({
+    id: '/board_member_types',
+    path: '/board_member_types',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedBoard_membersRoute =
+  AuthenticatedBoard_membersRouteImport.update({
+    id: '/board_members',
+    path: '/board_members',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -96,6 +110,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
+  '/board_member_types': typeof AuthenticatedBoard_member_typesRoute
+  '/board_members': typeof AuthenticatedBoard_membersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -110,6 +126,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about-us': typeof AuthenticatedAboutUsRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
+  '/board_member_types': typeof AuthenticatedBoard_member_typesRoute
+  '/board_members': typeof AuthenticatedBoard_membersRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -126,6 +144,8 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/about-us': typeof AuthenticatedAboutUsRoute
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
+  '/_authenticated/board_member_types': typeof AuthenticatedBoard_member_typesRoute
+  '/_authenticated/board_members': typeof AuthenticatedBoard_membersRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/divisions': typeof AuthenticatedDivisionsRoute
   '/_authenticated/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -142,6 +162,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/articles'
+    | '/board_member_types'
+    | '/board_members'
     | '/dashboard'
     | '/divisions'
     | '/document_commitment_categories'
@@ -156,6 +178,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about-us'
     | '/articles'
+    | '/board_member_types'
+    | '/board_members'
     | '/dashboard'
     | '/divisions'
     | '/document_commitment_categories'
@@ -171,6 +195,8 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/about-us'
     | '/_authenticated/articles'
+    | '/_authenticated/board_member_types'
+    | '/_authenticated/board_members'
     | '/_authenticated/dashboard'
     | '/_authenticated/divisions'
     | '/_authenticated/document_commitment_categories'
@@ -216,6 +242,20 @@ declare module '@tanstack/react-router' {
       path: '/articles'
       fullPath: '/articles'
       preLoaderRoute: typeof AuthenticatedArticlesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/board_member_types': {
+      id: '/_authenticated/board_member_types'
+      path: '/board_member_types'
+      fullPath: '/board_member_types'
+      preLoaderRoute: typeof AuthenticatedBoard_member_typesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/board_members': {
+      id: '/_authenticated/board_members'
+      path: '/board_members'
+      fullPath: '/board_members'
+      preLoaderRoute: typeof AuthenticatedBoard_membersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -303,6 +343,8 @@ const AuthenticatedArticlesRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAboutUsRoute: typeof AuthenticatedAboutUsRoute
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
+  AuthenticatedBoard_member_typesRoute: typeof AuthenticatedBoard_member_typesRoute
+  AuthenticatedBoard_membersRoute: typeof AuthenticatedBoard_membersRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDivisionsRoute: typeof AuthenticatedDivisionsRoute
   AuthenticatedDocument_commitment_categoriesRoute: typeof AuthenticatedDocument_commitment_categoriesRoute
@@ -314,6 +356,8 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutUsRoute: AuthenticatedAboutUsRoute,
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
+  AuthenticatedBoard_member_typesRoute: AuthenticatedBoard_member_typesRoute,
+  AuthenticatedBoard_membersRoute: AuthenticatedBoard_membersRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDivisionsRoute: AuthenticatedDivisionsRoute,
   AuthenticatedDocument_commitment_categoriesRoute:
