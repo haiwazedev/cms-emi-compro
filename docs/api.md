@@ -1058,7 +1058,7 @@ Create and update bodies accept these fields:
 
 | Field      | Type   | Rules                                                            |
 | ---------- | ------ | ---------------------------------------------------------------- |
-| `question` | string | Required on create; trimmed; 1–500 characters.                   |
+| `question` | string | Required on create; trimmed; 1–200 characters.                   |
 | `answer`   | string | Required on create; HTML from the rich-text editor; not empty.   |
 | `status`   | string | Optional; `DRAFT` or `PUBLISHED`; defaults to `DRAFT` on create. |
 

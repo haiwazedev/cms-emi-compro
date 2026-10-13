@@ -215,7 +215,7 @@ function FaqsPage() {
               <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
                 <Trash2Icon aria-hidden="true" className="size-5" />
               </span>
-              <p className="text-accent font-semibold break-words">
+              <p className="text-accent wrap-break-words font-semibold">
                 “{deleteTarget?.question}”
               </p>
               <DialogDescription>

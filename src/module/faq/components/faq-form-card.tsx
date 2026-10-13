@@ -63,11 +63,14 @@ function FaqFormCard({ faq, pending, onCancel, onSubmit }: FaqFormCardProps) {
             <Input
               id="faq-question"
               required
-              maxLength={500}
+              maxLength={200}
               disabled={pending}
               value={question}
               onChange={(event) => setQuestion(event.currentTarget.value)}
             />
+            <p className="text-foreground/55 text-xs">
+              {question.length + ' / 200 karakter'}
+            </p>
           </div>
 
           <div className="flex flex-col gap-2">
