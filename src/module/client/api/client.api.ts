@@ -1,11 +1,13 @@
-import type { Media } from '@/module/media/api/media.api'
 import { apiClient } from '@/shared/lib/api-client'
 
 export interface Client {
   id: number
   name: string
-  media_id: number | null
-  media: Media | null
+  logo_filename: string
+  logo_filepath: string
+  logo_extension: string
+  logo_size: number
+  logo_metadata: { width: number; height: number }
   sort_order: number
   created_at: string
   created_by: string
@@ -15,7 +17,7 @@ export interface Client {
 
 export interface ClientWriteFields {
   name: string
-  media_id: number | null
+  logo?: File
 }
 
 interface ClientsResponse {
@@ -32,7 +34,10 @@ export async function getClients() {
 }
 
 export async function createClient(fields: ClientWriteFields) {
-  const { data } = await apiClient.post<ClientResponse>('/clients', fields)
+  const { data } = await apiClient.post<ClientResponse>(
+    '/clients',
+    toFormData(fields),
+  )
   return data.client
 }
 
@@ -42,7 +47,7 @@ export async function updateClient(
 ) {
   const { data } = await apiClient.put<ClientResponse>(
     '/clients/' + clientId,
-    fields,
+    toFormData(fields),
   )
   return data.client
 }
@@ -56,4 +61,12 @@ export async function reorderClients(clientIds: number[]) {
     client_ids: clientIds,
   })
   return data.clients
+}
+
+function toFormData({ name, logo }: ClientWriteFields) {
+  const formData = new FormData()
+  formData.append('name', name)
+  if (logo) formData.append('logo', logo)
+
+  return formData
 }

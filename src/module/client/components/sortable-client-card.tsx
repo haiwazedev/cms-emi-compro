@@ -25,25 +25,18 @@ function SortableClientCard({
     index,
     group: 'clients',
   })
-  const { media } = client
 
   return (
     <article
       ref={sortableRef}
-      className="group border-border/15 bg-background flex flex-col overflow-hidden rounded-lg border"
+      className="border-border/15 bg-background flex flex-col overflow-hidden rounded-lg border"
     >
       <div className="bg-primary relative flex h-28 items-center justify-center p-4">
-        {media ? (
-          <img
-            src={getMediaAssetUrl(media.path)}
-            alt={client.name}
-            className="max-h-full max-w-full object-contain grayscale transition group-hover:grayscale-0"
-          />
-        ) : (
-          <span className="text-secondary/70 text-center font-semibold">
-            {client.name}
-          </span>
-        )}
+        <img
+          src={getMediaAssetUrl(client.logo_filepath)}
+          alt={client.name}
+          className="max-h-full max-w-full object-contain"
+        />
 
         <button
           ref={dragHandleRef}
@@ -90,7 +83,7 @@ function SortableClientCard({
           {client.name}
         </button>
         <p className="text-foreground/55 truncate text-xs">
-          {media?.filename ?? CLIENT_LABELS.noLogo}
+          {client.logo_filename}
         </p>
       </div>
     </article>
