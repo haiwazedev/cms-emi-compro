@@ -62,6 +62,7 @@ type NavigationItem = {
     | '/articles'
     | '/divisions'
     | '/document_commitments'
+    | '/faqs'
     | '/media'
   icon: LucideIcon
   count?: string
@@ -114,7 +115,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.faq,
-        href: '#',
+        to: '/faqs',
         icon: CircleHelpIcon,
         count: '4',
       },

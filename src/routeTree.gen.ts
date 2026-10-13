@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDivisionsRouteImport } from './routes/_authenticated.divisions'
 import { Route as AuthenticatedDocument_commitment_categoriesRouteImport } from './routes/_authenticated.document_commitment_categories'
 import { Route as AuthenticatedDocument_commitmentsRouteImport } from './routes/_authenticated.document_commitments'
+import { Route as AuthenticatedFaqsRouteImport } from './routes/_authenticated.faqs'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
@@ -64,6 +65,11 @@ const AuthenticatedDocument_commitmentsRoute =
     path: '/document_commitments',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedFaqsRoute = AuthenticatedFaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
   '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
+  '/faqs': typeof AuthenticatedFaqsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
   '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
+  '/faqs': typeof AuthenticatedFaqsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/_authenticated/divisions': typeof AuthenticatedDivisionsRoute
   '/_authenticated/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
   '/_authenticated/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
+  '/_authenticated/faqs': typeof AuthenticatedFaqsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/divisions'
     | '/document_commitment_categories'
     | '/document_commitments'
+    | '/faqs'
     | '/home'
     | '/media'
     | '/auth/login'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/divisions'
     | '/document_commitment_categories'
     | '/document_commitments'
+    | '/faqs'
     | '/home'
     | '/media'
     | '/auth/login'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/_authenticated/divisions'
     | '/_authenticated/document_commitment_categories'
     | '/_authenticated/document_commitments'
+    | '/_authenticated/faqs'
     | '/_authenticated/home'
     | '/_authenticated/media'
     | '/auth/login'
@@ -246,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocument_commitmentsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/faqs': {
+      id: '/_authenticated/faqs'
+      path: '/faqs'
+      fullPath: '/faqs'
+      preLoaderRoute: typeof AuthenticatedFaqsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/home': {
       id: '/_authenticated/home'
       path: '/home'
@@ -307,6 +326,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDivisionsRoute: typeof AuthenticatedDivisionsRoute
   AuthenticatedDocument_commitment_categoriesRoute: typeof AuthenticatedDocument_commitment_categoriesRoute
   AuthenticatedDocument_commitmentsRoute: typeof AuthenticatedDocument_commitmentsRoute
+  AuthenticatedFaqsRoute: typeof AuthenticatedFaqsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
@@ -320,6 +340,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedDocument_commitment_categoriesRoute,
   AuthenticatedDocument_commitmentsRoute:
     AuthenticatedDocument_commitmentsRoute,
+  AuthenticatedFaqsRoute: AuthenticatedFaqsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
