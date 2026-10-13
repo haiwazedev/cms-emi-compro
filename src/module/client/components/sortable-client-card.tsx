@@ -1,14 +1,12 @@
 import type { Client } from '@/module/client/api/client.api'
 import { CLIENT_LABELS } from '@/module/client/constants/client.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
-import type { Media } from '@/module/media/api/media.api'
 import { Button } from '@/shared/components/ui/button'
 import { useSortable } from '@dnd-kit/react/sortable'
 import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 
 interface SortableClientCardProps {
   client: Client
-  media?: Media
   index: number
   disabled: boolean
   onEdit: () => void
@@ -17,7 +15,6 @@ interface SortableClientCardProps {
 
 function SortableClientCard({
   client,
-  media,
   index,
   disabled,
   onEdit,
@@ -28,6 +25,7 @@ function SortableClientCard({
     index,
     group: 'clients',
   })
+  const { media } = client
 
   return (
     <article

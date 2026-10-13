@@ -1,7 +1,6 @@
 import type { Client, ClientWriteFields } from '@/module/client/api/client.api'
 import { CLIENT_LABELS } from '@/module/client/constants/client.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
-import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -20,7 +19,6 @@ import { useState } from 'react'
 
 interface ClientFormDialogProps {
   client?: Client
-  initialMedia?: Media
   pending: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (fields: ClientWriteFields) => void
@@ -28,13 +26,12 @@ interface ClientFormDialogProps {
 
 function ClientFormDialog({
   client,
-  initialMedia,
   pending,
   onOpenChange,
   onSubmit,
 }: ClientFormDialogProps) {
   const [name, setName] = useState(client?.name ?? '')
-  const [logo, setLogo] = useState(initialMedia)
+  const [logo, setLogo] = useState(client?.media ?? undefined)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [formError, setFormError] = useState<string>()
 

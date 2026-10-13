@@ -1,10 +1,11 @@
-// shortcut: in-memory mock until the server exposes `/clients` endpoints.
-// Swap the function bodies for `apiClient` calls once the API is ready.
+import type { Media } from '@/module/media/api/media.api'
+import { apiClient } from '@/shared/lib/api-client'
 
 export interface Client {
   id: number
   name: string
   media_id: number | null
+  media: Media | null
   sort_order: number
   created_at: string
   created_by: string
@@ -17,82 +18,42 @@ export interface ClientWriteFields {
   media_id: number | null
 }
 
-const MOCK_CLIENT_NAMES = [
-  'Accenture',
-  'ASTRA Otoparts',
-  'Cargill',
-  'H&M',
-  'PT Golden Tekstil Indonesia',
-  'Pupuk Iskandar Muda',
-  'The Ritz-Carlton',
-  'UNIQLO',
-]
+interface ClientsResponse {
+  clients: Client[]
+}
 
-let mockClients: Client[] = MOCK_CLIENT_NAMES.map((name, index) => ({
-  id: index + 1,
-  name,
-  media_id: null,
-  sort_order: index + 1,
-  created_at: '2026-10-13T10:30:00.000Z',
-  created_by: 'Admin',
-  updated_at: null,
-  updated_by: null,
-}))
-
-function delay() {
-  return new Promise((resolve) => setTimeout(resolve, 300))
+interface ClientResponse {
+  client: Client
 }
 
 export async function getClients() {
-  await delay()
-  return [...mockClients]
+  const { data } = await apiClient.get<ClientsResponse>('/clients')
+  return data.clients
 }
 
 export async function createClient(fields: ClientWriteFields) {
-  await delay()
-  const client: Client = {
-    ...fields,
-    id: Math.max(0, ...mockClients.map((item) => item.id)) + 1,
-    sort_order: mockClients.length + 1,
-    created_at: new Date().toISOString(),
-    created_by: 'Admin',
-    updated_at: null,
-    updated_by: null,
-  }
-  mockClients = [...mockClients, client]
-  return client
+  const { data } = await apiClient.post<ClientResponse>('/clients', fields)
+  return data.client
 }
 
 export async function updateClient(
   clientId: number,
   fields: ClientWriteFields,
 ) {
-  await delay()
-  const client = mockClients.find((item) => item.id === clientId)
-  if (!client) throw new Error('Klien tidak ditemukan.')
-
-  const updated: Client = {
-    ...client,
-    ...fields,
-    updated_at: new Date().toISOString(),
-    updated_by: 'Admin',
-  }
-  mockClients = mockClients.map((item) =>
-    item.id === clientId ? updated : item,
+  const { data } = await apiClient.put<ClientResponse>(
+    '/clients/' + clientId,
+    fields,
   )
-  return updated
+  return data.client
 }
 
 export async function deleteClient(clientId: number) {
-  await delay()
-  mockClients = mockClients.filter((item) => item.id !== clientId)
+  await apiClient.delete<void>('/clients/' + clientId)
 }
 
 export async function reorderClients(clientIds: number[]) {
-  await delay()
-  mockClients = clientIds.flatMap((id, index) => {
-    const client = mockClients.find((item) => item.id === id)
-    return client ? [{ ...client, sort_order: index + 1 }] : []
+  const { data } = await apiClient.post<ClientsResponse>('/clients/reorder', {
+    client_ids: clientIds,
   })
-  return [...mockClients]
+  return data.clients
 }

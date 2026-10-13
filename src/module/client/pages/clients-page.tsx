@@ -12,7 +12,6 @@ import {
   clientQueryKeys,
   clientsQueryOptions,
 } from '@/module/client/queries/client.queries'
-import { mediaQueryOptions } from '@/module/media/queries/media.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import {
@@ -29,32 +28,17 @@ import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 type FormState = { client?: Client }
-
-const pictureMediaParams = {
-  type: 'PICTURE',
-  sort_by: 'created_at',
-  sort_order: 'desc',
-} as const
 
 function ClientsPage() {
   const queryClient = useQueryClient()
   const clientsQuery = useQuery(clientsQueryOptions())
-  const mediaQuery = useQuery(mediaQueryOptions(pictureMediaParams))
   const [form, setForm] = useState<FormState | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
 
   const clients = clientsQuery.data ?? []
-  const mediaById = useMemo(
-    () => new Map((mediaQuery.data ?? []).map((media) => [media.id, media])),
-    [mediaQuery.data],
-  )
-
-  function getLogo(client: Client) {
-    return client.media_id === null ? undefined : mediaById.get(client.media_id)
-  }
 
   function showSuccess(description: string) {
     toast.add({ title: 'Berhasil', description, type: 'success' })
@@ -170,7 +154,6 @@ function ClientsPage() {
                   <SortableClientCard
                     key={client.id}
                     client={client}
-                    media={getLogo(client)}
                     index={index}
                     disabled={cardsDisabled}
                     onEdit={() => setForm({ client })}
@@ -190,7 +173,6 @@ function ClientsPage() {
           <ClientFormDialog
             key={form.client?.id ?? 'new-client'}
             client={form.client}
-            initialMedia={form.client ? getLogo(form.client) : undefined}
             pending={saveMutation.isPending}
             onOpenChange={(open) => {
               if (!open && !saveMutation.isPending) setForm(null)
