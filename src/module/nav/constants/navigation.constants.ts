@@ -64,6 +64,7 @@ type NavigationItem = {
     | '/document_commitments'
     | '/faqs'
     | '/clients'
+    | '/inbox'
     | '/media'
   icon: LucideIcon
   count?: string
@@ -128,7 +129,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.inbox,
-        href: '#',
+        to: '/inbox',
         icon: MailIcon,
         count: '3',
       },

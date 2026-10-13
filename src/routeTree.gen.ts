@@ -20,6 +20,7 @@ import { Route as AuthenticatedDocument_commitment_categoriesRouteImport } from 
 import { Route as AuthenticatedDocument_commitmentsRouteImport } from './routes/_authenticated.document_commitments'
 import { Route as AuthenticatedFaqsRouteImport } from './routes/_authenticated.faqs'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
@@ -81,6 +82,11 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
   id: '/media',
   path: '/media',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
   '/faqs': typeof AuthenticatedFaqsRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
   '/faqs': typeof AuthenticatedFaqsRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/_authenticated/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
   '/_authenticated/faqs': typeof AuthenticatedFaqsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/document_commitments'
     | '/faqs'
     | '/home'
+    | '/inbox'
     | '/media'
     | '/auth/login'
     | '/articles/create'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/document_commitments'
     | '/faqs'
     | '/home'
+    | '/inbox'
     | '/media'
     | '/auth/login'
     | '/articles/create'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/document_commitments'
     | '/_authenticated/faqs'
     | '/_authenticated/home'
+    | '/_authenticated/inbox'
     | '/_authenticated/media'
     | '/auth/login'
     | '/_authenticated/articles/create'
@@ -291,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inbox': {
+      id: '/_authenticated/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AuthenticatedInboxRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/media': {
       id: '/_authenticated/media'
       path: '/media'
@@ -348,6 +367,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDocument_commitmentsRoute: typeof AuthenticatedDocument_commitmentsRoute
   AuthenticatedFaqsRoute: typeof AuthenticatedFaqsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
 
@@ -363,6 +383,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedDocument_commitmentsRoute,
   AuthenticatedFaqsRoute: AuthenticatedFaqsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
 
