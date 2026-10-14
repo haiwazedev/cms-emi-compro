@@ -1,4 +1,4 @@
-import type { InboxMessage } from '@/module/inbox/constants/inbox.constants'
+import type { Inbox } from '@/module/inbox/api/inbox.api'
 import { INBOX_LABELS } from '@/module/inbox/constants/inbox.constants'
 import { cn } from '@/shared/lib/utils'
 
@@ -23,7 +23,7 @@ function InboxMessageItem({
   selected,
   onSelect,
 }: {
-  message: InboxMessage
+  message: Inbox
   selected: boolean
   onSelect: () => void
 }) {
@@ -45,7 +45,7 @@ function InboxMessageItem({
           <span className="flex items-start justify-between gap-2">
             <span className="text-accent flex items-center gap-2 font-semibold">
               {message.name}
-              {!message.read && (
+              {!message.is_read && (
                 <span
                   aria-label={INBOX_LABELS.unread}
                   className="bg-secondary size-2 rounded-full"
@@ -53,10 +53,12 @@ function InboxMessageItem({
               )}
             </span>
             <span className="text-foreground/50 shrink-0 text-xs">
-              {shortDateFormat.format(new Date(message.createdAt))}
+              {shortDateFormat.format(new Date(message.created_at))}
             </span>
           </span>
-          <span className="text-accent text-sm">{message.title}</span>
+          <span className="text-accent text-sm">
+            {message.inbox_subject.name}
+          </span>
           <span className="text-foreground/50 line-clamp-3 text-sm">
             {message.message}
           </span>

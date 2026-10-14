@@ -132,7 +132,6 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
         label: NAVIGATION_LABELS.inbox,
         to: '/inbox',
         icon: MailIcon,
-        count: '3',
       },
     ],
   },
