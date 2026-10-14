@@ -15,11 +15,14 @@ import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedBoard_member_typesRouteImport } from './routes/_authenticated.board_member_types'
 import { Route as AuthenticatedBoard_membersRouteImport } from './routes/_authenticated.board_members'
+import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated.clients'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDivisionsRouteImport } from './routes/_authenticated.divisions'
 import { Route as AuthenticatedDocument_commitment_categoriesRouteImport } from './routes/_authenticated.document_commitment_categories'
 import { Route as AuthenticatedDocument_commitmentsRouteImport } from './routes/_authenticated.document_commitments'
+import { Route as AuthenticatedFaqsRouteImport } from './routes/_authenticated.faqs'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
@@ -56,6 +59,11 @@ const AuthenticatedBoard_membersRoute =
     path: '/board_members',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -78,9 +86,19 @@ const AuthenticatedDocument_commitmentsRoute =
     path: '/document_commitments',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedFaqsRoute = AuthenticatedFaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
@@ -112,11 +130,14 @@ export interface FileRoutesByFullPath {
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/board_member_types': typeof AuthenticatedBoard_member_typesRoute
   '/board_members': typeof AuthenticatedBoard_membersRoute
+  '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
   '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
+  '/faqs': typeof AuthenticatedFaqsRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -128,11 +149,14 @@ export interface FileRoutesByTo {
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/board_member_types': typeof AuthenticatedBoard_member_typesRoute
   '/board_members': typeof AuthenticatedBoard_membersRoute
+  '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/divisions': typeof AuthenticatedDivisionsRoute
   '/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
   '/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
+  '/faqs': typeof AuthenticatedFaqsRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -146,11 +170,14 @@ export interface FileRoutesById {
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/board_member_types': typeof AuthenticatedBoard_member_typesRoute
   '/_authenticated/board_members': typeof AuthenticatedBoard_membersRoute
+  '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/divisions': typeof AuthenticatedDivisionsRoute
   '/_authenticated/document_commitment_categories': typeof AuthenticatedDocument_commitment_categoriesRoute
   '/_authenticated/document_commitments': typeof AuthenticatedDocument_commitmentsRoute
+  '/_authenticated/faqs': typeof AuthenticatedFaqsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
@@ -164,11 +191,14 @@ export interface FileRouteTypes {
     | '/articles'
     | '/board_member_types'
     | '/board_members'
+    | '/clients'
     | '/dashboard'
     | '/divisions'
     | '/document_commitment_categories'
     | '/document_commitments'
+    | '/faqs'
     | '/home'
+    | '/inbox'
     | '/media'
     | '/auth/login'
     | '/articles/create'
@@ -180,11 +210,14 @@ export interface FileRouteTypes {
     | '/articles'
     | '/board_member_types'
     | '/board_members'
+    | '/clients'
     | '/dashboard'
     | '/divisions'
     | '/document_commitment_categories'
     | '/document_commitments'
+    | '/faqs'
     | '/home'
+    | '/inbox'
     | '/media'
     | '/auth/login'
     | '/articles/create'
@@ -197,11 +230,14 @@ export interface FileRouteTypes {
     | '/_authenticated/articles'
     | '/_authenticated/board_member_types'
     | '/_authenticated/board_members'
+    | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/divisions'
     | '/_authenticated/document_commitment_categories'
     | '/_authenticated/document_commitments'
+    | '/_authenticated/faqs'
     | '/_authenticated/home'
+    | '/_authenticated/inbox'
     | '/_authenticated/media'
     | '/auth/login'
     | '/_authenticated/articles/create'
@@ -258,6 +294,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBoard_membersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/clients': {
+      id: '/_authenticated/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AuthenticatedClientsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -286,11 +329,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocument_commitmentsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/faqs': {
+      id: '/_authenticated/faqs'
+      path: '/faqs'
+      fullPath: '/faqs'
+      preLoaderRoute: typeof AuthenticatedFaqsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/home': {
       id: '/_authenticated/home'
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/inbox': {
+      id: '/_authenticated/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AuthenticatedInboxRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/media': {
@@ -345,11 +402,14 @@ interface AuthenticatedRouteChildren {
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedBoard_member_typesRoute: typeof AuthenticatedBoard_member_typesRoute
   AuthenticatedBoard_membersRoute: typeof AuthenticatedBoard_membersRoute
+  AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDivisionsRoute: typeof AuthenticatedDivisionsRoute
   AuthenticatedDocument_commitment_categoriesRoute: typeof AuthenticatedDocument_commitment_categoriesRoute
   AuthenticatedDocument_commitmentsRoute: typeof AuthenticatedDocument_commitmentsRoute
+  AuthenticatedFaqsRoute: typeof AuthenticatedFaqsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
 }
 
@@ -358,13 +418,16 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedBoard_member_typesRoute: AuthenticatedBoard_member_typesRoute,
   AuthenticatedBoard_membersRoute: AuthenticatedBoard_membersRoute,
+  AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDivisionsRoute: AuthenticatedDivisionsRoute,
   AuthenticatedDocument_commitment_categoriesRoute:
     AuthenticatedDocument_commitment_categoriesRoute,
   AuthenticatedDocument_commitmentsRoute:
     AuthenticatedDocument_commitmentsRoute,
+  AuthenticatedFaqsRoute: AuthenticatedFaqsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
 }
 

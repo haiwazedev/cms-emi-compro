@@ -62,6 +62,9 @@ type NavigationItem = {
     | '/articles'
     | '/divisions'
     | '/document_commitments'
+    | '/faqs'
+    | '/clients'
+    | '/inbox'
     | '/board_members'
     | '/media'
   icon: LucideIcon
@@ -115,19 +118,19 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.faq,
-        href: '#',
+        to: '/faqs',
         icon: CircleHelpIcon,
         count: '4',
       },
       {
         label: NAVIGATION_LABELS.clients,
-        href: '#',
+        to: '/clients',
         icon: HandshakeIcon,
         count: '8',
       },
       {
         label: NAVIGATION_LABELS.inbox,
-        href: '#',
+        to: '/inbox',
         icon: MailIcon,
         count: '3',
       },
