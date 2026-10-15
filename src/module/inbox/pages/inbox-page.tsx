@@ -1,9 +1,9 @@
+import type { Inbox } from '@/module/inbox/api/inbox.api'
 import {
   deleteInbox,
   markAllInboxesRead,
   updateInboxRead,
 } from '@/module/inbox/api/inbox.api'
-import type { Inbox } from '@/module/inbox/api/inbox.api'
 import { InboxMessageDetail } from '@/module/inbox/components/inbox-message-detail'
 import { InboxMessageItem } from '@/module/inbox/components/inbox-message-item'
 import {
@@ -34,11 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/shared/components/ui/tooltip'
 import { toast } from '@/shared/lib/toast'
 import {
   useInfiniteQuery,
@@ -46,7 +41,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
-import { DownloadIcon, SearchIcon, Trash2Icon } from 'lucide-react'
+import { SearchIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 function InboxPage() {
@@ -160,18 +155,6 @@ function InboxPage() {
           >
             {INBOX_LABELS.markAllRead}
           </Button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {/* Disabled buttons swallow hover, so the wrapper owns the tooltip. */}
-              <span tabIndex={0}>
-                <Button type="button" variant="outline" disabled>
-                  <DownloadIcon aria-hidden="true" className="size-4" />
-                  {INBOX_LABELS.exportCsv}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>{INBOX_LABELS.underDevelopment}</TooltipContent>
-          </Tooltip>
         </div>
       </header>
 
