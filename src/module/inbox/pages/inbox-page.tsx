@@ -1,15 +1,21 @@
+import type { Inbox } from '@/module/inbox/api/inbox.api'
+import {
+  deleteInbox,
+  markAllInboxesRead,
+  updateInboxRead,
+} from '@/module/inbox/api/inbox.api'
 import { InboxMessageDetail } from '@/module/inbox/components/inbox-message-detail'
 import { InboxMessageItem } from '@/module/inbox/components/inbox-message-item'
-import type {
-  InboxMessage,
-  InboxReadFilter,
-} from '@/module/inbox/constants/inbox.constants'
 import {
   INBOX_ALL_SUBJECTS,
   INBOX_LABELS,
-  INBOX_MOCK_MESSAGES,
-  INBOX_READ_FILTERS,
 } from '@/module/inbox/constants/inbox.constants'
+import {
+  inboxCountsQueryOptions,
+  inboxQueryKeys,
+  inboxSubjectsQueryOptions,
+  inboxesQueryOptions,
+} from '@/module/inbox/queries/inbox.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Card } from '@/shared/components/ui/card'
 import {
@@ -28,88 +34,108 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { DownloadIcon, SearchIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
-
-const CSV_COLUMNS = [
-  'name',
-  'email',
-  'phone',
-  'company',
-  'subject',
-  'title',
-  'message',
-  'createdAt',
-] as const
-
-function exportCsv(messages: InboxMessage[]) {
-  const rows = messages.map((message) =>
-    CSV_COLUMNS.map(
-      (column) => `"${String(message[column]).replaceAll('"', '""')}"`,
-    ).join(','),
-  )
-  const csv = [CSV_COLUMNS.join(','), ...rows].join('\n')
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = INBOX_LABELS.csvFileName
-  link.click()
-  URL.revokeObjectURL(url)
-}
+import { toast } from '@/shared/lib/toast'
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import { SearchIcon, Trash2Icon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 function InboxPage() {
-  const [messages, setMessages] = useState<InboxMessage[]>([
-    ...INBOX_MOCK_MESSAGES,
-  ])
-  const [selectedId, setSelectedId] = useState<number | undefined>(
-    messages[0]?.id,
-  )
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [readFilter, setReadFilter] = useState<InboxReadFilter>('all')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [subjectFilter, setSubjectFilter] = useState(INBOX_ALL_SUBJECTS)
-  const [deleteTarget, setDeleteTarget] = useState<InboxMessage | null>(null)
+  const [selectedId, setSelectedId] = useState<number>()
+  const [deleteTarget, setDeleteTarget] = useState<Inbox | null>(null)
 
-  const unreadCount = messages.filter((message) => !message.read).length
-  const subjects = [...new Set(messages.map((message) => message.subject))]
-  const keyword = search.trim().toLowerCase()
-  const filteredMessages = messages.filter(
-    (message) =>
-      (readFilter === 'all' || message.read === (readFilter === 'read')) &&
-      (subjectFilter === INBOX_ALL_SUBJECTS ||
-        message.subject === subjectFilter) &&
-      (message.name.toLowerCase().includes(keyword) ||
-        message.title.toLowerCase().includes(keyword)),
+  useEffect(() => {
+    const timeoutId = window.setTimeout(
+      () => setDebouncedSearch(search.trim()),
+      300,
+    )
+    return () => window.clearTimeout(timeoutId)
+  }, [search])
+
+  const inboxesQuery = useInfiniteQuery(
+    inboxesQueryOptions({
+      search: debouncedSearch || undefined,
+      inbox_subject_id:
+        subjectFilter === INBOX_ALL_SUBJECTS
+          ? undefined
+          : Number(subjectFilter),
+    }),
   )
+  const countsQuery = useQuery(inboxCountsQueryOptions())
+  const subjectsQuery = useQuery(inboxSubjectsQueryOptions())
+
+  // Offset pages can repeat a row when new messages arrive mid-scroll.
+  const messages = [
+    ...new Map(
+      inboxesQuery.data?.pages
+        .flatMap((page) => page.inboxes)
+        .map((message) => [message.id, message]),
+    ).values(),
+  ]
   const selectedMessage = messages.find((message) => message.id === selectedId)
+  const unreadCount = countsQuery.data?.unreadCount ?? 0
 
-  function setRead(id: number, read: boolean) {
-    setMessages((current) =>
-      current.map((message) =>
-        message.id === id ? { ...message, read } : message,
-      ),
-    )
+  async function refreshInboxes() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: inboxQueryKeys.lists() }),
+      queryClient.invalidateQueries({ queryKey: inboxQueryKeys.counts() }),
+    ])
   }
 
-  function selectMessage(id: number) {
-    setSelectedId(id)
-    setRead(id, true)
+  function showError(error: unknown, fallback: string) {
+    toast.add({
+      title: INBOX_LABELS.failed,
+      description: error instanceof Error ? error.message : fallback,
+      type: 'error',
+    })
   }
 
-  function markAllRead() {
-    setMessages((current) =>
-      current.map((message) => ({ ...message, read: true })),
-    )
-  }
+  const readMutation = useMutation({
+    mutationFn: ({ id, isRead }: { id: number; isRead: boolean }) =>
+      updateInboxRead(id, isRead),
+    onSuccess: refreshInboxes,
+    onError: (error) => showError(error, INBOX_LABELS.updateFailed),
+  })
 
-  function deleteMessage(id: number) {
-    setMessages((current) => current.filter((message) => message.id !== id))
-    if (selectedId === id) setSelectedId(undefined)
-    setDeleteTarget(null)
+  const markAllReadMutation = useMutation({
+    mutationFn: markAllInboxesRead,
+    onSuccess: refreshInboxes,
+    onError: (error) => showError(error, INBOX_LABELS.updateFailed),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (message: Inbox) => deleteInbox(message.id),
+    onSuccess: async (_data, message) => {
+      if (selectedId === message.id) setSelectedId(undefined)
+      setDeleteTarget(null)
+      await refreshInboxes()
+      toast.add({
+        title: INBOX_LABELS.success,
+        description: INBOX_LABELS.deleted,
+        type: 'success',
+      })
+    },
+    onError: (error) => showError(error, INBOX_LABELS.deleteFailed),
+  })
+
+  function selectMessage(message: Inbox) {
+    setSelectedId(message.id)
+    if (!message.is_read) readMutation.mutate({ id: message.id, isRead: true })
   }
 
   return (
-    <div className="bg-primary flex min-h-full flex-col gap-4 p-4 lg:gap-6 lg:p-8">
+    <div className="bg-primary flex min-h-full flex-col gap-4 p-4 lg:h-full lg:gap-6 lg:p-8">
+      {/* Header */}
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        {/* Left */}
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
             {INBOX_LABELS.pageTitle}
@@ -118,28 +144,25 @@ function InboxPage() {
             {INBOX_LABELS.description(unreadCount)}
           </p>
         </div>
+
+        {/* Right Buttons */}
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             variant="outline"
-            disabled={unreadCount === 0}
-            onClick={markAllRead}
+            disabled={unreadCount === 0 || markAllReadMutation.isPending}
+            onClick={() => markAllReadMutation.mutate()}
           >
             {INBOX_LABELS.markAllRead}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={filteredMessages.length === 0}
-            onClick={() => exportCsv(filteredMessages)}
-          >
-            <DownloadIcon aria-hidden="true" className="size-4" />
-            {INBOX_LABELS.exportCsv}
           </Button>
         </div>
       </header>
 
-      <Card aria-label={INBOX_LABELS.pageTitle} className="flex flex-col">
+      <Card
+        aria-label={INBOX_LABELS.pageTitle}
+        className="flex flex-col lg:min-h-0 lg:flex-1"
+      >
+        {/* Search and Filters */}
         <div className="border-border/15 flex flex-col gap-2 border-b p-4 lg:flex-row">
           <div className="relative lg:w-64">
             <SearchIcon
@@ -155,24 +178,6 @@ function InboxPage() {
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
-          <Select
-            value={readFilter}
-            onValueChange={(value) => setReadFilter(value as InboxReadFilter)}
-          >
-            <SelectTrigger
-              aria-label={INBOX_LABELS.readFilterLabel}
-              className="lg:w-40"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {INBOX_READ_FILTERS.map((filter) => (
-                <SelectItem key={filter.value} value={filter.value}>
-                  {filter.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={subjectFilter} onValueChange={setSubjectFilter}>
             <SelectTrigger
               aria-label={INBOX_LABELS.subjectFilterLabel}
@@ -184,38 +189,55 @@ function InboxPage() {
               <SelectItem value={INBOX_ALL_SUBJECTS}>
                 {INBOX_LABELS.allSubjects}
               </SelectItem>
-              {subjects.map((subject) => (
-                <SelectItem key={subject} value={subject}>
-                  {subject}
+              {subjectsQuery.data?.map((subject) => (
+                <SelectItem key={subject.id} value={String(subject.id)}>
+                  {subject.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="flex flex-col lg:flex-row">
-          <div className="border-border/15 border-b lg:w-96 lg:shrink-0 lg:border-r lg:border-b-0">
-            {filteredMessages.length === 0 ? (
+        {/* Main Content */}
+        <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row">
+          {/* Inbox List */}
+          <div className="border-border/15 border-b lg:w-96 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
+            {inboxesQuery.isPending ? (
+              <EmptyMessage message={INBOX_LABELS.loading} />
+            ) : inboxesQuery.isError ? (
+              <EmptyMessage message={INBOX_LABELS.loadFailed} />
+            ) : messages.length === 0 ? (
               <EmptyMessage message={INBOX_LABELS.noMessages} />
             ) : (
               <ul>
-                {filteredMessages.map((message) => (
+                {messages.map((message) => (
                   <InboxMessageItem
                     key={message.id}
                     message={message}
                     selected={message.id === selectedId}
-                    onSelect={() => selectMessage(message.id)}
+                    onSelect={() => selectMessage(message)}
                   />
                 ))}
+                {inboxesQuery.hasNextPage && (
+                  <LoadMoreTrigger
+                    loading={inboxesQuery.isFetchingNextPage}
+                    onVisible={() => void inboxesQuery.fetchNextPage()}
+                  />
+                )}
               </ul>
             )}
           </div>
-          <div className="min-w-0 flex-1">
+
+          {/* Inbox Content */}
+          <div className="min-w-0 flex-1 lg:overflow-y-auto">
             {selectedMessage ? (
               <InboxMessageDetail
                 message={selectedMessage}
                 onToggleRead={() =>
-                  setRead(selectedMessage.id, !selectedMessage.read)
+                  readMutation.mutate({
+                    id: selectedMessage.id,
+                    isRead: !selectedMessage.is_read,
+                  })
                 }
                 onDelete={() => setDeleteTarget(selectedMessage)}
               />
@@ -244,7 +266,7 @@ function InboxPage() {
               <Trash2Icon aria-hidden="true" className="size-5" />
             </span>
             <p className="text-accent font-semibold break-words">
-              “{deleteTarget?.title}”
+              {deleteTarget?.name} · {deleteTarget?.inbox_subject.name}
             </p>
             <DialogDescription>
               {INBOX_LABELS.deleteDescription}
@@ -261,8 +283,9 @@ function InboxPage() {
             <Button
               type="button"
               variant="destructive"
+              disabled={deleteMutation.isPending}
               onClick={() => {
-                if (deleteTarget) deleteMessage(deleteTarget.id)
+                if (deleteTarget) deleteMutation.mutate(deleteTarget)
               }}
             >
               {INBOX_LABELS.confirmDelete}
@@ -271,6 +294,37 @@ function InboxPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+function LoadMoreTrigger({
+  loading,
+  onVisible,
+}: {
+  loading: boolean
+  onVisible: () => void
+}) {
+  const ref = useRef<HTMLLIElement>(null)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element || loading) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) onVisible()
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [loading, onVisible])
+
+  return (
+    <li
+      ref={ref}
+      role="status"
+      className="text-foreground/55 px-4 py-4 text-center text-sm"
+    >
+      {loading && INBOX_LABELS.loading}
+    </li>
   )
 }
 

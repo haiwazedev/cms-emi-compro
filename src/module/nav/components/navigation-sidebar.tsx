@@ -1,5 +1,7 @@
+import { inboxCountsQueryOptions } from '@/module/inbox/queries/inbox.queries'
 import { Badge } from '@/shared/components/ui/badge'
 import { cn } from '@/shared/lib/utils'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import type { ComponentProps } from 'react'
 import {
@@ -13,6 +15,9 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+  const { data: inboxCounts } = useQuery(inboxCountsQueryOptions())
+  // Show unread messages first; once all are read, show the inbox total.
+  const inboxCount = inboxCounts?.unreadCount || inboxCounts?.readCount
 
   return (
     <aside
@@ -44,6 +49,16 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
                 <li key={item.label}>
                   <NavigationItemLink
                     item={item}
+                    count={
+                      item.to === '/inbox'
+                        ? inboxCount
+                          ? String(inboxCount)
+                          : undefined
+                        : item.count
+                    }
+                    highlighted={
+                      item.to === '/inbox' && Boolean(inboxCounts?.unreadCount)
+                    }
                     isCurrent={item.to === pathname}
                   />
                 </li>
@@ -58,9 +73,13 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
 
 function NavigationItemLink({
   item,
+  count,
+  highlighted,
   isCurrent,
 }: {
   item: (typeof NAVIGATION_SECTIONS)[number]['items'][number]
+  count?: string
+  highlighted: boolean
   isCurrent: boolean
 }) {
   const Icon = item.icon
@@ -72,16 +91,15 @@ function NavigationItemLink({
     <>
       <Icon aria-hidden="true" className="size-4 shrink-0" />
       <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      {item.count && (
+      {count && (
         <Badge
           variant="secondary"
           className={cn(
             'border-0 bg-transparent px-1 text-xs text-white/50',
-            item.label === NAVIGATION_LABELS.inbox &&
-              'bg-danger px-2 text-white',
+            highlighted && 'bg-danger px-2 text-white',
           )}
         >
-          {item.count}
+          {count}
         </Badge>
       )}
     </>

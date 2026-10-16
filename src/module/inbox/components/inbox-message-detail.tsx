@@ -1,4 +1,4 @@
-import type { InboxMessage } from '@/module/inbox/constants/inbox.constants'
+import type { Inbox } from '@/module/inbox/api/inbox.api'
 import { INBOX_LABELS } from '@/module/inbox/constants/inbox.constants'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -25,33 +25,40 @@ function InboxMessageDetail({
   onToggleRead,
   onDelete,
 }: {
-  message: InboxMessage
+  message: Inbox
   onToggleRead: () => void
   onDelete: () => void
 }) {
   const replyHref = `mailto:${message.email}?subject=${encodeURIComponent(
-    INBOX_LABELS.replyPrefix + message.title,
+    INBOX_LABELS.replyPrefix + message.inbox_subject.name,
   )}`
 
   return (
     <article className="flex flex-col gap-5 p-4 lg:p-8">
       <header className="border-border/15 flex flex-col gap-2 border-b pb-4">
-        <h2 className="text-accent text-xl font-semibold">{message.title}</h2>
         <div className="text-foreground/60 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <MetaItem icon={UserIcon} className="text-accent font-medium">
             {message.name}
           </MetaItem>
           <MetaItem icon={MailIcon}>{message.email}</MetaItem>
-          <MetaItem icon={PhoneIcon}>{message.phone}</MetaItem>
+          {message.phone && (
+            <MetaItem icon={PhoneIcon}>{message.phone}</MetaItem>
+          )}
           <MetaItem icon={CalendarIcon}>
-            {fullDateFormat.format(new Date(message.createdAt))}
+            {fullDateFormat.format(new Date(message.created_at))}
           </MetaItem>
         </div>
       </header>
 
       <dl className="flex flex-col gap-4 lg:flex-row">
-        <DetailField label={INBOX_LABELS.company} value={message.company} />
-        <DetailField label={INBOX_LABELS.subject} value={message.subject} />
+        <DetailField
+          label={INBOX_LABELS.company}
+          value={message.company ?? '-'}
+        />
+        <DetailField
+          label={INBOX_LABELS.subject}
+          value={message.inbox_subject.name}
+        />
       </dl>
 
       <p className="bg-primary text-foreground/80 rounded-xl p-5 text-sm leading-relaxed whitespace-pre-line">
@@ -66,7 +73,7 @@ function InboxMessageDetail({
           </a>
         </Button>
         <Button type="button" variant="outline" onClick={onToggleRead}>
-          {message.read ? INBOX_LABELS.markUnread : INBOX_LABELS.markRead}
+          {message.is_read ? INBOX_LABELS.markUnread : INBOX_LABELS.markRead}
         </Button>
         <Button
           type="button"

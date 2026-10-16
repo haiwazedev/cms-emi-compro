@@ -18,9 +18,12 @@ function AuthenticatedLayout() {
       <div className="sticky top-0 hidden h-screen lg:flex">
         <NavigationSidebar />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:h-screen">
         <NavigationTopbar title={pageTitle} />
-        <main aria-label={NAVIGATION_LABELS.mainContent} className="flex-1">
+        <main
+          aria-label={NAVIGATION_LABELS.mainContent}
+          className="flex-1 lg:min-h-0 lg:overflow-y-auto"
+        >
           <Outlet />
         </main>
       </div>
