@@ -24,6 +24,7 @@ import { Route as AuthenticatedFaqsRouteImport } from './routes/_authenticated.f
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
+import { Route as AuthenticatedSite_settingsRouteImport } from './routes/_authenticated.site_settings'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
 import { Route as AuthenticatedArticlesArticleIdEditRouteImport } from './routes/_authenticated/articles.$articleId.edit'
@@ -106,6 +107,12 @@ const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
   path: '/media',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSite_settingsRoute =
+  AuthenticatedSite_settingsRouteImport.update({
+    id: '/site_settings',
+    path: '/site_settings',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/site_settings': typeof AuthenticatedSite_settingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -158,6 +166,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/site_settings': typeof AuthenticatedSite_settingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
+  '/_authenticated/site_settings': typeof AuthenticatedSite_settingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/_authenticated/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/inbox'
     | '/media'
+    | '/site_settings'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/inbox'
     | '/media'
+    | '/site_settings'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/inbox'
     | '/_authenticated/media'
+    | '/_authenticated/site_settings'
     | '/auth/login'
     | '/_authenticated/articles/create'
     | '/_authenticated/articles/$articleId/edit'
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMediaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/site_settings': {
+      id: '/_authenticated/site_settings'
+      path: '/site_settings'
+      fullPath: '/site_settings'
+      preLoaderRoute: typeof AuthenticatedSite_settingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/auth/login': {
       id: '/auth/login'
       path: '/auth/login'
@@ -411,6 +431,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
+  AuthenticatedSite_settingsRoute: typeof AuthenticatedSite_settingsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -429,6 +450,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
+  AuthenticatedSite_settingsRoute: AuthenticatedSite_settingsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
