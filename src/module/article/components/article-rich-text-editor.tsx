@@ -161,7 +161,9 @@ function ArticleRichTextEditor({
         editor={editor}
         className={cn(
           'text-foreground [&_a]:text-secondary [&_blockquote]:border-accent/40 [&_h2]:text-accent [&_h3]:text-accent min-h-64 p-4 text-sm leading-7 outline-none [&_.tiptap]:min-h-56 [&_.tiptap]:outline-none [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_h2]:mt-5 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-lg [&_h3]:font-semibold [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-3 [&_ul]:list-disc',
-          readOnly && 'min-h-0 p-0',
+          // Read-only is the preview: landing page article typography.
+          readOnly &&
+            'text-foreground/70 [&_blockquote]:border-secondary [&_blockquote]:text-accent min-h-0 p-0 text-base leading-8 [&_.tiptap]:min-h-0 [&_blockquote]:my-6 [&_blockquote]:pl-5 [&_blockquote]:text-xl [&_blockquote]:italic [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:leading-tight [&_h2]:font-bold [&_h3]:font-bold [&_p]:mb-6',
         )}
       />
     </div>

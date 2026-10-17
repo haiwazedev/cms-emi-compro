@@ -4,13 +4,16 @@ import {
   articlesQueryOptions,
 } from '@/module/article/queries/article.queries'
 import type {
-  Article,
+  ArticleListItem,
   ArticleListParams,
   ArticleStatus,
 } from '@/module/article/api/article.api'
 import { deleteArticle } from '@/module/article/api/article.api'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
-import { ArticleDataTable } from '@/module/article/components/article-data-table'
+import {
+  ArticleDataTable,
+  ArticleLanguageLegend,
+} from '@/module/article/components/article-data-table'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -61,9 +64,10 @@ function ArticlesPage() {
   const categoriesQuery = useQuery(articleCategoriesQueryOptions())
   const articles = articlesQuery.data?.articles ?? []
   const pagination = articlesQuery.data?.pagination
-  const [articleToDelete, setArticleToDelete] = useState<Article | null>(null)
+  const [articleToDelete, setArticleToDelete] =
+    useState<ArticleListItem | null>(null)
 
-  const requestArticleDelete = useCallback((article: Article) => {
+  const requestArticleDelete = useCallback((article: ArticleListItem) => {
     setArticleToDelete(article)
   }, [])
 
@@ -147,27 +151,43 @@ function ArticlesPage() {
 
   return (
     <div className="bg-primary flex min-h-full flex-col gap-6 p-4 lg:p-8">
+      {/* Header */}
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1">
+          {/* Title */}
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
             {ARTICLE_LABELS.pageTitle}
           </h1>
+
+          {/* Sub-title */}
           <p className="text-foreground/60 text-sm lg:text-base">
             {ARTICLE_LABELS.description}
           </p>
         </div>
-        <Button asChild className="self-start lg:self-auto">
-          <Link to="/articles/create">
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {ARTICLE_LABELS.createArticle}
-          </Link>
-        </Button>
+
+        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+          {/* "Kelola Kategori" button */}
+          <Button asChild variant="outline">
+            <Link to="/article_categories">
+              {ARTICLE_LABELS.manageCategories}
+            </Link>
+          </Button>
+
+          {/* "+ Buat Artikel" button */}
+          <Button asChild>
+            <Link to="/articles/create">
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {ARTICLE_LABELS.createArticle}
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <section
         aria-label={ARTICLE_LABELS.pageTitle}
         className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
       >
+        {/* Filters */}
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
           <ArticleSearchInput key={search ?? ''} search={search} />
 
@@ -248,12 +268,16 @@ function ArticlesPage() {
           </p>
         </div>
 
+        {/* Article Language Status Legend */}
+        <ArticleLanguageLegend />
+
         {categoriesQuery.isError && (
           <p role="status" className="text-danger px-4 pb-4 text-sm">
             {ARTICLE_LABELS.categoriesFailed}
           </p>
         )}
 
+        {/* Article Table */}
         {articlesQuery.isPending ? (
           <ArticleMessage
             role="status"
@@ -312,7 +336,7 @@ function ArticlesPage() {
             {articleToDelete && (
               <div className="flex flex-col gap-2">
                 <p className="text-accent font-semibold break-words">
-                  “{articleToDelete.title}”
+                  “{articleToDelete.title ?? '-'}”
                 </p>
                 <DialogDescription>
                   {ARTICLE_LABELS.deleteArticleDescription}

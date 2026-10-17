@@ -2,7 +2,10 @@ import {
   ARTICLE_LABELS,
   ARTICLE_PAGE_SIZES,
 } from '@/module/article/constants/article.constants'
-import type { Article } from '@/module/article/api/article.api'
+import type {
+  ArticleListItem,
+  ArticleStatus,
+} from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
 import {
   Table,
@@ -29,6 +32,7 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
+import type { ComponentProps } from 'react'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -38,9 +42,9 @@ import {
 } from 'lucide-react'
 
 function createArticleColumns(
-  onDeleteArticle: (article: Article) => void,
+  onDeleteArticle: (article: ArticleListItem) => void,
   deletePending: boolean,
-): ColumnDef<Article>[] {
+): ColumnDef<ArticleListItem>[] {
   return [
     {
       id: 'photo',
@@ -53,11 +57,13 @@ function createArticleColumns(
       cell: ({ row }) => (
         <div className="flex min-w-64 flex-col gap-1 whitespace-normal">
           <span className="text-accent font-semibold">
-            {row.original.title}
+            {row.original.title ?? '-'}
           </span>
-          <span className="text-foreground/55 text-sm">
-            /berita/{row.original.slug}
-          </span>
+          {row.original.slug && (
+            <span className="text-foreground/55 text-sm">
+              /articles/{row.original.slug}
+            </span>
+          )}
         </div>
       ),
     },
@@ -81,31 +87,30 @@ function createArticleColumns(
       ),
     },
     {
-      accessorKey: 'status',
-      header: ARTICLE_LABELS.status,
-      cell: ({ row }) => {
-        const isPublished = row.original.status === 'PUBLISHED'
+      id: 'languages',
+      header: ARTICLE_LABELS.languages,
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {row.original.languages.map((language) => {
+            const status = language.status ?? 'MISSING'
+            const label = ARTICLE_LABELS.languageStatus(
+              language.abbreviated_language,
+              LANGUAGE_PILLS[status].label,
+            )
 
-        return (
-          <span
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap',
-              isPublished
-                ? 'bg-success/10 text-success'
-                : 'bg-warning/15 text-warning',
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                'size-1.5 rounded-full',
-                isPublished ? 'bg-success' : 'bg-warning',
-              )}
-            />
-            {isPublished ? ARTICLE_LABELS.published : ARTICLE_LABELS.draft}
-          </span>
-        )
-      },
+            return (
+              <LanguagePill
+                key={language.language_id}
+                status={status}
+                title={label}
+                aria-label={label}
+              >
+                {language.abbreviated_language}
+              </LanguagePill>
+            )
+          })}
+        </div>
+      ),
     },
     {
       id: 'actions',
@@ -116,7 +121,7 @@ function createArticleColumns(
             asChild
             variant="outline"
             size="icon"
-            aria-label={ARTICLE_LABELS.edit + ' ' + row.original.title}
+            aria-label={ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')}
           >
             <Link
               to="/articles/$articleId/edit"
@@ -130,7 +135,7 @@ function createArticleColumns(
             variant="outline"
             size="icon"
             disabled={deletePending}
-            aria-label={`${ARTICLE_LABELS.delete} ${row.original.title}`}
+            aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
             onClick={() => onDeleteArticle(row.original)}
           >
             <Trash2Icon aria-hidden="true" className="size-4" />
@@ -142,13 +147,13 @@ function createArticleColumns(
 }
 
 interface ArticleDataTableProps {
-  articles: Article[]
+  articles: ArticleListItem[]
   pageIndex: number
   pageSize: number
   pageCount: number
   totalItems: number
   deletePending: boolean
-  onDeleteArticle: (article: Article) => void
+  onDeleteArticle: (article: ArticleListItem) => void
   onPageIndexChange: (pageIndex: number) => void
   onPageSizeChange: (pageSize: number) => void
 }
@@ -276,7 +281,57 @@ function ArticleDataTable({
   )
 }
 
-function ArticlePhoto({ article }: { article: Article }) {
+type LanguagePillStatus = ArticleStatus | 'MISSING'
+
+const LANGUAGE_PILLS: Record<
+  LanguagePillStatus,
+  { label: string; className: string }
+> = {
+  PUBLISHED: {
+    label: ARTICLE_LABELS.published,
+    className: 'bg-success/10 text-success',
+  },
+  DRAFT: {
+    label: ARTICLE_LABELS.draft,
+    className: 'bg-warning/15 text-warning',
+  },
+  MISSING: {
+    label: ARTICLE_LABELS.translationMissing,
+    className: 'bg-foreground/10 text-foreground/50',
+  },
+}
+
+function LanguagePill({
+  status,
+  className,
+  ...props
+}: ComponentProps<'span'> & { status: LanguagePillStatus }) {
+  return (
+    <span
+      className={cn(
+        'rounded-full px-2 py-0.5 text-xs font-medium',
+        LANGUAGE_PILLS[status].className,
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+function ArticleLanguageLegend() {
+  return (
+    <div className="text-foreground/55 flex flex-wrap items-center gap-2 px-4 pb-4 text-xs">
+      <span>{ARTICLE_LABELS.languageLegend}</span>
+      {(Object.keys(LANGUAGE_PILLS) as LanguagePillStatus[]).map((status) => (
+        <LanguagePill key={status} status={status}>
+          {LANGUAGE_PILLS[status].label}
+        </LanguagePill>
+      ))}
+    </div>
+  )
+}
+
+function ArticlePhoto({ article }: { article: ArticleListItem }) {
   if (!article.primary_photo_url) {
     return (
       <span className="bg-primary text-foreground/40 flex size-11 items-center justify-center rounded-md">
@@ -308,4 +363,4 @@ function formatIssueDate(issueDate: string | null) {
   }).format(date)
 }
 
-export { ArticleDataTable }
+export { ArticleDataTable, ArticleLanguageLegend }

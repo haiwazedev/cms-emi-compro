@@ -67,6 +67,7 @@ type NavigationItem = {
     | '/inbox'
     | '/board_members'
     | '/media'
+    | '/site_settings'
   icon: LucideIcon
   count?: string
 }
@@ -150,7 +151,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
     items: [
       {
         label: NAVIGATION_LABELS.siteSettings,
-        href: '#',
+        to: '/site_settings',
         icon: SettingsIcon,
       },
       {
