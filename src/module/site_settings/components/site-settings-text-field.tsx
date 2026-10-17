@@ -2,7 +2,7 @@ import type { SiteSettingsFormValues } from '@/module/site_settings/schemas/site
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import type { ComponentProps } from 'react'
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, useWatch } from 'react-hook-form'
 
 type TextFieldName = {
   [
@@ -22,12 +22,15 @@ function SiteSettingsTextField({
   name,
   label,
   required,
+  maxLength,
   ...props
 }: SiteSettingsTextFieldProps) {
   const {
+    control,
     register,
     formState: { errors },
   } = useFormContext<SiteSettingsFormValues>()
+  const value = useWatch({ control, name })
   const id = `site-settings-${name}`
   const error = errors[name]?.message
 
@@ -40,9 +43,15 @@ function SiteSettingsTextField({
       <Input
         id={id}
         aria-invalid={Boolean(error)}
+        maxLength={maxLength}
         {...props}
         {...register(name)}
       />
+      {maxLength && (
+        <p className="text-foreground/55 text-xs">
+          {value.length + ` / ${maxLength} karakter`}
+        </p>
+      )}
       {error && (
         <p role="alert" className="text-danger text-sm">
           {error}

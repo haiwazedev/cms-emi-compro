@@ -44,6 +44,7 @@ import {
   FormProvider,
   useFieldArray,
   useForm,
+  useWatch,
 } from 'react-hook-form'
 
 const emptySocialLink = {
@@ -88,6 +89,7 @@ function SiteSettingsForm({
     reset,
     formState: { errors, isDirty },
   } = form
+  const addressValue = useWatch({ control, name: 'address' })
   const socialLinks = useFieldArray({
     control,
     name: 'socialLinks',
@@ -203,6 +205,9 @@ function SiteSettingsForm({
                 aria-invalid={Boolean(errors.address)}
                 {...register('address')}
               />
+              <p className="text-foreground/55 text-xs">
+                {addressValue.length + ' / 500 karakter'}
+              </p>
               {errors.address?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.address.message}
@@ -228,11 +233,13 @@ function SiteSettingsForm({
                 name="mainEmail"
                 label={SITE_SETTINGS_LABELS.mainEmail}
                 type="email"
+                maxLength={254}
               />
               <SiteSettingsTextField
                 name="marketingEmail"
                 label={SITE_SETTINGS_LABELS.marketingEmail}
                 type="email"
+                maxLength={254}
               />
             </div>
             <div className="flex flex-col gap-4 lg:flex-row">
