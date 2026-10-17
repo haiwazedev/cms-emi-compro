@@ -1,7 +1,7 @@
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
-import { EditorContent, useEditor } from '@tiptap/react'
+import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import {
   BoldIcon,
@@ -10,8 +10,8 @@ import {
   ListIcon,
   ListOrderedIcon,
   Redo2Icon,
-  Undo2Icon,
   UnderlineIcon,
+  Undo2Icon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -45,6 +45,19 @@ function ArticleRichTextEditor({
       onChange?.(currentEditor.getText().trim() ? currentEditor.getHTML() : '')
     },
   })
+  const toolbarState = useEditorState({
+    editor,
+    selector: ({ editor: currentEditor }) => ({
+      bold: currentEditor?.isActive('bold') ?? false,
+      italic: currentEditor?.isActive('italic') ?? false,
+      underline: currentEditor?.isActive('underline') ?? false,
+      heading2: currentEditor?.isActive('heading', { level: 2 }) ?? false,
+      heading3: currentEditor?.isActive('heading', { level: 3 }) ?? false,
+      bulletList: currentEditor?.isActive('bulletList') ?? false,
+      orderedList: currentEditor?.isActive('orderedList') ?? false,
+      link: currentEditor?.isActive('link') ?? false,
+    }),
+  })
 
   if (!editor) {
     return (
@@ -64,21 +77,21 @@ function ArticleRichTextEditor({
         >
           <ToolbarButton
             label="Tebal"
-            active={editor.isActive('bold')}
+            active={toolbarState?.bold ?? false}
             onClick={() => editor.chain().focus().toggleBold().run()}
           >
             <BoldIcon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
             label="Miring"
-            active={editor.isActive('italic')}
+            active={toolbarState?.italic ?? false}
             onClick={() => editor.chain().focus().toggleItalic().run()}
           >
             <ItalicIcon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
             label="Garis bawah"
-            active={editor.isActive('underline')}
+            active={toolbarState?.underline ?? false}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
           >
             <UnderlineIcon aria-hidden="true" className="size-4" />
@@ -86,7 +99,7 @@ function ArticleRichTextEditor({
           <ToolbarDivider />
           <ToolbarButton
             label="Judul tingkat 2"
-            active={editor.isActive('heading', { level: 2 })}
+            active={toolbarState?.heading2 ?? false}
             onClick={() =>
               editor.chain().focus().toggleHeading({ level: 2 }).run()
             }
@@ -95,7 +108,7 @@ function ArticleRichTextEditor({
           </ToolbarButton>
           <ToolbarButton
             label="Judul tingkat 3"
-            active={editor.isActive('heading', { level: 3 })}
+            active={toolbarState?.heading3 ?? false}
             onClick={() =>
               editor.chain().focus().toggleHeading({ level: 3 }).run()
             }
@@ -105,14 +118,14 @@ function ArticleRichTextEditor({
           <ToolbarDivider />
           <ToolbarButton
             label="Daftar berpoin"
-            active={editor.isActive('bulletList')}
+            active={toolbarState?.bulletList ?? false}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
             <ListIcon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
             label="Daftar bernomor"
-            active={editor.isActive('orderedList')}
+            active={toolbarState?.orderedList ?? false}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           >
             <ListOrderedIcon aria-hidden="true" className="size-4" />
@@ -120,7 +133,7 @@ function ArticleRichTextEditor({
           <ToolbarDivider />
           <ToolbarButton
             label="Tautan"
-            active={editor.isActive('link')}
+            active={toolbarState?.link ?? false}
             onClick={() => {
               const currentHref = editor.getAttributes('link').href as
                 string | undefined
@@ -189,7 +202,11 @@ function ToolbarButton({
       aria-label={label}
       aria-pressed={active}
       onClick={onClick}
-      className={cn('size-8', active && 'bg-accent/10 text-accent')}
+      className={cn(
+        'size-8',
+        active &&
+          'bg-accent/10 text-accent hover:bg-accent/10 hover:text-accent',
+      )}
     >
       {children}
     </Button>
