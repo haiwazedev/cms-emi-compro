@@ -6,7 +6,14 @@ import type {
 import { createArticle, updateArticle } from '@/module/article/api/article.api'
 import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import {
+  ARTICLE_LABELS,
+  ARTICLE_LANGUAGES,
+} from '@/module/article/constants/article.constants'
+import type {
+  ArticleLanguage,
+  ArticleLanguageCode,
+} from '@/module/article/constants/article.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
@@ -25,6 +32,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import {
@@ -42,6 +57,7 @@ import {
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ApiError } from '@/shared/lib/api-client'
 import { toast } from '@/shared/lib/toast'
+import { cn, slugify } from '@/shared/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
@@ -51,6 +67,7 @@ import {
   EyeIcon,
   ImageIcon,
   LoaderCircleIcon,
+  PlusIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
@@ -61,6 +78,8 @@ interface ArticleFormProps {
   article?: Article
 }
 
+type TranslationStatus = ArticleStatus | 'UNSAVED' | 'MISSING'
+
 function ArticleForm({ mode, article }: ArticleFormProps) {
   const isEditing = mode === 'edit'
   const navigate = useNavigate()
@@ -69,42 +88,45 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
+  const [language, setLanguage] = useState<ArticleLanguageCode>('id')
+  const [pendingLanguage, setPendingLanguage] =
+    useState<ArticleLanguageCode | null>(null)
+  // shortcut: per-language status is tracked locally; read it from `article_contents` once that API exists.
+  const [statuses, setStatuses] = useState<
+    Partial<Record<ArticleLanguageCode, ArticleStatus>>
+  >(article ? { id: article.status } : {})
+  const [addedLanguages, setAddedLanguages] = useState<ArticleLanguageCode[]>(
+    [],
+  )
   const [selectedPhoto, setSelectedPhoto] = useState<Media>()
   const [photoError, setPhotoError] = useState<string>()
-  const initialTitle = article?.title ?? ''
-  const initialSlug = article?.slug ?? ''
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(
-    isEditing && initialSlug !== slugify(initialTitle),
+  const [defaultValues] = useState(() => savedValues(article, 'id'))
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(() =>
+    isSlugEdited(defaultValues),
   )
 
   const {
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
+    getValues,
     handleSubmit,
     register,
+    reset,
     setError,
     setValue,
   } = useForm<ArticleFormValues>({
     resolver: zodResolver(articleFormSchema),
-    defaultValues: {
-      article_category_id: article?.article_category_id ?? 0,
-      title: initialTitle,
-      slug: initialSlug,
-      summary: article?.summary ?? '',
-      content: article?.content ?? '',
-      issue_date: article?.issue_date?.slice(0, 10) ?? '',
-      press_release_number: article?.press_release_number ?? '',
-      cp_name: article?.cp_name ?? '',
-      cp_role: article?.cp_role ?? '',
-      cp_phone_number: article?.cp_phone_number ?? '',
-      cp_email: article?.cp_email ?? '',
-    },
+    defaultValues,
   })
 
-  const titleValue = useWatch({ control, name: 'title' }) ?? ''
-  const slugValue = useWatch({ control, name: 'slug' }) ?? ''
-  const contentValue = useWatch({ control, name: 'content' }) ?? ''
+  const titleValue = useWatch({ control, name: 'title' })
+  const slugValue = useWatch({ control, name: 'slug' })
+  const contentValue = useWatch({ control, name: 'content' })
   const categoryId = useWatch({ control, name: 'article_category_id' })
+  const currentLanguage = findLanguage(language)
+  const hasUnsavedChanges =
+    isDirty ||
+    (selectedPhoto !== undefined && selectedPhoto.id !== article?.primary_photo)
   const handleContentChange = useCallback(
     (content: string) => {
       setValue('content', content, {
@@ -124,6 +146,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
       values: ArticleFormValues
       status: ArticleStatus
       primaryPhotoId: number
+      language: ArticleLanguageCode
     }) => {
       const fields: ArticleWriteFields = {
         ...values,
@@ -137,13 +160,16 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
         status,
       }
 
+      // shortcut: every language goes through the single-content API, so a non-ID save overwrites the ID content; send `language` once `article_contents` exists.
       if (isEditing && article) {
         return updateArticle(article.id, fields)
       }
 
       return createArticle(fields)
     },
-    onSuccess: async () => {
+    onSuccess: async (savedArticle, { values, status, language }) => {
+      setStatuses((statuses) => ({ ...statuses, [language]: status }))
+      reset(values)
       await queryClient.invalidateQueries({
         queryKey: articleQueryKeys.all,
       })
@@ -152,7 +178,14 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
         description: ARTICLE_LABELS.articleSaved,
         type: 'success',
       })
-      await navigate({ to: '/articles' })
+
+      if (!isEditing) {
+        await navigate({
+          to: '/articles/$articleId/edit',
+          params: { articleId: String(savedArticle.id) },
+          replace: true,
+        })
+      }
     },
     onError: (error) => {
       const message =
@@ -186,15 +219,51 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
     setPhotoError(undefined)
   }
 
-  function submitArticle(values: ArticleFormValues, status: ArticleStatus) {
-    const primaryPhotoId = selectedPhoto?.id ?? article?.primary_photo
-    if (primaryPhotoId == null) {
-      setPhotoError(ARTICLE_LABELS.photoRequired)
+  function requestLanguage(code: ArticleLanguageCode) {
+    if (code === language) return
+    if (hasUnsavedChanges) {
+      setPendingLanguage(code)
       return
     }
 
+    switchLanguage(code)
+  }
+
+  // Discards every unsaved edit, shared fields and photo included.
+  function switchLanguage(code: ArticleLanguageCode) {
+    const values = savedValues(article, code)
+    reset(values)
+    setSlugManuallyEdited(isSlugEdited(values))
+    setSelectedPhoto(undefined)
     setPhotoError(undefined)
-    articleMutation.mutate({ values, status, primaryPhotoId })
+    setLanguage(code)
+    setPendingLanguage(null)
+  }
+
+  function translationStatus(code: ArticleLanguageCode): TranslationStatus {
+    const status = statuses[code]
+    if (status) return status
+    if (code === language || addedLanguages.includes(code)) return 'UNSAVED'
+    return 'MISSING'
+  }
+
+  function submitArticle(status: ArticleStatus) {
+    return handleSubmit(
+      (values) => {
+        const primaryPhotoId = selectedPhoto?.id ?? article?.primary_photo
+        if (primaryPhotoId == null) {
+          setPhotoError(ARTICLE_LABELS.photoRequired)
+          return
+        }
+
+        articleMutation.mutate({ values, status, primaryPhotoId, language })
+      },
+      () => {
+        if ((selectedPhoto?.id ?? article?.primary_photo) == null) {
+          setPhotoError(ARTICLE_LABELS.photoRequired)
+        }
+      },
+    )()
   }
 
   const existingPhotoUrl = article?.primary_photo_url
@@ -203,12 +272,16 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
   const previewPhotoUrl = selectedPhoto
     ? getMediaAssetUrl(selectedPhoto.path)
     : existingPhotoUrl
+  const currentStatus = translationStatus(language)
 
   return (
     <>
       <form
         noValidate
-        onSubmit={handleSubmit((values) => submitArticle(values, 'DRAFT'))}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void submitArticle('DRAFT')
+        }}
         className="bg-primary flex min-h-full flex-col gap-5 p-4 lg:p-8"
       >
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -250,9 +323,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
               type="button"
               variant="outline"
               disabled={articleMutation.isPending}
-              onClick={() =>
-                void handleSubmit((values) => submitArticle(values, 'DRAFT'))()
-              }
+              onClick={() => void submitArticle('DRAFT')}
             >
               {articleMutation.isPending ? (
                 <LoaderCircleIcon
@@ -265,11 +336,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
             <Button
               type="button"
               disabled={articleMutation.isPending}
-              onClick={() =>
-                void handleSubmit((values) =>
-                  submitArticle(values, 'PUBLISHED'),
-                )()
-              }
+              onClick={() => void submitArticle('PUBLISHED')}
               className="bg-success hover:bg-success/90"
             >
               {articleMutation.isPending ? (
@@ -288,9 +355,10 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
             <Card>
               <CardHeader>
                 <CardTitle>{ARTICLE_LABELS.mainContent}</CardTitle>
-                <Badge variant="secondary">Bahasa Indonesia</Badge>
+                <Badge variant="secondary">{currentLanguage.name}</Badge>
               </CardHeader>
-              <CardContent>
+              {/* Remount per language so the editor loads that language's content. */}
+              <CardContent key={language}>
                 <FormField
                   id="article-title"
                   label={ARTICLE_LABELS.titleField}
@@ -363,7 +431,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                     <ArticleRichTextEditor
                       id="article-content"
                       ariaLabel={ARTICLE_LABELS.bodyField}
-                      content={article?.content ?? ''}
+                      content={getValues('content')}
                       onChange={handleContentChange}
                     />
                   </div>
@@ -374,6 +442,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                   label={ARTICLE_LABELS.pressReleaseNumberField}
                   error={errors.press_release_number?.message}
                 >
+                  {/* Shared across languages, unlike the fields above. */}
                   <Input
                     id="article-press-release-number"
                     maxLength={255}
@@ -457,15 +526,15 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                   <span className="text-foreground/60">Status</span>
                   <Badge
                     variant="outline"
-                    className={
-                      article?.status === 'PUBLISHED'
-                        ? 'border-success/20 bg-success/10 text-success'
-                        : 'border-warning/20 bg-warning/10 text-warning'
-                    }
+                    className={cn(
+                      currentStatus === 'PUBLISHED' &&
+                        'border-success/20 bg-success/10',
+                      currentStatus === 'DRAFT' &&
+                        'border-warning/20 bg-warning/10',
+                      TRANSLATION_STATUS_TONES[currentStatus],
+                    )}
                   >
-                    {article?.status === 'PUBLISHED'
-                      ? ARTICLE_LABELS.published
-                      : ARTICLE_LABELS.draft}
+                    {TRANSLATION_STATUS_LABELS[currentStatus]}
                   </Badge>
                 </div>
                 {article && (
@@ -511,7 +580,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                 <FormField
                   id="article-primary-photo"
                   label={
-                    isEditing
+                    previewPhotoUrl
                       ? ARTICLE_LABELS.photoReplace
                       : ARTICLE_LABELS.photoSelect
                   }
@@ -702,6 +771,28 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                 </FormField>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader className="px-4 py-3">
+                <CardTitle className="text-xs tracking-wide uppercase">
+                  {ARTICLE_LABELS.translation}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3 p-4 text-sm">
+                {ARTICLE_LANGUAGES.map((item) => (
+                  <TranslationRow
+                    key={item.code}
+                    language={item}
+                    status={translationStatus(item.code)}
+                    current={item.code === language}
+                    onOpen={() => requestLanguage(item.code)}
+                    onAdd={() =>
+                      setAddedLanguages((codes) => [...codes, item.code])
+                    }
+                  />
+                ))}
+              </CardContent>
+            </Card>
           </aside>
         </div>
       </form>
@@ -723,6 +814,43 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
           onSelect={handlePhotoSelect}
         />
       )}
+      <Dialog
+        open={pendingLanguage !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingLanguage(null)
+        }}
+      >
+        <DialogContent
+          className="max-w-xl"
+          closeLabel={ARTICLE_LABELS.closeDiscardDialog}
+        >
+          <DialogHeader className="border-border/15 border-b">
+            <DialogTitle>{ARTICLE_LABELS.discardChangesTitle}</DialogTitle>
+          </DialogHeader>
+          <DialogDescription className="px-5 py-6">
+            {ARTICLE_LABELS.discardChangesDescription}
+          </DialogDescription>
+          <DialogFooter className="bg-primary">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPendingLanguage(null)}
+            >
+              {ARTICLE_LABELS.cancel}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-danger/30 text-danger hover:bg-danger/5 hover:text-danger"
+              onClick={() => {
+                if (pendingLanguage) switchLanguage(pendingLanguage)
+              }}
+            >
+              {ARTICLE_LABELS.confirmDiscardChanges}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -759,6 +887,109 @@ function FormField({
   )
 }
 
+const TRANSLATION_STATUS_LABELS: Record<TranslationStatus, string> = {
+  PUBLISHED: ARTICLE_LABELS.published,
+  DRAFT: ARTICLE_LABELS.draft,
+  UNSAVED: ARTICLE_LABELS.translationUnsaved,
+  MISSING: ARTICLE_LABELS.translationMissing,
+}
+
+const TRANSLATION_STATUS_TONES: Record<TranslationStatus, string> = {
+  PUBLISHED: 'text-success',
+  DRAFT: 'text-warning',
+  UNSAVED: 'text-foreground/55',
+  MISSING: 'text-foreground/40',
+}
+
+function TranslationRow({
+  language,
+  status,
+  current,
+  onOpen,
+  onAdd,
+}: {
+  language: ArticleLanguage
+  status: TranslationStatus
+  current: boolean
+  onOpen: () => void
+  onAdd: () => void
+}) {
+  const name = (
+    <span className="flex items-center gap-2">
+      <span aria-hidden="true">{language.flag}</span>
+      {language.name}
+    </span>
+  )
+
+  return (
+    <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
+      {status === 'MISSING' ? (
+        <>
+          <span className={TRANSLATION_STATUS_TONES.MISSING}>{name}</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={ARTICLE_LABELS.addTranslation(language.name)}
+            onClick={onAdd}
+          >
+            <PlusIcon aria-hidden="true" className="size-4" />
+          </Button>
+        </>
+      ) : (
+        <button
+          type="button"
+          aria-current={current || undefined}
+          aria-label={ARTICLE_LABELS.openTranslation(language.name)}
+          onClick={onOpen}
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+        >
+          <span
+            className={
+              current ? 'text-accent font-semibold' : 'text-foreground/60'
+            }
+          >
+            {name}
+          </span>
+          <span className={cn('font-medium', TRANSLATION_STATUS_TONES[status])}>
+            {TRANSLATION_STATUS_LABELS[status]}
+          </span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function findLanguage(code: ArticleLanguageCode) {
+  return ARTICLE_LANGUAGES.find((item) => item.code === code)!
+}
+
+// shortcut: the current API stores one content set, treated as Indonesian; load per language once `article_contents` exists.
+function savedValues(
+  article: Article | undefined,
+  language: ArticleLanguageCode,
+): ArticleFormValues {
+  const content = language === 'id' ? article : undefined
+
+  return {
+    article_category_id: article?.article_category_id ?? 0,
+    title: content?.title ?? '',
+    slug: content?.slug ?? '',
+    summary: content?.summary ?? '',
+    content: content?.content ?? '',
+    issue_date: article?.issue_date?.slice(0, 10) ?? '',
+    press_release_number: article?.press_release_number ?? '',
+    cp_name: article?.cp_name ?? '',
+    cp_role: article?.cp_role ?? '',
+    cp_phone_number: article?.cp_phone_number ?? '',
+    cp_email: article?.cp_email ?? '',
+  }
+}
+
+function isSlugEdited({ title, slug }: ArticleFormValues) {
+  return slug !== slugify(title)
+}
+
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
@@ -766,14 +997,6 @@ function MetaRow({ label, value }: { label: string; value: string }) {
       <span className="text-accent text-right font-medium">{value}</span>
     </div>
   )
-}
-
-function slugify(value: string) {
-  return value
-    .toLocaleLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
 }
 
 function parseIssueDate(value: string) {

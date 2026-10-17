@@ -1,8 +1,9 @@
 import {
   ARTICLE_LABELS,
+  ARTICLE_LANGUAGES,
   ARTICLE_PAGE_SIZES,
 } from '@/module/article/constants/article.constants'
-import type { Article } from '@/module/article/api/article.api'
+import type { Article, ArticleStatus } from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
 import {
   Table,
@@ -29,6 +30,7 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
+import type { ComponentProps } from 'react'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -56,7 +58,7 @@ function createArticleColumns(
             {row.original.title}
           </span>
           <span className="text-foreground/55 text-sm">
-            /berita/{row.original.slug}
+            /articles/{row.original.slug}
           </span>
         </div>
       ),
@@ -81,31 +83,32 @@ function createArticleColumns(
       ),
     },
     {
-      accessorKey: 'status',
-      header: ARTICLE_LABELS.status,
-      cell: ({ row }) => {
-        const isPublished = row.original.status === 'PUBLISHED'
+      id: 'languages',
+      header: ARTICLE_LABELS.languages,
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {ARTICLE_LANGUAGES.map((language) => {
+            // shortcut: the current API has one content set, shown as ID; read per-language status from `article_contents` once it exists.
+            const status =
+              language.code === 'id' ? row.original.status : 'MISSING'
+            const label = ARTICLE_LABELS.languageStatus(
+              language.name,
+              LANGUAGE_PILLS[status].label,
+            )
 
-        return (
-          <span
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap',
-              isPublished
-                ? 'bg-success/10 text-success'
-                : 'bg-warning/15 text-warning',
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                'size-1.5 rounded-full',
-                isPublished ? 'bg-success' : 'bg-warning',
-              )}
-            />
-            {isPublished ? ARTICLE_LABELS.published : ARTICLE_LABELS.draft}
-          </span>
-        )
-      },
+            return (
+              <LanguagePill
+                key={language.code}
+                status={status}
+                title={label}
+                aria-label={label}
+              >
+                {language.abbreviation}
+              </LanguagePill>
+            )
+          })}
+        </div>
+      ),
     },
     {
       id: 'actions',
@@ -276,6 +279,56 @@ function ArticleDataTable({
   )
 }
 
+type LanguagePillStatus = ArticleStatus | 'MISSING'
+
+const LANGUAGE_PILLS: Record<
+  LanguagePillStatus,
+  { label: string; className: string }
+> = {
+  PUBLISHED: {
+    label: ARTICLE_LABELS.published,
+    className: 'bg-success/10 text-success',
+  },
+  DRAFT: {
+    label: ARTICLE_LABELS.draft,
+    className: 'bg-warning/15 text-warning',
+  },
+  MISSING: {
+    label: ARTICLE_LABELS.translationMissing,
+    className: 'bg-foreground/10 text-foreground/50',
+  },
+}
+
+function LanguagePill({
+  status,
+  className,
+  ...props
+}: ComponentProps<'span'> & { status: LanguagePillStatus }) {
+  return (
+    <span
+      className={cn(
+        'rounded-full px-2 py-0.5 text-xs font-medium',
+        LANGUAGE_PILLS[status].className,
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+function ArticleLanguageLegend() {
+  return (
+    <div className="text-foreground/55 flex flex-wrap items-center gap-2 px-4 pb-4 text-xs">
+      <span>{ARTICLE_LABELS.languageLegend}</span>
+      {(Object.keys(LANGUAGE_PILLS) as LanguagePillStatus[]).map((status) => (
+        <LanguagePill key={status} status={status}>
+          {LANGUAGE_PILLS[status].label}
+        </LanguagePill>
+      ))}
+    </div>
+  )
+}
+
 function ArticlePhoto({ article }: { article: Article }) {
   if (!article.primary_photo_url) {
     return (
@@ -308,4 +361,4 @@ function formatIssueDate(issueDate: string | null) {
   }).format(date)
 }
 
-export { ArticleDataTable }
+export { ArticleDataTable, ArticleLanguageLegend }

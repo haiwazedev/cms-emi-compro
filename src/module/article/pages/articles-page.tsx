@@ -10,7 +10,10 @@ import type {
 } from '@/module/article/api/article.api'
 import { deleteArticle } from '@/module/article/api/article.api'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
-import { ArticleDataTable } from '@/module/article/components/article-data-table'
+import {
+  ArticleDataTable,
+  ArticleLanguageLegend,
+} from '@/module/article/components/article-data-table'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -156,12 +159,19 @@ function ArticlesPage() {
             {ARTICLE_LABELS.description}
           </p>
         </div>
-        <Button asChild className="self-start lg:self-auto">
-          <Link to="/articles/create">
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {ARTICLE_LABELS.createArticle}
-          </Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
+          <Button asChild variant="outline">
+            <Link to="/article_categories">
+              {ARTICLE_LABELS.manageCategories}
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/articles/create">
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {ARTICLE_LABELS.createArticle}
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <section
@@ -247,6 +257,8 @@ function ArticlesPage() {
             {ARTICLE_LABELS.entryCount(pagination?.totalItems ?? 0)}
           </p>
         </div>
+
+        <ArticleLanguageLegend />
 
         {categoriesQuery.isError && (
           <p role="status" className="text-danger px-4 pb-4 text-sm">

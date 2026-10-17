@@ -57,6 +57,12 @@ interface ArticleCategoriesResponse {
   articleCategories: ArticleCategory[]
 }
 
+interface ArticleCategoryResponse {
+  articleCategory: ArticleCategory
+}
+
+export type ArticleCategoryWriteFields = Pick<ArticleCategory, 'name' | 'slug'>
+
 interface ArticleResponse {
   article: Article
 }
@@ -91,6 +97,33 @@ export async function getArticleCategories() {
   )
 
   return data.articleCategories
+}
+
+export async function createArticleCategory(
+  fields: ArticleCategoryWriteFields,
+) {
+  const { data } = await apiClient.post<ArticleCategoryResponse>(
+    '/article_categories',
+    fields,
+  )
+
+  return data.articleCategory
+}
+
+export async function updateArticleCategory(
+  articleCategoryId: number,
+  fields: ArticleCategoryWriteFields,
+) {
+  const { data } = await apiClient.put<ArticleCategoryResponse>(
+    '/article_categories/' + articleCategoryId,
+    fields,
+  )
+
+  return data.articleCategory
+}
+
+export async function deleteArticleCategory(articleCategoryId: number) {
+  await apiClient.delete<void>('/article_categories/' + articleCategoryId)
 }
 
 export async function getArticle(articleId: number) {

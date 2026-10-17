@@ -82,7 +82,55 @@ export const ARTICLE_LABELS = {
   nextPage: 'Halaman berikutnya',
   pageSize: 'Jumlah artikel per halaman',
   pageSizeOption: (size: number) => `${size} / halaman`,
+  translation: 'Terjemahan',
+  languages: 'Bahasa',
+  languageLegend: 'Keterangan bahasa:',
+  translationMissing: 'Belum ada',
+  translationUnsaved: 'Belum disimpan',
+  addTranslation: (language: string) => `Tambah versi ${language}`,
+  openTranslation: (language: string) => `Buka versi ${language}`,
+  languageStatus: (language: string, status: string) =>
+    `${language}: ${status}`,
+  discardChangesTitle: 'Buang perubahan?',
+  discardChangesDescription:
+    'Perubahan yang belum disimpan akan hilang jika Anda berpindah bahasa.',
+  confirmDiscardChanges: 'Ya, buang perubahan',
+  closeDiscardDialog: 'Tutup dialog buang perubahan',
+  manageCategories: 'Kelola Kategori',
+  categoryPageTitle: 'Kategori Artikel',
+  categoryDocumentTitle: 'Kategori Artikel | PLN EMI Admin',
+  categoryDescription: 'Kelola kategori untuk mengelompokkan artikel.',
+  addCategory: 'Tambah Kategori',
+  editCategory: 'Ubah Kategori',
+  categoryFormDescription: 'Atur nama kategori artikel.',
+  categoryName: 'Nama kategori',
+  categorySlugHint: (slug: string) => `Slug: ${slug || '-'}`,
+  categoryNameRequired: 'Nama kategori wajib diisi.',
+  categoryNameTooLong: 'Nama kategori maksimal 100 karakter.',
+  categoryNameNoSlug: 'Nama kategori harus mengandung huruf atau angka.',
+  categorySaved: 'Kategori berhasil disimpan.',
+  categorySaveFailed: 'Kategori gagal disimpan.',
+  categoryDeleted: 'Kategori berhasil dihapus.',
+  categoryDeleteFailed: 'Kategori gagal dihapus.',
+  noCategories: 'Belum ada kategori.',
+  deleteCategoryTitle: 'Hapus kategori?',
+  deleteCategoryDescription:
+    'Menghapus kategori ini juga akan menghapus semua artikel di dalamnya. Tindakan ini tidak dapat dibatalkan.',
+  confirmDeleteCategory: 'Ya, hapus kategori',
+  deletingCategory: 'Menghapus kategori...',
+  closeDeleteCategoryDialog: 'Tutup dialog hapus kategori',
+  saving: 'Menyimpan...',
+  save: 'Simpan',
 } as const
+
+// shortcut: static master data, replace with the `languages` table once its API exists.
+export const ARTICLE_LANGUAGES = [
+  { code: 'id', name: 'Bahasa Indonesia', abbreviation: 'ID', flag: '🇮🇩' },
+  { code: 'en', name: 'English', abbreviation: 'EN', flag: '🇬🇧' },
+] as const
+
+export type ArticleLanguage = (typeof ARTICLE_LANGUAGES)[number]
+export type ArticleLanguageCode = ArticleLanguage['code']
 
 export const ARTICLE_DEFAULT_PAGE_SIZE = 10
 export const ARTICLE_PAGE_SIZES = [10, 20, 50] as const

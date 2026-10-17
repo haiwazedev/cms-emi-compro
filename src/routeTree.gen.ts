@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedAboutUsRouteImport } from './routes/_authenticated.about-us'
+import { Route as AuthenticatedArticle_categoriesRouteImport } from './routes/_authenticated.article_categories'
 import { Route as AuthenticatedArticlesRouteImport } from './routes/_authenticated/articles'
 import { Route as AuthenticatedBoard_member_typesRouteImport } from './routes/_authenticated.board_member_types'
 import { Route as AuthenticatedBoard_membersRouteImport } from './routes/_authenticated.board_members'
@@ -43,6 +44,12 @@ const AuthenticatedAboutUsRoute = AuthenticatedAboutUsRouteImport.update({
   path: '/about-us',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedArticle_categoriesRoute =
+  AuthenticatedArticle_categoriesRouteImport.update({
+    id: '/article_categories',
+    path: '/article_categories',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedArticlesRoute = AuthenticatedArticlesRouteImport.update({
   id: '/articles',
   path: '/articles',
@@ -134,6 +141,7 @@ const AuthenticatedArticlesArticleIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about-us': typeof AuthenticatedAboutUsRoute
+  '/article_categories': typeof AuthenticatedArticle_categoriesRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/board_member_types': typeof AuthenticatedBoard_member_typesRoute
   '/board_members': typeof AuthenticatedBoard_membersRoute
@@ -154,6 +162,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about-us': typeof AuthenticatedAboutUsRoute
+  '/article_categories': typeof AuthenticatedArticle_categoriesRoute
   '/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/board_member_types': typeof AuthenticatedBoard_member_typesRoute
   '/board_members': typeof AuthenticatedBoard_membersRoute
@@ -176,6 +185,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_authenticated/about-us': typeof AuthenticatedAboutUsRoute
+  '/_authenticated/article_categories': typeof AuthenticatedArticle_categoriesRoute
   '/_authenticated/articles': typeof AuthenticatedArticlesRouteWithChildren
   '/_authenticated/board_member_types': typeof AuthenticatedBoard_member_typesRoute
   '/_authenticated/board_members': typeof AuthenticatedBoard_membersRoute
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about-us'
+    | '/article_categories'
     | '/articles'
     | '/board_member_types'
     | '/board_members'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about-us'
+    | '/article_categories'
     | '/articles'
     | '/board_member_types'
     | '/board_members'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/about-us'
+    | '/_authenticated/article_categories'
     | '/_authenticated/articles'
     | '/_authenticated/board_member_types'
     | '/_authenticated/board_members'
@@ -284,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/about-us'
       fullPath: '/about-us'
       preLoaderRoute: typeof AuthenticatedAboutUsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/article_categories': {
+      id: '/_authenticated/article_categories'
+      path: '/article_categories'
+      fullPath: '/article_categories'
+      preLoaderRoute: typeof AuthenticatedArticle_categoriesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/articles': {
@@ -419,6 +439,7 @@ const AuthenticatedArticlesRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAboutUsRoute: typeof AuthenticatedAboutUsRoute
+  AuthenticatedArticle_categoriesRoute: typeof AuthenticatedArticle_categoriesRoute
   AuthenticatedArticlesRoute: typeof AuthenticatedArticlesRouteWithChildren
   AuthenticatedBoard_member_typesRoute: typeof AuthenticatedBoard_member_typesRoute
   AuthenticatedBoard_membersRoute: typeof AuthenticatedBoard_membersRoute
@@ -436,6 +457,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAboutUsRoute: AuthenticatedAboutUsRoute,
+  AuthenticatedArticle_categoriesRoute: AuthenticatedArticle_categoriesRoute,
   AuthenticatedArticlesRoute: AuthenticatedArticlesRouteWithChildren,
   AuthenticatedBoard_member_typesRoute: AuthenticatedBoard_member_typesRoute,
   AuthenticatedBoard_membersRoute: AuthenticatedBoard_membersRoute,
