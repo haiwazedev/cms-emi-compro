@@ -28,6 +28,8 @@ function CreateArticlePage() {
 
   return (
     <ArticleForm
+      // Remount per language: switching discards every unsaved edit.
+      key={languageId}
       mode="create"
       languages={languagesQuery.data}
       languageId={languageId ?? languagesQuery.data[0].id}

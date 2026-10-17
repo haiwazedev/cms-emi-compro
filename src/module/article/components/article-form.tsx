@@ -56,7 +56,7 @@ import {
   PlusIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 interface ArticleFormProps {
@@ -124,21 +124,6 @@ function ArticleForm({
       !window.confirm(ARTICLE_LABELS.discardChangesConfirm),
     enableBeforeUnload: () => hasUnsavedChanges,
   })
-
-  // Language changes come from the URL (row click or back/forward), so reset here.
-  const shownLanguageIdRef = useRef(languageId)
-  useEffect(() => {
-    if (shownLanguageIdRef.current === languageId) return
-    shownLanguageIdRef.current = languageId
-
-    // Discards every unsaved edit, shared fields and photo included.
-    const values = savedValues(article, languageId)
-    reset(values)
-    setSlugManuallyEdited(isSlugEdited(values))
-    setSelectedPhoto(undefined)
-    setPhotoError(undefined)
-    setAddedLanguageIds([])
-  }, [article, languageId, reset])
 
   const handleContentChange = useCallback(
     (content: string) => {
@@ -376,7 +361,7 @@ function ArticleForm({
                 <Badge variant="secondary">{currentLanguage.language}</Badge>
               </CardHeader>
               {/* Remount per language so the editor loads that language's content. */}
-              <CardContent key={languageId}>
+              <CardContent>
                 <FormField
                   id="article-title"
                   label={ARTICLE_LABELS.titleField}

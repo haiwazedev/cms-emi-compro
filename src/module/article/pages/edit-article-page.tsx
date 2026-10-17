@@ -77,7 +77,8 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
 
   return (
     <ArticleForm
-      key={articleQuery.data.id}
+      // Remount per language: switching discards every unsaved edit.
+      key={`${articleQuery.data.id}-${language.id}`}
       mode="edit"
       article={articleQuery.data}
       languages={languages}
