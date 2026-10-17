@@ -3,11 +3,11 @@ import { getSiteSettings } from '../api/site-settings.api'
 
 export const siteSettingsQueryKeys = {
   all: ['site-settings'] as const,
-  detail: (languageId: number) =>
+  detail: (languageId: string) =>
     [...siteSettingsQueryKeys.all, languageId] as const,
 }
 
-export function siteSettingsQueryOptions(languageId: number) {
+export function siteSettingsQueryOptions(languageId: string) {
   return queryOptions({
     queryKey: siteSettingsQueryKeys.detail(languageId),
     queryFn: () => getSiteSettings(languageId),

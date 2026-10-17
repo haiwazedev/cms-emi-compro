@@ -1,6 +1,8 @@
 import { articleQueryOptions } from '@/module/article/queries/article.queries'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { ArticleForm } from '@/module/article/components/article-form'
+import type { Language } from '@/module/language/api/language.api'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
@@ -24,21 +26,22 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
   const navigate = useNavigate({ from: '/articles/$articleId/edit' })
   const article = articleQuery.data
   const languages = languagesQuery.data ?? []
-  const urlLanguage = languages.find(
-    (item) => item.abbreviated_language === lang,
-  )
-  // Fallback: the first language with content, else the first language.
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const hasContent = (item: Language) =>
+    article?.contents.some((content) => content.language_id === item.id)
+  const defaultLanguage = findDefaultLanguage(languages)
+  // Fallback: the default language if it has content, else the first language with content, else the default.
   const fallbackLanguage =
-    languages.find((item) =>
-      article?.contents.some((content) => content.language_id === item.id),
-    ) ?? languages[0]
+    (defaultLanguage && hasContent(defaultLanguage)
+      ? defaultLanguage
+      : languages.find(hasContent)) ?? defaultLanguage
   const language = urlLanguage ?? fallbackLanguage
 
   useEffect(() => {
     if (!article || urlLanguage || !fallbackLanguage) return
 
     void navigate({
-      search: { lang: fallbackLanguage.abbreviated_language },
+      search: { lang: fallbackLanguage.id },
       replace: true,
     })
   }, [article, fallbackLanguage, navigate, urlLanguage])
@@ -89,7 +92,7 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
 
         // The form already confirmed discarding changes.
         void navigate({
-          search: { lang: nextLanguage.abbreviated_language },
+          search: { lang: nextLanguage.id },
           ignoreBlocker: true,
         })
       }}
