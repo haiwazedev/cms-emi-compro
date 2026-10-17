@@ -8,6 +8,7 @@ import { ArticlePreviewDialog } from '@/module/article/components/article-previe
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import type { Language } from '@/module/language/api/language.api'
+import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
@@ -240,6 +241,20 @@ function ArticleForm({
     }
 
     onLanguageChange(id)
+  }
+
+  // Other languages need a saved (draft or published) Bahasa Indonesia version first.
+  function addLanguage(id: string) {
+    if (!findContent(article, DEFAULT_LANGUAGE_ID)) {
+      toast.add({
+        title: 'Gagal',
+        description: ARTICLE_LABELS.defaultLanguageRequired,
+        type: 'error',
+      })
+      return
+    }
+
+    setAddedLanguageIds((ids) => [...ids, id])
   }
 
   function translationStatus(id: string): TranslationStatus {
@@ -788,9 +803,7 @@ function ArticleForm({
                     status={translationStatus(item.id)}
                     current={item.id === languageId}
                     onOpen={() => requestLanguage(item.id)}
-                    onAdd={() =>
-                      setAddedLanguageIds((ids) => [...ids, item.id])
-                    }
+                    onAdd={() => addLanguage(item.id)}
                   />
                 ))}
               </CardContent>

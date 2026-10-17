@@ -90,6 +90,8 @@ export const ARTICLE_LABELS = {
   translationMissing: 'Belum ada',
   translationUnsaved: 'Belum disimpan',
   addTranslation: (language: string) => `Tambah versi ${language}`,
+  defaultLanguageRequired:
+    'Versi Bahasa Indonesia wajib dibuat sebelum menambahkan bahasa lain.',
   openTranslation: (language: string) => `Buka versi ${language}`,
   languageStatus: (language: string, status: string) =>
     `${language}: ${status}`,
