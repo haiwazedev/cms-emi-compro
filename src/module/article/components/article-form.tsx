@@ -118,6 +118,8 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
   const slugValue = useWatch({ control, name: 'slug' })
   const contentValue = useWatch({ control, name: 'content' })
   const categoryId = useWatch({ control, name: 'article_category_id' })
+  const issueDateValue = useWatch({ control, name: 'issue_date' })
+  const cpNameValue = useWatch({ control, name: 'cp_name' })
   const currentLanguage =
     languages.find((item) => item.id === languageId) ?? languages[0]
   const hasUnsavedChanges =
@@ -804,6 +806,13 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
         title={titleValue}
         photoUrl={previewPhotoUrl}
         content={contentValue}
+        categoryName={
+          categoriesQuery.data?.find((category) => category.id === categoryId)
+            ?.name
+        }
+        issueDate={issueDateValue}
+        author={cpNameValue.trim()}
+        readTime={findContent(article, languageId)?.read_time}
       />
       {photoPickerOpen && (
         <MediaPickerDialog

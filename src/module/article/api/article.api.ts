@@ -30,6 +30,7 @@ export interface ArticleContent {
   summary: string
   content: string
   status: ArticleStatus
+  read_time: number
   created_at: string
   created_by: string
   updated_at: string | null
