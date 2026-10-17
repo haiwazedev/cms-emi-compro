@@ -1,6 +1,7 @@
 import { articleQueryOptions } from '@/module/article/queries/article.queries'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { ArticleForm } from '@/module/article/components/article-form'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { ApiError } from '@/shared/lib/api-client'
@@ -15,13 +16,26 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
     enabled: hasValidId,
     retry: false,
   })
+  const languagesQuery = useQuery(languagesQueryOptions())
 
   if (!hasValidId) {
     return <ArticleLoadState message={ARTICLE_LABELS.articleNotFound} />
   }
 
-  if (articleQuery.isPending) {
+  if (articleQuery.isPending || languagesQuery.isPending) {
     return <ArticleLoadState message={ARTICLE_LABELS.loadingArticles} />
+  }
+
+  if (languagesQuery.isError || languagesQuery.data.length === 0) {
+    return (
+      <ArticleLoadState
+        message={
+          languagesQuery.isError
+            ? ARTICLE_LABELS.languagesFailed
+            : ARTICLE_LABELS.noLanguages
+        }
+      />
+    )
   }
 
   if (articleQuery.isError) {
@@ -41,6 +55,7 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
       key={articleQuery.data.id}
       mode="edit"
       article={articleQuery.data}
+      languages={languagesQuery.data}
     />
   )
 }
@@ -62,4 +77,4 @@ function ArticleLoadState({ message }: { message: string }) {
   )
 }
 
-export { EditArticlePage }
+export { ArticleLoadState, EditArticlePage }

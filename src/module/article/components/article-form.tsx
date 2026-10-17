@@ -6,14 +6,8 @@ import type {
 import { createArticle, updateArticle } from '@/module/article/api/article.api'
 import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
-import {
-  ARTICLE_LABELS,
-  ARTICLE_LANGUAGES,
-} from '@/module/article/constants/article.constants'
-import type {
-  ArticleLanguage,
-  ArticleLanguageCode,
-} from '@/module/article/constants/article.constants'
+import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import type { Language } from '@/module/language/api/language.api'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
@@ -76,11 +70,12 @@ import { Controller, useForm, useWatch } from 'react-hook-form'
 interface ArticleFormProps {
   mode: 'create' | 'edit'
   article?: Article
+  languages: Language[]
 }
 
 type TranslationStatus = ArticleStatus | 'UNSAVED' | 'MISSING'
 
-function ArticleForm({ mode, article }: ArticleFormProps) {
+function ArticleForm({ mode, article, languages }: ArticleFormProps) {
   const isEditing = mode === 'edit'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -88,19 +83,19 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
-  const [language, setLanguage] = useState<ArticleLanguageCode>('id')
-  const [pendingLanguage, setPendingLanguage] =
-    useState<ArticleLanguageCode | null>(null)
-  // shortcut: per-language status is tracked locally; read it from `article_contents` once that API exists.
-  const [statuses, setStatuses] = useState<
-    Partial<Record<ArticleLanguageCode, ArticleStatus>>
-  >(article ? { id: article.status } : {})
-  const [addedLanguages, setAddedLanguages] = useState<ArticleLanguageCode[]>(
-    [],
+  // Open on the first language that has content, else the first language.
+  const [languageId, setLanguageId] = useState(
+    () =>
+      languages.find((item) => findContent(article, item.id))?.id ??
+      languages[0].id,
   )
+  const [pendingLanguageId, setPendingLanguageId] = useState<number | null>(
+    null,
+  )
+  const [addedLanguageIds, setAddedLanguageIds] = useState<number[]>([])
   const [selectedPhoto, setSelectedPhoto] = useState<Media>()
   const [photoError, setPhotoError] = useState<string>()
-  const [defaultValues] = useState(() => savedValues(article, 'id'))
+  const [defaultValues] = useState(() => savedValues(article, languageId))
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(() =>
     isSlugEdited(defaultValues),
   )
@@ -123,7 +118,8 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
   const slugValue = useWatch({ control, name: 'slug' })
   const contentValue = useWatch({ control, name: 'content' })
   const categoryId = useWatch({ control, name: 'article_category_id' })
-  const currentLanguage = findLanguage(language)
+  const currentLanguage =
+    languages.find((item) => item.id === languageId) ?? languages[0]
   const hasUnsavedChanges =
     isDirty ||
     (selectedPhoto !== undefined && selectedPhoto.id !== article?.primary_photo)
@@ -142,14 +138,16 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
       values,
       status,
       primaryPhotoId,
+      languageId,
     }: {
       values: ArticleFormValues
       status: ArticleStatus
       primaryPhotoId: number
-      language: ArticleLanguageCode
+      languageId: number
     }) => {
       const fields: ArticleWriteFields = {
         ...values,
+        language_id: languageId,
         issue_date: toNullableText(values.issue_date),
         press_release_number: toNullableText(values.press_release_number),
         cp_name: toNullableText(values.cp_name),
@@ -160,18 +158,21 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
         status,
       }
 
-      // shortcut: every language goes through the single-content API, so a non-ID save overwrites the ID content; send `language` once `article_contents` exists.
       if (isEditing && article) {
         return updateArticle(article.id, fields)
       }
 
       return createArticle(fields)
     },
-    onSuccess: async (savedArticle, { values, status, language }) => {
-      setStatuses((statuses) => ({ ...statuses, [language]: status }))
+    onSuccess: async (savedArticle, { values }) => {
+      // The response holds every language's content, so switching reads fresh data.
+      queryClient.setQueryData(
+        articleQueryKeys.detail(savedArticle.id),
+        savedArticle,
+      )
       reset(values)
       await queryClient.invalidateQueries({
-        queryKey: articleQueryKeys.all,
+        queryKey: articleQueryKeys.lists(),
       })
       toast.add({
         title: 'Berhasil',
@@ -219,31 +220,31 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
     setPhotoError(undefined)
   }
 
-  function requestLanguage(code: ArticleLanguageCode) {
-    if (code === language) return
+  function requestLanguage(id: number) {
+    if (id === languageId) return
     if (hasUnsavedChanges) {
-      setPendingLanguage(code)
+      setPendingLanguageId(id)
       return
     }
 
-    switchLanguage(code)
+    switchLanguage(id)
   }
 
   // Discards every unsaved edit, shared fields and photo included.
-  function switchLanguage(code: ArticleLanguageCode) {
-    const values = savedValues(article, code)
+  function switchLanguage(id: number) {
+    const values = savedValues(article, id)
     reset(values)
     setSlugManuallyEdited(isSlugEdited(values))
     setSelectedPhoto(undefined)
     setPhotoError(undefined)
-    setLanguage(code)
-    setPendingLanguage(null)
+    setLanguageId(id)
+    setPendingLanguageId(null)
   }
 
-  function translationStatus(code: ArticleLanguageCode): TranslationStatus {
-    const status = statuses[code]
-    if (status) return status
-    if (code === language || addedLanguages.includes(code)) return 'UNSAVED'
+  function translationStatus(id: number): TranslationStatus {
+    const content = findContent(article, id)
+    if (content) return content.status
+    if (id === languageId || addedLanguageIds.includes(id)) return 'UNSAVED'
     return 'MISSING'
   }
 
@@ -256,7 +257,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
           return
         }
 
-        articleMutation.mutate({ values, status, primaryPhotoId, language })
+        articleMutation.mutate({ values, status, primaryPhotoId, languageId })
       },
       () => {
         if ((selectedPhoto?.id ?? article?.primary_photo) == null) {
@@ -272,7 +273,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
   const previewPhotoUrl = selectedPhoto
     ? getMediaAssetUrl(selectedPhoto.path)
     : existingPhotoUrl
-  const currentStatus = translationStatus(language)
+  const currentStatus = translationStatus(languageId)
 
   return (
     <>
@@ -355,10 +356,10 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
             <Card>
               <CardHeader>
                 <CardTitle>{ARTICLE_LABELS.mainContent}</CardTitle>
-                <Badge variant="secondary">{currentLanguage.name}</Badge>
+                <Badge variant="secondary">{currentLanguage.language}</Badge>
               </CardHeader>
               {/* Remount per language so the editor loads that language's content. */}
-              <CardContent key={language}>
+              <CardContent key={languageId}>
                 <FormField
                   id="article-title"
                   label={ARTICLE_LABELS.titleField}
@@ -778,16 +779,16 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
                   {ARTICLE_LABELS.translation}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col gap-3 p-4 text-sm">
-                {ARTICLE_LANGUAGES.map((item) => (
+              <CardContent className="flex flex-col gap-3 space-y-0 p-4 text-sm">
+                {languages.map((item) => (
                   <TranslationRow
-                    key={item.code}
+                    key={item.id}
                     language={item}
-                    status={translationStatus(item.code)}
-                    current={item.code === language}
-                    onOpen={() => requestLanguage(item.code)}
+                    status={translationStatus(item.id)}
+                    current={item.id === languageId}
+                    onOpen={() => requestLanguage(item.id)}
                     onAdd={() =>
-                      setAddedLanguages((codes) => [...codes, item.code])
+                      setAddedLanguageIds((ids) => [...ids, item.id])
                     }
                   />
                 ))}
@@ -815,9 +816,9 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
         />
       )}
       <Dialog
-        open={pendingLanguage !== null}
+        open={pendingLanguageId !== null}
         onOpenChange={(open) => {
-          if (!open) setPendingLanguage(null)
+          if (!open) setPendingLanguageId(null)
         }}
       >
         <DialogContent
@@ -834,7 +835,7 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setPendingLanguage(null)}
+              onClick={() => setPendingLanguageId(null)}
             >
               {ARTICLE_LABELS.cancel}
             </Button>
@@ -843,7 +844,8 @@ function ArticleForm({ mode, article }: ArticleFormProps) {
               variant="outline"
               className="border-danger/30 text-danger hover:bg-danger/5 hover:text-danger"
               onClick={() => {
-                if (pendingLanguage) switchLanguage(pendingLanguage)
+                if (pendingLanguageId !== null)
+                  switchLanguage(pendingLanguageId)
               }}
             >
               {ARTICLE_LABELS.confirmDiscardChanges}
@@ -908,7 +910,7 @@ function TranslationRow({
   onOpen,
   onAdd,
 }: {
-  language: ArticleLanguage
+  language: Language
   status: TranslationStatus
   current: boolean
   onOpen: () => void
@@ -917,7 +919,7 @@ function TranslationRow({
   const name = (
     <span className="flex items-center gap-2">
       <span aria-hidden="true">{language.flag}</span>
-      {language.name}
+      {language.language}
     </span>
   )
 
@@ -930,17 +932,18 @@ function TranslationRow({
             type="button"
             variant="outline"
             size="icon"
-            aria-label={ARTICLE_LABELS.addTranslation(language.name)}
+            aria-label={ARTICLE_LABELS.addTranslation(language.language)}
             onClick={onAdd}
+            className="size-6"
           >
-            <PlusIcon aria-hidden="true" className="size-4" />
+            <PlusIcon aria-hidden="true" className="size-3.5" />
           </Button>
         </>
       ) : (
         <button
           type="button"
           aria-current={current || undefined}
-          aria-label={ARTICLE_LABELS.openTranslation(language.name)}
+          aria-label={ARTICLE_LABELS.openTranslation(language.language)}
           onClick={onOpen}
           className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
         >
@@ -960,16 +963,15 @@ function TranslationRow({
   )
 }
 
-function findLanguage(code: ArticleLanguageCode) {
-  return ARTICLE_LANGUAGES.find((item) => item.code === code)!
+function findContent(article: Article | undefined, languageId: number) {
+  return article?.contents.find((item) => item.language_id === languageId)
 }
 
-// shortcut: the current API stores one content set, treated as Indonesian; load per language once `article_contents` exists.
 function savedValues(
   article: Article | undefined,
-  language: ArticleLanguageCode,
+  languageId: number,
 ): ArticleFormValues {
-  const content = language === 'id' ? article : undefined
+  const content = findContent(article, languageId)
 
   return {
     article_category_id: article?.article_category_id ?? 0,

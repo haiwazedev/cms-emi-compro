@@ -2,13 +2,10 @@ import { apiClient } from '@/shared/lib/api-client'
 
 export type ArticleStatus = 'DRAFT' | 'PUBLISHED'
 
-export interface Article {
+// Shared across languages.
+interface ArticleHeader {
   id: number
   article_category_id: number
-  title: string
-  slug: string
-  summary: string
-  content: string
   issue_date: string | null
   press_release_number: string | null
   primary_photo: number | null
@@ -17,12 +14,46 @@ export interface Article {
   cp_role: string | null
   cp_phone_number: string | null
   cp_email: string | null
-  status: ArticleStatus
   created_at: string
   created_by: string
   updated_at: string | null
   updated_by: string | null
   article_category: ArticleCategory
+}
+
+export interface ArticleContent {
+  id: number
+  language_id: number
+  abbreviated_language: string
+  title: string
+  slug: string
+  summary: string
+  content: string
+  status: ArticleStatus
+  created_at: string
+  created_by: string
+  updated_at: string | null
+  updated_by: string | null
+}
+
+export interface Article extends ArticleHeader {
+  contents: ArticleContent[]
+}
+
+export interface ArticleLanguageStatus {
+  language_id: number
+  abbreviated_language: string
+  status: ArticleStatus | null
+}
+
+// Content fields come from the first language with content.
+export interface ArticleListItem extends ArticleHeader {
+  language_id: number | null
+  title: string | null
+  slug: string | null
+  summary: string | null
+  status: ArticleStatus | null
+  languages: ArticleLanguageStatus[]
 }
 
 export interface ArticleCategory {
@@ -49,7 +80,7 @@ export interface ArticlePagination {
 }
 
 export interface ArticleListResponse {
-  articles: Article[]
+  articles: ArticleListItem[]
   pagination: ArticlePagination
 }
 
@@ -69,6 +100,7 @@ interface ArticleResponse {
 
 export interface ArticleWriteFields {
   article_category_id: number
+  language_id: number
   title: string
   slug: string
   summary: string

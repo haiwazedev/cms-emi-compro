@@ -1,9 +1,11 @@
 import {
   ARTICLE_LABELS,
-  ARTICLE_LANGUAGES,
   ARTICLE_PAGE_SIZES,
 } from '@/module/article/constants/article.constants'
-import type { Article, ArticleStatus } from '@/module/article/api/article.api'
+import type {
+  ArticleListItem,
+  ArticleStatus,
+} from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
 import {
   Table,
@@ -40,9 +42,9 @@ import {
 } from 'lucide-react'
 
 function createArticleColumns(
-  onDeleteArticle: (article: Article) => void,
+  onDeleteArticle: (article: ArticleListItem) => void,
   deletePending: boolean,
-): ColumnDef<Article>[] {
+): ColumnDef<ArticleListItem>[] {
   return [
     {
       id: 'photo',
@@ -55,11 +57,13 @@ function createArticleColumns(
       cell: ({ row }) => (
         <div className="flex min-w-64 flex-col gap-1 whitespace-normal">
           <span className="text-accent font-semibold">
-            {row.original.title}
+            {row.original.title ?? '-'}
           </span>
-          <span className="text-foreground/55 text-sm">
-            /articles/{row.original.slug}
-          </span>
+          {row.original.slug && (
+            <span className="text-foreground/55 text-sm">
+              /articles/{row.original.slug}
+            </span>
+          )}
         </div>
       ),
     },
@@ -87,23 +91,21 @@ function createArticleColumns(
       header: ARTICLE_LABELS.languages,
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
-          {ARTICLE_LANGUAGES.map((language) => {
-            // shortcut: the current API has one content set, shown as ID; read per-language status from `article_contents` once it exists.
-            const status =
-              language.code === 'id' ? row.original.status : 'MISSING'
+          {row.original.languages.map((language) => {
+            const status = language.status ?? 'MISSING'
             const label = ARTICLE_LABELS.languageStatus(
-              language.name,
+              language.abbreviated_language,
               LANGUAGE_PILLS[status].label,
             )
 
             return (
               <LanguagePill
-                key={language.code}
+                key={language.language_id}
                 status={status}
                 title={label}
                 aria-label={label}
               >
-                {language.abbreviation}
+                {language.abbreviated_language}
               </LanguagePill>
             )
           })}
@@ -119,7 +121,7 @@ function createArticleColumns(
             asChild
             variant="outline"
             size="icon"
-            aria-label={ARTICLE_LABELS.edit + ' ' + row.original.title}
+            aria-label={ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')}
           >
             <Link
               to="/articles/$articleId/edit"
@@ -133,7 +135,7 @@ function createArticleColumns(
             variant="outline"
             size="icon"
             disabled={deletePending}
-            aria-label={`${ARTICLE_LABELS.delete} ${row.original.title}`}
+            aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
             onClick={() => onDeleteArticle(row.original)}
           >
             <Trash2Icon aria-hidden="true" className="size-4" />
@@ -145,13 +147,13 @@ function createArticleColumns(
 }
 
 interface ArticleDataTableProps {
-  articles: Article[]
+  articles: ArticleListItem[]
   pageIndex: number
   pageSize: number
   pageCount: number
   totalItems: number
   deletePending: boolean
-  onDeleteArticle: (article: Article) => void
+  onDeleteArticle: (article: ArticleListItem) => void
   onPageIndexChange: (pageIndex: number) => void
   onPageSizeChange: (pageSize: number) => void
 }
@@ -329,7 +331,7 @@ function ArticleLanguageLegend() {
   )
 }
 
-function ArticlePhoto({ article }: { article: Article }) {
+function ArticlePhoto({ article }: { article: ArticleListItem }) {
   if (!article.primary_photo_url) {
     return (
       <span className="bg-primary text-foreground/40 flex size-11 items-center justify-center rounded-md">

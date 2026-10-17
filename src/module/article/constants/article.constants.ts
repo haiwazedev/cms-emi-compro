@@ -85,6 +85,8 @@ export const ARTICLE_LABELS = {
   translation: 'Terjemahan',
   languages: 'Bahasa',
   languageLegend: 'Keterangan bahasa:',
+  languagesFailed: 'Daftar bahasa gagal dimuat.',
+  noLanguages: 'Belum ada bahasa aktif.',
   translationMissing: 'Belum ada',
   translationUnsaved: 'Belum disimpan',
   addTranslation: (language: string) => `Tambah versi ${language}`,
@@ -122,15 +124,6 @@ export const ARTICLE_LABELS = {
   saving: 'Menyimpan...',
   save: 'Simpan',
 } as const
-
-// shortcut: static master data, replace with the `languages` table once its API exists.
-export const ARTICLE_LANGUAGES = [
-  { code: 'id', name: 'Bahasa Indonesia', abbreviation: 'ID', flag: '🇮🇩' },
-  { code: 'en', name: 'English', abbreviation: 'EN', flag: '🇬🇧' },
-] as const
-
-export type ArticleLanguage = (typeof ARTICLE_LANGUAGES)[number]
-export type ArticleLanguageCode = ArticleLanguage['code']
 
 export const ARTICLE_DEFAULT_PAGE_SIZE = 10
 export const ARTICLE_PAGE_SIZES = [10, 20, 50] as const
