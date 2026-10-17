@@ -11,7 +11,7 @@ import { Switch } from '@/shared/components/ui/switch'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
 import { useSortable } from '@dnd-kit/react/sortable'
 import { GripVerticalIcon, Trash2Icon } from 'lucide-react'
-import { Controller, useFormContext } from 'react-hook-form'
+import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
 interface SortableSocialLinkRowProps {
   id: string
@@ -30,6 +30,11 @@ function SortableSocialLinkRow({
     register,
     formState: { errors },
   } = useFormContext<SiteSettingsFormValues>()
+  const platformValue = useWatch({
+    control,
+    name: `socialLinks.${index}.platform`,
+  })
+  const urlValue = useWatch({ control, name: `socialLinks.${index}.url` })
   const rowErrors = errors.socialLinks?.[index]
   const rowNumber = index + 1
 
@@ -66,16 +71,24 @@ function SortableSocialLinkRow({
         <Input
           aria-label={`${SITE_SETTINGS_LABELS.platform} ${rowNumber}`}
           aria-invalid={Boolean(rowErrors?.platform)}
+          maxLength={50}
           {...register(`socialLinks.${index}.platform`)}
         />
+        <p className="text-foreground/55 mt-1 text-xs">
+          {platformValue.length + ' / 50 karakter'}
+        </p>
         <RowError message={rowErrors?.platform?.message} />
       </TableCell>
       <TableCell className="min-w-64">
         <Input
           aria-label={`${SITE_SETTINGS_LABELS.url} ${rowNumber}`}
           aria-invalid={Boolean(rowErrors?.url)}
+          maxLength={255}
           {...register(`socialLinks.${index}.url`)}
         />
+        <p className="text-foreground/55 mt-1 text-xs">
+          {urlValue.length + ' / 255 karakter'}
+        </p>
         <RowError message={rowErrors?.url?.message} />
       </TableCell>
       <TableCell className="w-20">

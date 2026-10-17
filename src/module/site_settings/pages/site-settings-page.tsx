@@ -1,4 +1,10 @@
-import { saveSiteSettings } from '@/module/site_settings/api/site-settings.api'
+import type { Language } from '@/module/language/api/language.api'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
+import {
+  saveSiteSettings,
+  type SiteSettingsData,
+  type SiteSettingsField,
+} from '@/module/site_settings/api/site-settings.api'
 import { ImageFileField } from '@/module/site_settings/components/image-file-field'
 import { SiteSettingsTextField } from '@/module/site_settings/components/site-settings-text-field'
 import { SortableSocialLinkRow } from '@/module/site_settings/components/sortable-social-link-row'
@@ -25,6 +31,13 @@ import {
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
+import {
   Table,
   TableBody,
   TableHead,
@@ -38,12 +51,15 @@ import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useBlocker, useNavigate, useSearch } from '@tanstack/react-router'
 import { CheckIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import {
   Controller,
   FormProvider,
   useFieldArray,
   useForm,
+  useWatch,
 } from 'react-hook-form'
 
 const emptySocialLink = {
@@ -53,9 +69,49 @@ const emptySocialLink = {
   icon: { url: null, file: null },
 }
 
-function SiteSettingsPage() {
-  const settingsQuery = useQuery(siteSettingsQueryOptions())
+const DEFAULT_LANGUAGE = 'ID'
 
+function SiteSettingsPage() {
+  const { lang } = useSearch({ from: '/_authenticated/site_settings' })
+  const navigate = useNavigate({ from: '/site_settings' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find(
+    (item) => item.abbreviated_language === lang,
+  )
+  // Fallback: Bahasa Indonesia, else the first language.
+  const language =
+    urlLanguage ??
+    languages.find((item) => item.abbreviated_language === DEFAULT_LANGUAGE) ??
+    languages[0]
+  const settingsQuery = useQuery({
+    ...siteSettingsQueryOptions(language?.id ?? 0),
+    enabled: Boolean(language),
+  })
+
+  useEffect(() => {
+    if (urlLanguage || !language) return
+
+    void navigate({
+      search: { lang: language.abbreviated_language },
+      replace: true,
+    })
+  }, [language, navigate, urlLanguage])
+
+  if (languagesQuery.isPending) {
+    return <PageMessage message={SITE_SETTINGS_LABELS.loading} />
+  }
+  if (languagesQuery.isError) {
+    return (
+      <PageMessage
+        message={SITE_SETTINGS_LABELS.languagesFailed}
+        onRetry={() => void languagesQuery.refetch()}
+      />
+    )
+  }
+  if (!language) {
+    return <PageMessage message={SITE_SETTINGS_LABELS.noLanguages} />
+  }
   if (settingsQuery.isPending) {
     return <PageMessage message={SITE_SETTINGS_LABELS.loading} />
   }
@@ -68,18 +124,42 @@ function SiteSettingsPage() {
     )
   }
 
-  return <SiteSettingsForm initialValues={settingsQuery.data} />
+  return (
+    <SiteSettingsForm
+      // Remount per language: switching discards every unsaved edit.
+      key={language.id}
+      data={settingsQuery.data}
+      languages={languages}
+      languageId={language.id}
+      onLanguageChange={(id) => {
+        const nextLanguage = languages.find((item) => item.id === id)
+        if (!nextLanguage) return
+
+        // The form already confirmed discarding changes.
+        void navigate({
+          search: { lang: nextLanguage.abbreviated_language },
+          ignoreBlocker: true,
+        })
+      }}
+    />
+  )
 }
 
 function SiteSettingsForm({
-  initialValues,
+  data,
+  languages,
+  languageId,
+  onLanguageChange,
 }: {
-  initialValues: SiteSettingsFormValues
+  data: SiteSettingsData
+  languages: Language[]
+  languageId: number
+  onLanguageChange: (languageId: number) => void
 }) {
   const queryClient = useQueryClient()
   const form = useForm<SiteSettingsFormValues>({
     resolver: zodResolver(siteSettingsFormSchema),
-    defaultValues: initialValues,
+    defaultValues: data.values,
   })
   const {
     control,
@@ -88,6 +168,30 @@ function SiteSettingsForm({
     reset,
     formState: { errors, isDirty },
   } = form
+  const addressValue = useWatch({ control, name: 'address' })
+  const isMissing = (field: SiteSettingsField) =>
+    data.unconfigured.includes(field)
+  // Required inputs without a row for this language block saving.
+  const isRequiredMissing = isMissing('companyName') || isMissing('address')
+
+  // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
+  useBlocker({
+    shouldBlockFn: () =>
+      isDirty && !window.confirm(SITE_SETTINGS_LABELS.discardChangesConfirm),
+    enableBeforeUnload: () => isDirty,
+  })
+
+  function requestLanguage(id: number) {
+    if (id === languageId) return
+    if (
+      isDirty &&
+      !window.confirm(SITE_SETTINGS_LABELS.discardChangesConfirm)
+    ) {
+      return
+    }
+
+    onLanguageChange(id)
+  }
   const socialLinks = useFieldArray({
     control,
     name: 'socialLinks',
@@ -104,11 +208,21 @@ function SiteSettingsForm({
   }
 
   const saveMutation = useMutation({
-    mutationFn: saveSiteSettings,
-    onSuccess: (savedValues) => {
-      queryClient.setQueryData(siteSettingsQueryKeys.all, savedValues)
+    mutationFn: (values: SiteSettingsFormValues) =>
+      saveSiteSettings({
+        values,
+        unconfigured: data.unconfigured,
+        languageId,
+      }),
+    onSuccess: (saved) => {
+      // Social media is shared, so other languages' cached data is stale.
+      void queryClient.invalidateQueries({
+        queryKey: siteSettingsQueryKeys.all,
+        refetchType: 'none',
+      })
+      queryClient.setQueryData(siteSettingsQueryKeys.detail(languageId), saved)
       // Saved rows now carry server ids and stored image URLs.
-      reset(savedValues)
+      reset(saved.values)
       toast.add({
         title: 'Berhasil',
         description: SITE_SETTINGS_LABELS.saveSuccess,
@@ -127,7 +241,13 @@ function SiteSettingsForm({
     },
   })
 
-  const hoursError = errors.closeTime?.message
+  const isHoursMissing = isMissing('openTime') || isMissing('closeTime')
+  const hoursError = isHoursMissing
+    ? SITE_SETTINGS_LABELS.notConfigured
+    : errors.closeTime?.message
+  const addressError = isMissing('address')
+    ? SITE_SETTINGS_LABELS.notConfigured
+    : errors.address?.message
 
   return (
     <FormProvider {...form}>
@@ -147,13 +267,34 @@ function SiteSettingsForm({
           </div>
           <Button
             type="submit"
-            disabled={!isDirty || saveMutation.isPending}
+            disabled={!isDirty || saveMutation.isPending || isRequiredMissing}
             className="self-start"
           >
             <CheckIcon aria-hidden="true" className="size-4" />
             {SITE_SETTINGS_LABELS.save}
           </Button>
         </header>
+
+        {/* Controlled by the URL: a cancelled discard keeps the current language. */}
+        <Select
+          value={String(languageId)}
+          onValueChange={(value) => requestLanguage(Number(value))}
+        >
+          <SelectTrigger
+            aria-label={SITE_SETTINGS_LABELS.language}
+            className="w-full lg:w-64"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {languages.map((item) => (
+              <SelectItem key={item.id} value={String(item.id)}>
+                <span aria-hidden="true">{item.flag}</span>
+                {item.language}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Card aria-labelledby="site-settings-identity-title">
           <CardHeader>
@@ -168,19 +309,26 @@ function SiteSettingsForm({
                 label={SITE_SETTINGS_LABELS.companyName}
                 maxLength={200}
                 required
+                notConfigured={isMissing('companyName')}
               />
               <SiteSettingsTextField
                 name="shortName"
                 label={SITE_SETTINGS_LABELS.shortName}
                 maxLength={50}
+                notConfigured={isMissing('shortName')}
               />
             </div>
             <div className="flex flex-col gap-4 lg:flex-row">
               <LogoField
                 name="danantaraLogo"
                 label={SITE_SETTINGS_LABELS.danantaraLogo}
+                notConfigured={isMissing('danantaraLogo')}
               />
-              <LogoField name="plnLogo" label={SITE_SETTINGS_LABELS.plnLogo} />
+              <LogoField
+                name="plnLogo"
+                label={SITE_SETTINGS_LABELS.plnLogo}
+                notConfigured={isMissing('plnLogo')}
+              />
             </div>
           </CardContent>
         </Card>
@@ -200,12 +348,16 @@ function SiteSettingsForm({
               <Textarea
                 id="site-settings-address"
                 maxLength={500}
-                aria-invalid={Boolean(errors.address)}
+                aria-invalid={Boolean(addressError)}
                 {...register('address')}
+                disabled={isMissing('address')}
               />
-              {errors.address?.message && (
+              <p className="text-foreground/55 text-xs">
+                {addressValue.length + ' / 500 karakter'}
+              </p>
+              {addressError && (
                 <p role="alert" className="text-danger text-sm">
-                  {errors.address.message}
+                  {addressError}
                 </p>
               )}
             </div>
@@ -215,12 +367,14 @@ function SiteSettingsForm({
                 label={SITE_SETTINGS_LABELS.phone}
                 type="tel"
                 maxLength={30}
+                notConfigured={isMissing('phone')}
               />
               <SiteSettingsTextField
                 name="whatsapp"
                 label={SITE_SETTINGS_LABELS.whatsapp}
                 type="tel"
                 maxLength={30}
+                notConfigured={isMissing('whatsapp')}
               />
             </div>
             <div className="flex flex-col gap-4 lg:flex-row">
@@ -228,11 +382,15 @@ function SiteSettingsForm({
                 name="mainEmail"
                 label={SITE_SETTINGS_LABELS.mainEmail}
                 type="email"
+                maxLength={254}
+                notConfigured={isMissing('mainEmail')}
               />
               <SiteSettingsTextField
                 name="marketingEmail"
                 label={SITE_SETTINGS_LABELS.marketingEmail}
                 type="email"
+                maxLength={254}
+                notConfigured={isMissing('marketingEmail')}
               />
             </div>
             <div className="flex flex-col gap-4 lg:flex-row">
@@ -240,6 +398,7 @@ function SiteSettingsForm({
                 name="operatingDays"
                 label={SITE_SETTINGS_LABELS.operatingDays}
                 maxLength={100}
+                notConfigured={isMissing('operatingDays')}
               />
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <Label htmlFor="site-settings-openTime">
@@ -251,6 +410,7 @@ function SiteSettingsForm({
                     type="time"
                     aria-label={SITE_SETTINGS_LABELS.openTime}
                     {...register('openTime')}
+                    disabled={isMissing('openTime')}
                   />
                   <span className="text-foreground/55">-</span>
                   <Input
@@ -258,6 +418,7 @@ function SiteSettingsForm({
                     aria-label={SITE_SETTINGS_LABELS.closeTime}
                     aria-invalid={Boolean(hoursError)}
                     {...register('closeTime')}
+                    disabled={isMissing('closeTime')}
                   />
                 </div>
                 {hoursError && (
@@ -333,9 +494,11 @@ function SiteSettingsForm({
 function LogoField({
   name,
   label,
+  notConfigured,
 }: {
   name: 'danantaraLogo' | 'plnLogo'
   label: string
+  notConfigured: boolean
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -351,12 +514,19 @@ function LogoField({
             extensions={SITE_SETTINGS_LOGO_TYPES}
             maxSize={SITE_SETTINGS_LOGO_MAX_SIZE}
             previewClassName="h-14 w-40 p-2"
+            disabled={notConfigured}
           />
         )}
       />
-      <p className="text-foreground/55 text-xs">
-        {SITE_SETTINGS_LABELS.logoHelp}
-      </p>
+      {notConfigured ? (
+        <p role="alert" className="text-danger text-sm">
+          {SITE_SETTINGS_LABELS.notConfigured}
+        </p>
+      ) : (
+        <p className="text-foreground/55 text-xs">
+          {SITE_SETTINGS_LABELS.logoHelp}
+        </p>
+      )}
     </div>
   )
 }

@@ -13,6 +13,7 @@ interface ImageFileFieldProps {
   extensions: string[]
   maxSize: number
   previewClassName?: string
+  disabled?: boolean
 }
 
 function ImageFileField({
@@ -23,6 +24,7 @@ function ImageFileField({
   extensions,
   maxSize,
   previewClassName,
+  disabled = false,
 }: ImageFileFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
@@ -84,6 +86,7 @@ function ImageFileField({
           variant="outline"
           size="sm"
           className="ml-auto"
+          disabled={disabled}
           onClick={() => inputRef.current?.click()}
         >
           <UploadIcon aria-hidden="true" className="size-4" />
