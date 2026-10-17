@@ -42,14 +42,6 @@ export const siteSettingsFormSchema = z
     message: 'Isi jam buka dan jam tutup.',
     path: ['closeTime'],
   })
-  // "HH:mm" strings compare correctly as text.
-  .refine(
-    (values) =>
-      !values.openTime ||
-      !values.closeTime ||
-      values.closeTime > values.openTime,
-    { message: 'Jam tutup harus setelah jam buka.', path: ['closeTime'] },
-  )
 
 export type SiteSettingsImage = z.infer<typeof imageSchema>
 export type SiteSettingsFormValues = z.infer<typeof siteSettingsFormSchema>
