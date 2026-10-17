@@ -93,11 +93,8 @@ export const ARTICLE_LABELS = {
   openTranslation: (language: string) => `Buka versi ${language}`,
   languageStatus: (language: string, status: string) =>
     `${language}: ${status}`,
-  discardChangesTitle: 'Buang perubahan?',
-  discardChangesDescription:
-    'Perubahan yang belum disimpan akan hilang jika Anda berpindah bahasa.',
-  confirmDiscardChanges: 'Ya, buang perubahan',
-  closeDiscardDialog: 'Tutup dialog buang perubahan',
+  discardChangesConfirm:
+    'Perubahan yang belum disimpan akan hilang. Lanjutkan?',
   manageCategories: 'Kelola Kategori',
   categoryPageTitle: 'Kategori Artikel',
   categoryDocumentTitle: 'Kategori Artikel | PLN EMI Admin',

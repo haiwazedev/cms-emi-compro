@@ -42,3 +42,8 @@ export const articleSearchSchema = z.object({
 })
 
 export type ArticleSearch = z.infer<typeof articleSearchSchema>
+
+// Language abbreviation, e.g. "EN"; resolved against active languages on the page.
+export const articleEditSearchSchema = z.object({
+  lang: z.string().optional().catch(undefined),
+})

@@ -3,9 +3,12 @@ import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { ArticleLoadState } from '@/module/article/pages/edit-article-page'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 
 function CreateArticlePage() {
   const languagesQuery = useQuery(languagesQueryOptions())
+  // Always starts on the default language; no `lang` param on create.
+  const [languageId, setLanguageId] = useState<number>()
 
   if (languagesQuery.isPending) {
     return <ArticleLoadState message={ARTICLE_LABELS.loadingArticles} />
@@ -23,7 +26,14 @@ function CreateArticlePage() {
     )
   }
 
-  return <ArticleForm mode="create" languages={languagesQuery.data} />
+  return (
+    <ArticleForm
+      mode="create"
+      languages={languagesQuery.data}
+      languageId={languageId ?? languagesQuery.data[0].id}
+      onLanguageChange={setLanguageId}
+    />
+  )
 }
 
 export { CreateArticlePage }

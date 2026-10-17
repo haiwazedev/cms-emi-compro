@@ -26,14 +26,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import {
@@ -54,7 +46,7 @@ import { toast } from '@/shared/lib/toast'
 import { cn, slugify } from '@/shared/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeftIcon,
   CalendarDaysIcon,
@@ -64,18 +56,26 @@ import {
   PlusIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 interface ArticleFormProps {
   mode: 'create' | 'edit'
   article?: Article
   languages: Language[]
+  languageId: number
+  onLanguageChange: (languageId: number) => void
 }
 
 type TranslationStatus = ArticleStatus | 'UNSAVED' | 'MISSING'
 
-function ArticleForm({ mode, article, languages }: ArticleFormProps) {
+function ArticleForm({
+  mode,
+  article,
+  languages,
+  languageId,
+  onLanguageChange,
+}: ArticleFormProps) {
   const isEditing = mode === 'edit'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -83,15 +83,6 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
-  // Open on the first language that has content, else the first language.
-  const [languageId, setLanguageId] = useState(
-    () =>
-      languages.find((item) => findContent(article, item.id))?.id ??
-      languages[0].id,
-  )
-  const [pendingLanguageId, setPendingLanguageId] = useState<number | null>(
-    null,
-  )
   const [addedLanguageIds, setAddedLanguageIds] = useState<number[]>([])
   const [selectedPhoto, setSelectedPhoto] = useState<Media>()
   const [photoError, setPhotoError] = useState<string>()
@@ -125,6 +116,30 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
   const hasUnsavedChanges =
     isDirty ||
     (selectedPhoto !== undefined && selectedPhoto.id !== article?.primary_photo)
+
+  // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
+  useBlocker({
+    shouldBlockFn: () =>
+      hasUnsavedChanges &&
+      !window.confirm(ARTICLE_LABELS.discardChangesConfirm),
+    enableBeforeUnload: () => hasUnsavedChanges,
+  })
+
+  // Language changes come from the URL (row click or back/forward), so reset here.
+  const shownLanguageIdRef = useRef(languageId)
+  useEffect(() => {
+    if (shownLanguageIdRef.current === languageId) return
+    shownLanguageIdRef.current = languageId
+
+    // Discards every unsaved edit, shared fields and photo included.
+    const values = savedValues(article, languageId)
+    reset(values)
+    setSlugManuallyEdited(isSlugEdited(values))
+    setSelectedPhoto(undefined)
+    setPhotoError(undefined)
+    setAddedLanguageIds([])
+  }, [article, languageId, reset])
+
   const handleContentChange = useCallback(
     (content: string) => {
       setValue('content', content, {
@@ -166,7 +181,10 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
 
       return createArticle(fields)
     },
-    onSuccess: async (savedArticle, { values }) => {
+    onSuccess: async (
+      savedArticle,
+      { values, languageId: savedLanguageId },
+    ) => {
       // The response holds every language's content, so switching reads fresh data.
       queryClient.setQueryData(
         articleQueryKeys.detail(savedArticle.id),
@@ -186,7 +204,13 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
         await navigate({
           to: '/articles/$articleId/edit',
           params: { articleId: String(savedArticle.id) },
+          search: {
+            lang: languages.find((item) => item.id === savedLanguageId)
+              ?.abbreviated_language,
+          },
           replace: true,
+          // Just reset; the blocker may still read the stale dirty state.
+          ignoreBlocker: true,
         })
       }
     },
@@ -224,23 +248,14 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
 
   function requestLanguage(id: number) {
     if (id === languageId) return
-    if (hasUnsavedChanges) {
-      setPendingLanguageId(id)
+    if (
+      hasUnsavedChanges &&
+      !window.confirm(ARTICLE_LABELS.discardChangesConfirm)
+    ) {
       return
     }
 
-    switchLanguage(id)
-  }
-
-  // Discards every unsaved edit, shared fields and photo included.
-  function switchLanguage(id: number) {
-    const values = savedValues(article, id)
-    reset(values)
-    setSlugManuallyEdited(isSlugEdited(values))
-    setSelectedPhoto(undefined)
-    setPhotoError(undefined)
-    setLanguageId(id)
-    setPendingLanguageId(null)
+    onLanguageChange(id)
   }
 
   function translationStatus(id: number): TranslationStatus {
@@ -824,44 +839,6 @@ function ArticleForm({ mode, article, languages }: ArticleFormProps) {
           onSelect={handlePhotoSelect}
         />
       )}
-      <Dialog
-        open={pendingLanguageId !== null}
-        onOpenChange={(open) => {
-          if (!open) setPendingLanguageId(null)
-        }}
-      >
-        <DialogContent
-          className="max-w-xl"
-          closeLabel={ARTICLE_LABELS.closeDiscardDialog}
-        >
-          <DialogHeader className="border-border/15 border-b">
-            <DialogTitle>{ARTICLE_LABELS.discardChangesTitle}</DialogTitle>
-          </DialogHeader>
-          <DialogDescription className="px-5 py-6">
-            {ARTICLE_LABELS.discardChangesDescription}
-          </DialogDescription>
-          <DialogFooter className="bg-primary">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPendingLanguageId(null)}
-            >
-              {ARTICLE_LABELS.cancel}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-danger/30 text-danger hover:bg-danger/5 hover:text-danger"
-              onClick={() => {
-                if (pendingLanguageId !== null)
-                  switchLanguage(pendingLanguageId)
-              }}
-            >
-              {ARTICLE_LABELS.confirmDiscardChanges}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
