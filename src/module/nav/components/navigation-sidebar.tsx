@@ -1,3 +1,12 @@
+import { articlesQueryOptions } from '@/module/article/queries/article.queries'
+import { boardMembersQueryOptions } from '@/module/board_member/queries/board-member.queries'
+import { clientsQueryOptions } from '@/module/client/queries/client.queries'
+import {
+  divisionsQueryOptions,
+  servicesQueryOptions,
+} from '@/module/division/queries/division.queries'
+import { documentCommitmentsQueryOptions } from '@/module/document_commitment/queries/document-commitment.queries'
+import { faqsQueryOptions } from '@/module/faq/queries/faq.queries'
 import { inboxCountsQueryOptions } from '@/module/inbox/queries/inbox.queries'
 import { Badge } from '@/shared/components/ui/badge'
 import { cn } from '@/shared/lib/utils'
@@ -18,6 +27,7 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
   const { data: inboxCounts } = useQuery(inboxCountsQueryOptions())
   // Show unread messages first; once all are read, show the inbox total.
   const inboxCount = inboxCounts?.unreadCount || inboxCounts?.readCount
+  const counts = useNavigationCounts()
 
   return (
     <aside
@@ -54,7 +64,7 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
                         ? inboxCount
                           ? String(inboxCount)
                           : undefined
-                        : item.count
+                        : item.to && counts[item.to]
                     }
                     highlighted={
                       item.to === '/inbox' && Boolean(inboxCounts?.unreadCount)
@@ -69,6 +79,44 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
       </nav>
     </aside>
   )
+}
+
+// Same query keys as the list pages, so their invalidations refresh these counts.
+function useNavigationCounts(): Partial<Record<string, string>> {
+  const articles = useQuery(
+    articlesQueryOptions({
+      page: 1,
+      limit: 1,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    }),
+  ).data
+  const divisions = useQuery(divisionsQueryOptions()).data
+  const services = useQuery(servicesQueryOptions()).data
+  const documentCommitments = useQuery(
+    documentCommitmentsQueryOptions({ page: 1, limit: 1 }),
+  ).data
+  const boardMembers = useQuery(boardMembersQueryOptions({})).data
+  const faqs = useQuery(faqsQueryOptions()).data
+  const clients = useQuery(clientsQueryOptions()).data
+
+  return {
+    '/articles': toCount(articles?.pagination.totalItems),
+    '/divisions':
+      divisions && services
+        ? toCount(divisions.length + services.length)
+        : undefined,
+    '/document_commitments': toCount(
+      documentCommitments?.pagination.totalItems,
+    ),
+    '/board_members': toCount(boardMembers?.length),
+    '/faqs': toCount(faqs?.length),
+    '/clients': toCount(clients?.length),
+  }
+}
+
+function toCount(value: number | undefined) {
+  return value === undefined ? undefined : String(value)
 }
 
 function NavigationItemLink({
