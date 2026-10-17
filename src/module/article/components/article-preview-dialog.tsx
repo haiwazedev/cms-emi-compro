@@ -20,7 +20,6 @@ interface ArticlePreviewDialogProps {
   categoryName?: string
   issueDate?: string
   author?: string
-  readTime?: number
 }
 
 // Mirrors the landing page article detail (emi-compro `article-detail.tsx`).
@@ -33,9 +32,10 @@ function ArticlePreviewDialog({
   categoryName,
   issueDate,
   author,
-  readTime,
 }: ArticlePreviewDialogProps) {
   const formattedDate = formatPreviewDate(issueDate)
+  // Parse only while open; the form re-renders on every keystroke.
+  const readTime = open ? calculateReadTime(content) : undefined
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -108,6 +108,17 @@ function PreviewMeta({
       {children}
     </span>
   )
+}
+
+// shortcut: mirrors backend calculateReadTime (article.service.ts), keep the rate in sync.
+const READ_CHARACTERS_PER_MINUTE = 1000
+
+function calculateReadTime(html: string) {
+  const text =
+    new DOMParser().parseFromString(html, 'text/html').body.textContent ?? ''
+  const length = text.replace(/\s+/g, ' ').trim().length
+
+  return Math.max(1, Math.ceil(length / READ_CHARACTERS_PER_MINUTE))
 }
 
 // "2026-07-12" → "12 Jul 2026", as on the landing page.

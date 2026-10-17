@@ -812,7 +812,6 @@ function ArticleForm({
         }
         issueDate={issueDateValue}
         author={cpNameValue.trim()}
-        readTime={findContent(article, languageId)?.read_time}
       />
       {photoPickerOpen && (
         <MediaPickerDialog
