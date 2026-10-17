@@ -11,6 +11,12 @@ export const SITE_SETTINGS_LABELS = {
   loading: 'Memuat pengaturan situs...',
   loadFailed: 'Pengaturan situs gagal dimuat',
   retry: 'Coba lagi',
+  languagesFailed: 'Daftar bahasa gagal dimuat.',
+  noLanguages: 'Belum ada bahasa aktif.',
+  language: 'Bahasa',
+  discardChangesConfirm:
+    'Perubahan yang belum disimpan akan hilang. Lanjutkan?',
+  notConfigured: 'Input key not configured for this language',
   identity: 'Identitas',
   contact: 'Kontak',
   socialMedia: 'Media Sosial',

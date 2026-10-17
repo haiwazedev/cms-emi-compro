@@ -43,5 +43,10 @@ export const siteSettingsFormSchema = z
     path: ['closeTime'],
   })
 
+// Language abbreviation, e.g. "EN"; resolved against active languages on the page.
+export const siteSettingsSearchSchema = z.object({
+  lang: z.string().optional().catch(undefined),
+})
+
 export type SiteSettingsImage = z.infer<typeof imageSchema>
 export type SiteSettingsFormValues = z.infer<typeof siteSettingsFormSchema>
