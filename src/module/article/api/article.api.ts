@@ -23,8 +23,7 @@ interface ArticleHeader {
 
 export interface ArticleContent {
   id: number
-  language_id: number
-  abbreviated_language: string
+  language_id: string
   title: string
   slug: string
   summary: string
@@ -42,14 +41,13 @@ export interface Article extends ArticleHeader {
 }
 
 export interface ArticleLanguageStatus {
-  language_id: number
-  abbreviated_language: string
+  language_id: string
   status: ArticleStatus | null
 }
 
 // Content fields come from the first language with content.
 export interface ArticleListItem extends ArticleHeader {
-  language_id: number | null
+  language_id: string | null
   title: string | null
   slug: string | null
   summary: string | null
@@ -101,7 +99,7 @@ interface ArticleResponse {
 
 export interface ArticleWriteFields {
   article_category_id: number
-  language_id: number
+  language_id: string
   title: string
   slug: string
   summary: string

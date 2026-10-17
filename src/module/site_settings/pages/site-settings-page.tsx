@@ -1,4 +1,5 @@
 import type { Language } from '@/module/language/api/language.api'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import {
   saveSiteSettings,
@@ -69,23 +70,15 @@ const emptySocialLink = {
   icon: { url: null, file: null },
 }
 
-const DEFAULT_LANGUAGE = 'ID'
-
 function SiteSettingsPage() {
   const { lang } = useSearch({ from: '/_authenticated/site_settings' })
   const navigate = useNavigate({ from: '/site_settings' })
   const languagesQuery = useQuery(languagesQueryOptions())
   const languages = languagesQuery.data ?? []
-  const urlLanguage = languages.find(
-    (item) => item.abbreviated_language === lang,
-  )
-  // Fallback: Bahasa Indonesia, else the first language.
-  const language =
-    urlLanguage ??
-    languages.find((item) => item.abbreviated_language === DEFAULT_LANGUAGE) ??
-    languages[0]
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
   const settingsQuery = useQuery({
-    ...siteSettingsQueryOptions(language?.id ?? 0),
+    ...siteSettingsQueryOptions(language?.id ?? ''),
     enabled: Boolean(language),
   })
 
@@ -93,7 +86,7 @@ function SiteSettingsPage() {
     if (urlLanguage || !language) return
 
     void navigate({
-      search: { lang: language.abbreviated_language },
+      search: { lang: language.id },
       replace: true,
     })
   }, [language, navigate, urlLanguage])
@@ -137,7 +130,7 @@ function SiteSettingsPage() {
 
         // The form already confirmed discarding changes.
         void navigate({
-          search: { lang: nextLanguage.abbreviated_language },
+          search: { lang: nextLanguage.id },
           ignoreBlocker: true,
         })
       }}
@@ -153,8 +146,8 @@ function SiteSettingsForm({
 }: {
   data: SiteSettingsData
   languages: Language[]
-  languageId: number
-  onLanguageChange: (languageId: number) => void
+  languageId: string
+  onLanguageChange: (languageId: string) => void
 }) {
   const queryClient = useQueryClient()
   const form = useForm<SiteSettingsFormValues>({
@@ -181,7 +174,7 @@ function SiteSettingsForm({
     enableBeforeUnload: () => isDirty,
   })
 
-  function requestLanguage(id: number) {
+  function requestLanguage(id: string) {
     if (id === languageId) return
     if (
       isDirty &&
@@ -277,8 +270,8 @@ function SiteSettingsForm({
 
         {/* Controlled by the URL: a cancelled discard keeps the current language. */}
         <Select
-          value={String(languageId)}
-          onValueChange={(value) => requestLanguage(Number(value))}
+          value={languageId}
+          onValueChange={(value) => requestLanguage(value)}
         >
           <SelectTrigger
             aria-label={SITE_SETTINGS_LABELS.language}

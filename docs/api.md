@@ -23,6 +23,16 @@ random session secret of at least 32 bytes. The configured frontend origin must
 be an exact HTTP or HTTPS origin, such as `http://localhost:3000`. The server
 does not start if it cannot connect to Redis.
 
+## Swagger
+
+Interactive API documentation is served at `GET /documentation`, and the raw
+OpenAPI 3.1 document at `GET /documentation/openapi.json`. Request bodies and
+query parameters are generated from the server validation schemas. Response
+shapes and examples are documented in this file.
+
+"Try it out" works for public `GET` routes. Write routes reject requests whose
+origin is not `FRONTEND_ORIGIN`, so call them from the frontend instead.
+
 ## Browser Sessions
 
 Registration and login create a server-side session in Redis and set the
@@ -395,24 +405,29 @@ Unauthorized`; a missing or disallowed request origin returns `403 Forbidden`.
 
 ## Languages
 
-`GET /languages` is public and returns the active languages, ordered by `id`.
+`GET /languages` is public and returns the active languages, ordered by `sort_order`, then `id`.
+Every language list in the API (article `contents`, article list `languages`)
+uses the same order.
 Inactive languages are omitted and cannot receive article content.
+
+A language `id` is its lowercase code (`id`, `en`). Every `language_id` input
+is case-insensitive and normalized to lowercase, so `ID` and `id` are the same.
 
 ```json
 {
   "languages": [
     {
-      "id": 1,
+      "id": "id",
       "language": "Bahasa Indonesia",
-      "abbreviated_language": "ID",
       "flag": "🇮🇩",
+      "sort_order": 1,
       "is_active": true
     },
     {
-      "id": 2,
+      "id": "en",
       "language": "English",
-      "abbreviated_language": "EN",
       "flag": "🇬🇧",
+      "sort_order": 2,
       "is_active": true
     }
   ]
@@ -448,7 +463,7 @@ tie-breaker.
 | `limit`               | number | Optional; default `20`, minimum `1`, maximum `100`.                       |
 | `search`              | string | Optional, case-insensitive substring search in a content `title`.         |
 | `article_category_id` | number | Optional positive category ID filter.                                     |
-| `language_id`         | number | Optional; only articles with content in this language, shown in it.       |
+| `language_id`         | string | Optional; only articles with content in this language, shown in it.       |
 | `status`              | string | Optional; `DRAFT` or `PUBLISHED`; matches a content row with this status. |
 | `sort_by`             | string | Optional; must be `created_at`, default `created_at`.                     |
 | `sort_order`          | string | Optional; `asc` or `desc`, default `desc`.                                |
@@ -459,7 +474,7 @@ Request`.
 
 `title`, `slug`, `summary`, `status`, `read_time`, and `language_id` on each item come from
 the `language_id` content when that query is set, otherwise from the content
-with the lowest language ID. `languages` lists every active language with that
+with the first language by `sort_order`, then `id`. `languages` lists every active language with that
 language's content status, or `null` when the article has no content in it.
 
 ```json
@@ -485,19 +500,15 @@ language's content status, or `null` when the article has no content in it.
         "name": "Company News",
         "slug": "company-news"
       },
-      "language_id": 1,
+      "language_id": "id",
       "title": "Kantor layanan baru dibuka",
       "slug": "kantor-layanan-baru-dibuka",
       "summary": "Ringkasan singkat.",
       "status": "PUBLISHED",
       "read_time": 1,
       "languages": [
-        {
-          "language_id": 1,
-          "abbreviated_language": "ID",
-          "status": "PUBLISHED"
-        },
-        { "language_id": 2, "abbreviated_language": "EN", "status": null }
+        { "language_id": "id", "status": "PUBLISHED" },
+        { "language_id": "en", "status": null }
       ]
     }
   ],
@@ -514,7 +525,7 @@ language's content status, or `null` when the article has no content in it.
 
 - `GET /articles/:articleId` returns `{ "article": ... }` with `200 OK`. The
   article has the shared header fields and every language's content in
-  `contents`, ordered by `language_id`.
+  `contents`, ordered by language `sort_order`, then `language_id`.
 - `POST /articles` creates the article header and its first language content,
   then returns `{ "article": ... }` with `201 Created`.
 - `PUT /articles/:articleId` updates the shared fields that are sent and
@@ -528,7 +539,7 @@ Article POST and PUT bodies use JSON. Each request writes one language.
 
 | Field                  | Type           | Rules                                                               |
 | ---------------------- | -------------- | ------------------------------------------------------------------- |
-| `language_id`          | number         | Required; ID of an active language.                                 |
+| `language_id`          | string         | Required; ID of an active language.                                 |
 | `title`                | string         | Required; maximum 120 characters.                                   |
 | `slug`                 | string         | Required; maximum 255 characters; unique within the language.       |
 | `summary`              | string         | Required.                                                           |
@@ -581,8 +592,7 @@ Article detail response:
     "contents": [
       {
         "id": 40,
-        "language_id": 1,
-        "abbreviated_language": "ID",
+        "language_id": "id",
         "title": "Kantor layanan baru dibuka",
         "slug": "kantor-layanan-baru-dibuka",
         "summary": "Ringkasan singkat.",
@@ -608,7 +618,7 @@ const response = await fetch(`${API_BASE_URL}/articles`, {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     article_category_id: 3,
-    language_id: 1,
+    language_id: 'id',
     title: 'Kantor layanan baru dibuka',
     slug: 'kantor-layanan-baru-dibuka',
     summary: 'Ringkasan singkat.',
@@ -1435,17 +1445,23 @@ const { inboxes, pagination } = await response.json()
 ## Site Settings
 
 Site settings hold the company identity, contact details, and social media
-links shown in the landing page navbar, footer, and "Hubungi Kami" page. There
-is a single settings record (`id` is always `1`).
+links shown in the landing page navbar, footer, and "Hubungi Kami" page. Each
+setting is a key/value row per language; keys are seeded master data for each
+language. Social media items are shared by all languages.
 
-- `GET /site_settings` is public and returns `{ "site_settings": ... }` with
-  `200 OK`, or `{ "site_settings": null }` before the first save. Signed-in
-  users receive every social media item; everyone else receives only
-  `PUBLISHED` items.
+In the response, a configured key is a string (`""` until a value is saved)
+and a key with no row for that language is `null`. The CMS disables inputs
+whose key is `null`.
+
+- `GET /site_settings?language_id=id` is public and returns
+  `{ "site_settings": ... }` with `200 OK`. `language_id` is optional and
+  defaults to Bahasa Indonesia (`id`); an unknown or inactive language returns
+  `400 Bad Request`. Signed-in users receive every social media item; everyone
+  else receives only `PUBLISHED` items.
 - `PUT /site_settings` requires an authenticated session and the configured
-  frontend `Origin` or `Referer`. It creates or replaces the settings and the
-  whole social media list, and returns `{ "site_settings": ... }` with
-  `200 OK`.
+  frontend `Origin` or `Referer`. It saves the setting values for
+  `language_id`, replaces the whole social media list, and returns
+  `{ "site_settings": ... }` for that language with `200 OK`.
 
 `PUT /site_settings` uses `multipart/form-data`:
 
@@ -1458,19 +1474,20 @@ is a single settings record (`id` is always `1`).
 
 The `data` payload:
 
-| Field                     | Type           | Rules                                                       |
-| ------------------------- | -------------- | ----------------------------------------------------------- |
-| `company_name`            | string         | Required; trimmed; 1–200 characters.                        |
-| `company_short_name`      | string \| null | Optional; up to 50 characters; blank is `null`.             |
-| `company_address`         | string         | Required; trimmed; 1–500 characters.                        |
-| `company_phone_number`    | string \| null | Optional; up to 30 characters; blank is `null`.             |
-| `company_whatsapp_number` | string \| null | Optional; up to 30 characters; blank is `null`.             |
-| `main_email`              | string \| null | Optional; valid email; blank is `null`.                     |
-| `marketing_email`         | string \| null | Optional; valid email; blank is `null`.                     |
-| `operational_day`         | string \| null | Optional; up to 100 characters, e.g. `"Senin - Jumat"`.     |
-| `operational_start_time`  | string \| null | Optional; `HH:mm`. Must be sent together with the end time. |
-| `operational_end_time`    | string \| null | Optional; `HH:mm`; must be after the start time.            |
-| `social_medias`           | array          | Required (may be empty); up to 20 items, in display order.  |
+| Field                     | Type           | Rules                                                         |
+| ------------------------- | -------------- | ------------------------------------------------------------- |
+| `language_id`             | string         | Required; ID of an active language.                           |
+| `company_name`            | string         | Required; trimmed; 1–200 characters.                          |
+| `company_short_name`      | string \| null | Optional; up to 50 characters; blank is `null`.               |
+| `company_address`         | string         | Required; trimmed; 1–500 characters.                          |
+| `company_phone_number`    | string \| null | Optional; up to 30 characters; blank is `null`.               |
+| `company_whatsapp_number` | string \| null | Optional; up to 30 characters; blank is `null`.               |
+| `main_email`              | string \| null | Optional; valid email; blank is `null`.                       |
+| `marketing_email`         | string \| null | Optional; valid email; blank is `null`.                       |
+| `operational_day`         | string \| null | Optional; up to 100 characters, e.g. `"Senin - Jumat"`.       |
+| `operational_start_time`  | string \| null | Optional; `HH:mm`. Must be sent together with the end time.   |
+| `operational_end_time`    | string \| null | Optional; `HH:mm`. Must be sent together with the start time. |
+| `social_medias`           | array          | Required (may be empty); up to 20 items, in display order.    |
 
 Each `social_medias` item:
 
@@ -1491,8 +1508,16 @@ Uploaded SVG files are sanitized: scripts, event handlers, `foreignObject`, and
 `javascript:` links are removed, and a file with no valid `<svg>` left returns
 `400 Bad Request`. Logos are stored at `/public/site-logo-{name}-{timestamp}.{extension}`
 and icons at `/public/site-social-medias/site-social-media-{name}-{timestamp}.svg`.
-`*_metadata` is the pixel `width` and `height` for raster images and `{}` for
-SVG.
+Only the logo filepath is kept. `icon_metadata` is the pixel `width` and
+`height` for raster images and `{}` for SVG.
+
+Omitted optional fields keep their stored value. Sending a field, or uploading
+a logo, whose key has no row for `language_id` returns `400 Bad Request` with
+`Input key not configured for this language.`
+
+Top-level `created_*` comes from that language's earliest setting row and
+`updated_*` from its most recently updated one; both are `null` when the
+language has no rows.
 
 Example browser request:
 
@@ -1501,6 +1526,7 @@ const formData = new FormData()
 formData.append(
   'data',
   JSON.stringify({
+    language_id: 'id',
     company_name: 'PT Energy Management Indonesia (Persero)',
     company_short_name: 'PLN EMI',
     company_address: 'Menara Sentraya Lt. 17, Jakarta Selatan 12160',
@@ -1545,19 +1571,11 @@ The response shape is:
 ```json
 {
   "site_settings": {
-    "id": 1,
+    "language_id": "id",
     "company_name": "PT Energy Management Indonesia (Persero)",
     "company_short_name": "PLN EMI",
-    "danantara_logo_filename": null,
-    "danantara_logo_filepath": null,
-    "danantara_logo_extension": null,
-    "danantara_logo_size": null,
-    "danantara_logo_metadata": null,
-    "pln_logo_filename": "site-logo-pln-emi-1792136400000.svg",
+    "danantara_logo_filepath": "",
     "pln_logo_filepath": "/public/site-logo-pln-emi-1792136400000.svg",
-    "pln_logo_extension": "svg",
-    "pln_logo_size": 6,
-    "pln_logo_metadata": {},
     "company_address": "Menara Sentraya Lt. 17, Jakarta Selatan 12160",
     "company_phone_number": "021-27881925",
     "company_whatsapp_number": "0821-1779-291",
@@ -1584,17 +1602,18 @@ The response shape is:
         "updated_by": null
       }
     ],
-    "created_at": "2026-10-16T10:30:00.000Z",
-    "created_by": "Ari Putra",
-    "updated_at": null,
-    "updated_by": null
+    "created_at": "2026-10-16T10:00:00.000Z",
+    "created_by": "system",
+    "updated_at": "2026-10-16T10:30:00.000Z",
+    "updated_by": "Ari Putra"
   }
 }
 ```
 
-Invalid fields, files, or `icon_index` references return `400 Bad Request`; an
-unknown social media `id` returns `404 Not Found`; files over their size limit
-return `413 Payload Too Large`.
+Invalid fields, files, or `icon_index` references return
+`400 Bad Request`; an unknown social media `id` returns
+`404 Not Found`; files over their size limit return `413 Payload Too Large`; a
+setting key missing from the seed returns `500 Internal Server Error`.
 
 ## Public Static Assets
 

@@ -93,8 +93,9 @@ function createArticleColumns(
         <div className="flex flex-wrap gap-1">
           {row.original.languages.map((language) => {
             const status = language.status ?? 'MISSING'
+            const code = language.language_id.toUpperCase()
             const label = ARTICLE_LABELS.languageStatus(
-              language.abbreviated_language,
+              code,
               LANGUAGE_PILLS[status].label,
             )
 
@@ -105,7 +106,7 @@ function createArticleColumns(
                 title={label}
                 aria-label={label}
               >
-                {language.abbreviated_language}
+                {code}
               </LanguagePill>
             )
           })}

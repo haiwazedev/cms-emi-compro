@@ -63,8 +63,8 @@ interface ArticleFormProps {
   mode: 'create' | 'edit'
   article?: Article
   languages: Language[]
-  languageId: number
-  onLanguageChange: (languageId: number) => void
+  languageId: string
+  onLanguageChange: (languageId: string) => void
 }
 
 type TranslationStatus = ArticleStatus | 'UNSAVED' | 'MISSING'
@@ -83,7 +83,7 @@ function ArticleForm({
   const [previewOpen, setPreviewOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
-  const [addedLanguageIds, setAddedLanguageIds] = useState<number[]>([])
+  const [addedLanguageIds, setAddedLanguageIds] = useState<string[]>([])
   const [selectedPhoto, setSelectedPhoto] = useState<Media>()
   const [photoError, setPhotoError] = useState<string>()
   const [defaultValues] = useState(() => savedValues(article, languageId))
@@ -145,7 +145,7 @@ function ArticleForm({
       values: ArticleFormValues
       status: ArticleStatus
       primaryPhotoId: number
-      languageId: number
+      languageId: string
     }) => {
       const fields: ArticleWriteFields = {
         ...values,
@@ -190,8 +190,7 @@ function ArticleForm({
           to: '/articles/$articleId/edit',
           params: { articleId: String(savedArticle.id) },
           search: {
-            lang: languages.find((item) => item.id === savedLanguageId)
-              ?.abbreviated_language,
+            lang: savedLanguageId,
           },
           replace: true,
           // Just reset; the blocker may still read the stale dirty state.
@@ -231,7 +230,7 @@ function ArticleForm({
     setPhotoError(undefined)
   }
 
-  function requestLanguage(id: number) {
+  function requestLanguage(id: string) {
     if (id === languageId) return
     if (
       hasUnsavedChanges &&
@@ -243,7 +242,7 @@ function ArticleForm({
     onLanguageChange(id)
   }
 
-  function translationStatus(id: number): TranslationStatus {
+  function translationStatus(id: string): TranslationStatus {
     const content = findContent(article, id)
     if (content) return content.status
     if (id === languageId || addedLanguageIds.includes(id)) return 'UNSAVED'
@@ -933,13 +932,13 @@ function TranslationRow({
   )
 }
 
-function findContent(article: Article | undefined, languageId: number) {
+function findContent(article: Article | undefined, languageId: string) {
   return article?.contents.find((item) => item.language_id === languageId)
 }
 
 function savedValues(
   article: Article | undefined,
-  languageId: number,
+  languageId: string,
 ): ArticleFormValues {
   const content = findContent(article, languageId)
 

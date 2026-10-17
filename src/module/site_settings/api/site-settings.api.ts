@@ -50,7 +50,7 @@ const TEXT_FIELDS = [
 ] as const satisfies SiteSettingsField[]
 
 export type SiteSettings = {
-  language_id: number
+  language_id: string
   social_medias: SiteSocialMedia[]
 } & Record<(typeof SETTING_FIELDS)[SiteSettingsField], string | null>
 
@@ -63,7 +63,7 @@ export interface SiteSettingsData {
   unconfigured: SiteSettingsField[]
 }
 
-export async function getSiteSettings(languageId: number) {
+export async function getSiteSettings(languageId: string) {
   const { data } = await apiClient.get<SiteSettingsResponse>('/site_settings', {
     params: { language_id: languageId },
   })
@@ -77,7 +77,7 @@ export async function saveSiteSettings({
 }: {
   values: SiteSettingsFormValues
   unconfigured: SiteSettingsField[]
-  languageId: number
+  languageId: string
 }) {
   const { data } = await apiClient.put<SiteSettingsResponse>(
     '/site_settings',
@@ -125,7 +125,7 @@ function toImage(filepath: string | null): SiteSettingsImage {
 function toFormData(
   values: SiteSettingsFormValues,
   unconfigured: SiteSettingsField[],
-  languageId: number,
+  languageId: string,
 ) {
   const isConfigured = (field: SiteSettingsField) =>
     !unconfigured.includes(field)

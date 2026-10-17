@@ -1,10 +1,11 @@
 import { apiClient } from '@/shared/lib/api-client'
 
 export interface Language {
-  id: number
+  // Lowercase language code, e.g. "id", "en".
+  id: string
   language: string
-  abbreviated_language: string
   flag: string
+  sort_order: number
   is_active: boolean
 }
 
