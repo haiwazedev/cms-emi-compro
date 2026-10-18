@@ -34,7 +34,6 @@ export const NAVIGATION_LABELS = {
   settings: 'PENGATURAN',
   siteSettings: 'Pengaturan Situs',
   usersAndAccess: 'Pengguna & Akses',
-  single: 'SINGLE',
   companyName: 'Energy Management Indonesia',
   companyMark: 'PLN',
 } as const
@@ -69,7 +68,6 @@ type NavigationItem = {
     | '/media'
     | '/site_settings'
   icon: LucideIcon
-  count?: string
 }
 
 type NavigationSection = {
@@ -85,49 +83,41 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
         label: NAVIGATION_LABELS.home,
         to: '/home',
         icon: HouseIcon,
-        count: NAVIGATION_LABELS.single,
       },
       {
         label: NAVIGATION_LABELS.aboutUs,
         to: '/about-us',
         icon: Building2Icon,
-        count: NAVIGATION_LABELS.single,
       },
       {
         label: NAVIGATION_LABELS.articles,
         to: '/articles',
         icon: NewspaperIcon,
-        count: '5',
       },
       {
         label: NAVIGATION_LABELS.divisionsAndServices,
         to: '/divisions',
         icon: ZapIcon,
-        count: '5',
       },
       {
         label: NAVIGATION_LABELS.commitmentDocuments,
         to: '/document_commitments',
         icon: FileTextIcon,
-        count: '12',
       },
       {
         label: NAVIGATION_LABELS.management,
         to: '/board_members',
         icon: UsersIcon,
-        count: '6',
       },
       {
         label: NAVIGATION_LABELS.faq,
         to: '/faqs',
         icon: CircleHelpIcon,
-        count: '4',
       },
       {
         label: NAVIGATION_LABELS.clients,
         to: '/clients',
         icon: HandshakeIcon,
-        count: '8',
       },
       {
         label: NAVIGATION_LABELS.inbox,

@@ -268,7 +268,7 @@ function MediaPickerDialog({
               {MEDIA_PICKER_LABELS.noSearchResults}
             </p>
           ) : (
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {visibleMedia.map((media) => (
                 <MediaPickerCard
                   key={media.id}
@@ -335,7 +335,7 @@ function MediaPickerCard({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'border-border/15 bg-background hover:border-accent focus-visible:ring-accent/50 flex min-w-0 flex-1 basis-40 flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
+        'border-border/15 bg-background hover:border-accent focus-visible:ring-accent/50 flex min-w-0 flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
         selected && 'border-accent ring-accent/20 ring-2',
       )}
     >
