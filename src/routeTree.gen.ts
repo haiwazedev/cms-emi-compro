@@ -25,7 +25,9 @@ import { Route as AuthenticatedFaqsRouteImport } from './routes/_authenticated.f
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated.inbox'
 import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/media'
+import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated.roles'
 import { Route as AuthenticatedSite_settingsRouteImport } from './routes/_authenticated.site_settings'
+import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated.users'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
 import { Route as AuthenticatedArticlesArticleIdEditRouteImport } from './routes/_authenticated/articles.$articleId.edit'
@@ -114,12 +116,22 @@ const AuthenticatedMediaRoute = AuthenticatedMediaRouteImport.update({
   path: '/media',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSite_settingsRoute =
   AuthenticatedSite_settingsRouteImport.update({
     id: '/site_settings',
     path: '/site_settings',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
@@ -154,7 +166,9 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/roles': typeof AuthenticatedRolesRoute
   '/site_settings': typeof AuthenticatedSite_settingsRoute
+  '/users': typeof AuthenticatedUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -175,7 +189,9 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/media': typeof AuthenticatedMediaRoute
+  '/roles': typeof AuthenticatedRolesRoute
   '/site_settings': typeof AuthenticatedSite_settingsRoute
+  '/users': typeof AuthenticatedUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -198,7 +214,9 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/media': typeof AuthenticatedMediaRoute
+  '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/site_settings': typeof AuthenticatedSite_settingsRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/_authenticated/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -221,7 +239,9 @@ export interface FileRouteTypes {
     | '/home'
     | '/inbox'
     | '/media'
+    | '/roles'
     | '/site_settings'
+    | '/users'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -242,7 +262,9 @@ export interface FileRouteTypes {
     | '/home'
     | '/inbox'
     | '/media'
+    | '/roles'
     | '/site_settings'
+    | '/users'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -264,7 +286,9 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/inbox'
     | '/_authenticated/media'
+    | '/_authenticated/roles'
     | '/_authenticated/site_settings'
+    | '/_authenticated/users'
     | '/auth/login'
     | '/_authenticated/articles/create'
     | '/_authenticated/articles/$articleId/edit'
@@ -390,11 +414,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMediaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/roles': {
+      id: '/_authenticated/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof AuthenticatedRolesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/site_settings': {
       id: '/_authenticated/site_settings'
       path: '/site_settings'
       fullPath: '/site_settings'
       preLoaderRoute: typeof AuthenticatedSite_settingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/auth/login': {
@@ -452,7 +490,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedMediaRoute: typeof AuthenticatedMediaRoute
+  AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedSite_settingsRoute: typeof AuthenticatedSite_settingsRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -472,7 +512,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedMediaRoute: AuthenticatedMediaRoute,
+  AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedSite_settingsRoute: AuthenticatedSite_settingsRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

@@ -67,6 +67,7 @@ type NavigationItem = {
     | '/board_members'
     | '/media'
     | '/site_settings'
+    | '/users'
   icon: LucideIcon
 }
 
@@ -146,7 +147,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.usersAndAccess,
-        href: '#',
+        to: '/users',
         icon: KeyRoundIcon,
       },
     ],
