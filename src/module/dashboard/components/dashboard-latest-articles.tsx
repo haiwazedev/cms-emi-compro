@@ -1,0 +1,91 @@
+import type { ArticleListItem } from '@/module/article/api/article.api'
+import { ArticleDataTable } from '@/module/article/components/article-data-table'
+import { ArticleDeleteDialog } from '@/module/article/components/article-delete-dialog'
+import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { articlesQueryOptions } from '@/module/article/queries/article.queries'
+import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
+import { Button } from '@/shared/components/ui/button'
+import { Card, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { ArrowRightIcon } from 'lucide-react'
+import { useState } from 'react'
+
+const LATEST_ARTICLE_PARAMS = {
+  page: 1,
+  limit: 4,
+  sort_by: 'issue_date',
+  sort_order: 'desc',
+} as const
+
+function DashboardLatestArticles() {
+  const articlesQuery = useQuery(articlesQueryOptions(LATEST_ARTICLE_PARAMS))
+  const articles = articlesQuery.data?.articles ?? []
+  const [articleToDelete, setArticleToDelete] =
+    useState<ArticleListItem | null>(null)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{DASHBOARD_LABELS.latestArticles}</CardTitle>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/articles">
+            {DASHBOARD_LABELS.viewAll}
+            <ArrowRightIcon aria-hidden="true" className="size-4" />
+          </Link>
+        </Button>
+      </CardHeader>
+
+      {articlesQuery.isPending ? (
+        <LatestArticlesMessage
+          role="status"
+          message={ARTICLE_LABELS.loadingArticles}
+        />
+      ) : articlesQuery.isError ? (
+        <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
+          <p role="alert" className="text-danger text-sm">
+            {articlesQuery.error.message || ARTICLE_LABELS.articlesFailed}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void articlesQuery.refetch()}
+          >
+            {ARTICLE_LABELS.retry}
+          </Button>
+        </div>
+      ) : articles.length === 0 ? (
+        <LatestArticlesMessage message={ARTICLE_LABELS.noArticles} />
+      ) : (
+        <ArticleDataTable
+          articles={articles}
+          onDeleteArticle={setArticleToDelete}
+        />
+      )}
+
+      <ArticleDeleteDialog
+        article={articleToDelete}
+        onClose={() => setArticleToDelete(null)}
+      />
+    </Card>
+  )
+}
+
+function LatestArticlesMessage({
+  message,
+  role,
+}: {
+  message: string
+  role?: 'status'
+}) {
+  return (
+    <p
+      role={role}
+      className="text-foreground/60 border-border/10 border-t px-4 py-12 text-center text-sm"
+    >
+      {message}
+    </p>
+  )
+}
+
+export { DashboardLatestArticles }
