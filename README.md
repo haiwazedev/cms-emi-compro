@@ -18,15 +18,16 @@ File routes live in `src/routes`. TanStack Router generates `src/routeTree.gen.t
 
 ## Docker Deployment
 
-Build an image with the API base URL for the target environment:
+Build an image with the API base URL and landing site URL for the target environment:
 
 ```sh
 docker build \
   --build-arg VITE_API_BASE_URL=https://api.example.com \
+  --build-arg VITE_LANDING_SITE_URL=https://www.example.com \
   -t pln-emi-admin .
 ```
 
-The API URL is embedded in the frontend during the image build, so build a separate image for each API environment. The build fails if `VITE_API_BASE_URL` is missing.
+Both URLs are embedded in the frontend during the image build, so build a separate image for each environment. The build fails if `VITE_API_BASE_URL` or `VITE_LANDING_SITE_URL` is missing.
 
 Run the container on port 3000:
 
