@@ -1,4 +1,9 @@
 export const HOME_LABELS = {
+  language: 'Bahasa',
+  languagesFailed: 'Daftar bahasa gagal dimuat.',
+  noLanguages: 'Belum ada bahasa aktif.',
+  discardChangesConfirm:
+    'Perubahan yang belum disimpan akan hilang. Lanjutkan?',
   pageTitle: 'Beranda',
   documentTitle: 'Beranda | PLN EMI Admin',
   description:

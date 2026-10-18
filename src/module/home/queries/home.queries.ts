@@ -3,13 +3,14 @@ import { getHomeContent } from '../api/home.api'
 
 export const homeContentQueryKeys = {
   all: ['home-content'] as const,
-  page: () => [...homeContentQueryKeys.all, 'home'] as const,
+  page: (languageId: string) =>
+    [...homeContentQueryKeys.all, 'home', languageId] as const,
 }
 
-export function homeContentQueryOptions() {
+export function homeContentQueryOptions(languageId: string) {
   return queryOptions({
-    queryKey: homeContentQueryKeys.page(),
-    queryFn: getHomeContent,
+    queryKey: homeContentQueryKeys.page(languageId),
+    queryFn: () => getHomeContent(languageId),
     staleTime: 30_000,
   })
 }

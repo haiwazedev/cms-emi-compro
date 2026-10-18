@@ -6,8 +6,7 @@ export interface AboutUsContentRecord {
   block_key: string
   block_type: string
   sort_order: number
-  data: Record<string, string> | null
-  media_id: number | null
+  data: Record<string, string | null> | null
   created_at: string
   created_by: string
   updated_at: string | null
@@ -25,8 +24,7 @@ export type AboutUsContentWriteItem =
       page: 'about-us'
       block_key: 'company-profile'
       block_type: 'company-picture'
-      data: null
-      media_id: number | null
+      data: { media_filepath: string | null }
     }
   | {
       page: 'about-us'
@@ -50,22 +48,29 @@ export type AboutUsContentWriteItem =
     }
 
 interface AboutUsContentResponse {
-  contents: AboutUsContentRecord[]
+  site_contents: { language_id: string; items: AboutUsContentRecord[] }
 }
 
-export async function getAboutUsContent() {
-  const { data } = await apiClient.get<AboutUsContentResponse>('/contents', {
-    params: { page: 'about-us' },
-  })
-
-  return data.contents
-}
-
-export async function saveAboutUsContent(items: AboutUsContentWriteItem[]) {
-  const { data } = await apiClient.put<AboutUsContentResponse>(
-    '/contents',
-    items,
+export async function getAboutUsContent(languageId: string) {
+  const { data } = await apiClient.get<AboutUsContentResponse>(
+    '/site_contents',
+    { params: { page: 'about-us', language_id: languageId } },
   )
 
-  return data.contents
+  return data.site_contents.items
+}
+
+export async function saveAboutUsContent({
+  languageId,
+  items,
+}: {
+  languageId: string
+  items: AboutUsContentWriteItem[]
+}) {
+  const { data } = await apiClient.put<AboutUsContentResponse>(
+    '/site_contents',
+    { language_id: languageId, items },
+  )
+
+  return data.site_contents.items
 }

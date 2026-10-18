@@ -12,7 +12,7 @@ export interface AboutUsTimelineDraft {
 
 export interface AboutUsDraft {
   profileContent: string
-  companyPictureMediaId: number | null
+  companyPictureFilepath: string | null
   vision: string
   missions: AboutUsMissionDraft[]
   timeline: AboutUsTimelineDraft[]
