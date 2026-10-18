@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createBoardMember,
   deleteBoardMember,
@@ -130,6 +131,7 @@ function BoardMembersContent({
   language: Language
   onLanguageChange: (languageId: string) => void
 }) {
+  const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/board_members' })
   const queryClient = useQueryClient()
   const { search, board_member_type_id } = useSearch({
@@ -319,14 +321,16 @@ function BoardMembersContent({
                 {BOARD_MEMBER_LABELS.manageTypes}
               </Link>
             </Button>
-            <Button
-              type="button"
-              disabled={!canAddMember}
-              onClick={() => openMemberForm()}
-            >
-              <PlusIcon aria-hidden="true" className="size-4" />
-              {BOARD_MEMBER_LABELS.addMember}
-            </Button>
+            {canWrite && (
+              <Button
+                type="button"
+                disabled={!canAddMember}
+                onClick={() => openMemberForm()}
+              >
+                <PlusIcon aria-hidden="true" className="size-4" />
+                {BOARD_MEMBER_LABELS.addMember}
+              </Button>
+            )}
           </div>
         </header>
 

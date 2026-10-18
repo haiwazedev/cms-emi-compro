@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   deleteDocumentCommitment,
   createDocumentCommitment,
@@ -44,6 +45,7 @@ import { useEffect, useMemo, useState } from 'react'
 type StatusFilter = DocumentCommitmentStatus | 'ALL'
 
 function DocumentCommitmentsPage() {
+  const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/document_commitments' })
   const queryClient = useQueryClient()
   const { page, limit, search, document_commitment_category_id, status } =
@@ -199,10 +201,12 @@ function DocumentCommitmentsPage() {
               {DOCUMENT_COMMITMENT_LABELS.manageCategories}
             </Link>
           </Button>
-          <Button type="button" onClick={() => openDocumentForm()}>
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {DOCUMENT_COMMITMENT_LABELS.upload}
-          </Button>
+          {canWrite && (
+            <Button type="button" onClick={() => openDocumentForm()}>
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {DOCUMENT_COMMITMENT_LABELS.upload}
+            </Button>
+          )}
         </div>
       </header>
 

@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createDivision,
   createService,
@@ -123,6 +124,7 @@ function DivisionsContent({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const divisionsQuery = useQuery(divisionsQueryOptions())
   const servicesQuery = useQuery(servicesQueryOptions())
@@ -361,29 +363,33 @@ function DivisionsContent({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={divisionReorderPending}
-              onClick={() => setDivisionDialog({})}
-            >
-              <PlusIcon aria-hidden="true" className="size-4" />
-              {DIVISION_LABELS.addDivision}
-            </Button>
-            <Button
-              type="button"
-              disabled={
-                !selectedDivision ||
-                divisionsQuery.isPending ||
-                serviceReorderPending
-              }
-              onClick={() =>
-                setServiceDialog({ divisionId: selectedDivision?.id })
-              }
-            >
-              <PlusIcon aria-hidden="true" className="size-4" />
-              {DIVISION_LABELS.addService}
-            </Button>
+            {canWrite && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={divisionReorderPending}
+                onClick={() => setDivisionDialog({})}
+              >
+                <PlusIcon aria-hidden="true" className="size-4" />
+                {DIVISION_LABELS.addDivision}
+              </Button>
+            )}
+            {canWrite && (
+              <Button
+                type="button"
+                disabled={
+                  !selectedDivision ||
+                  divisionsQuery.isPending ||
+                  serviceReorderPending
+                }
+                onClick={() =>
+                  setServiceDialog({ divisionId: selectedDivision?.id })
+                }
+              >
+                <PlusIcon aria-hidden="true" className="size-4" />
+                {DIVISION_LABELS.addService}
+              </Button>
+            )}
           </div>
         </header>
 

@@ -1,3 +1,5 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
+import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import type {
   Article,
   ArticleStatus,
@@ -80,6 +82,7 @@ function ArticleForm({
   const isEditing = mode === 'edit'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { canWrite, canPublish } = usePermissions()
   const categoriesQuery = useQuery(articleCategoriesQueryOptions())
   const [previewOpen, setPreviewOpen] = useState(false)
   const [datePickerOpen, setDatePickerOpen] = useState(false)
@@ -336,34 +339,43 @@ function ArticleForm({
               <EyeIcon aria-hidden="true" className="size-4" />
               {ARTICLE_LABELS.preview}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={articleMutation.isPending}
-              onClick={() => void submitArticle('DRAFT')}
-            >
-              {articleMutation.isPending ? (
-                <LoaderCircleIcon
-                  aria-hidden="true"
-                  className="size-4 animate-spin"
-                />
-              ) : null}
-              {ARTICLE_LABELS.saveDraft}
-            </Button>
-            <Button
-              type="button"
-              disabled={articleMutation.isPending}
-              onClick={() => void submitArticle('PUBLISHED')}
-              className="bg-success hover:bg-success/90"
-            >
-              {articleMutation.isPending ? (
-                <LoaderCircleIcon
-                  aria-hidden="true"
-                  className="size-4 animate-spin"
-                />
-              ) : null}
-              {ARTICLE_LABELS.publishArticle}
-            </Button>
+            {!canPublish && canWrite && (
+              <p className="text-foreground/60 w-full text-xs lg:w-auto">
+                {PERMISSION_HINTS.draftOnly}
+              </p>
+            )}
+            {canWrite && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={articleMutation.isPending}
+                onClick={() => void submitArticle('DRAFT')}
+              >
+                {articleMutation.isPending ? (
+                  <LoaderCircleIcon
+                    aria-hidden="true"
+                    className="size-4 animate-spin"
+                  />
+                ) : null}
+                {ARTICLE_LABELS.saveDraft}
+              </Button>
+            )}
+            {canPublish && (
+              <Button
+                type="button"
+                disabled={articleMutation.isPending}
+                onClick={() => void submitArticle('PUBLISHED')}
+                className="bg-success hover:bg-success/90"
+              >
+                {articleMutation.isPending ? (
+                  <LoaderCircleIcon
+                    aria-hidden="true"
+                    className="size-4 animate-spin"
+                  />
+                ) : null}
+                {ARTICLE_LABELS.publishArticle}
+              </Button>
+            )}
           </div>
         </header>
 

@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   BoardMember,
   BoardMemberContent,
@@ -29,10 +30,12 @@ function SortableBoardMemberRow({
   onEdit,
   onDelete,
 }: SortableBoardMemberRowProps) {
+  const { canWrite, canDelete } = usePermissions()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `board-member:${member.id}`,
     index,
     group,
+    disabled: !canWrite,
   })
   const initials = member.name
     .trim()
@@ -43,18 +46,24 @@ function SortableBoardMemberRow({
     .toUpperCase()
 
   return (
-    <TableRow ref={sortableRef} onClick={onEdit} className="cursor-pointer">
+    <TableRow
+      ref={sortableRef}
+      onClick={canWrite ? onEdit : undefined}
+      className={canWrite ? 'cursor-pointer' : undefined}
+    >
       <TableCell className="w-12 px-2">
-        <button
-          ref={dragHandleRef}
-          type="button"
-          aria-label={BOARD_MEMBER_LABELS.dragMember(index + 1)}
-          disabled={disabled}
-          onClick={(event) => event.stopPropagation()}
-          className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <GripVerticalIcon aria-hidden="true" className="size-4" />
-        </button>
+        {canWrite && (
+          <button
+            ref={dragHandleRef}
+            type="button"
+            aria-label={BOARD_MEMBER_LABELS.dragMember(index + 1)}
+            disabled={disabled}
+            onClick={(event) => event.stopPropagation()}
+            className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <GripVerticalIcon aria-hidden="true" className="size-4" />
+          </button>
+        )}
       </TableCell>
       <TableCell className="w-20">
         <span className="bg-secondary/10 text-accent flex size-10 items-center justify-center overflow-hidden rounded-full text-xs font-semibold">
@@ -110,32 +119,36 @@ function SortableBoardMemberRow({
       </TableCell>
       <TableCell className="min-w-24 text-right">
         <div className="flex items-center justify-end gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            aria-label={BOARD_MEMBER_LABELS.editMemberAction(member.name)}
-            onClick={(event) => {
-              event.stopPropagation()
-              onEdit()
-            }}
-          >
-            <PencilIcon aria-hidden="true" className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            aria-label={BOARD_MEMBER_LABELS.deleteMemberAction(member.name)}
-            onClick={(event) => {
-              event.stopPropagation()
-              onDelete()
-            }}
-          >
-            <Trash2Icon aria-hidden="true" className="size-4" />
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              aria-label={BOARD_MEMBER_LABELS.editMemberAction(member.name)}
+              onClick={(event) => {
+                event.stopPropagation()
+                onEdit()
+              }}
+            >
+              <PencilIcon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              aria-label={BOARD_MEMBER_LABELS.deleteMemberAction(member.name)}
+              onClick={(event) => {
+                event.stopPropagation()
+                onDelete()
+              }}
+            >
+              <Trash2Icon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>

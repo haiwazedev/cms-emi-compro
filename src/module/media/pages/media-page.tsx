@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   bulkDeleteMedia,
   getMediaTypeFromFilename,
@@ -54,6 +55,7 @@ type TypeFilter = 'ALL' | MediaType
 type ViewMode = 'grid' | 'list'
 
 function MediaPage() {
+  const { canWrite, canDelete } = usePermissions()
   const navigate = useNavigate({ from: '/media' })
   const {
     search,
@@ -193,7 +195,7 @@ function MediaPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {selectedCount > 0 && (
+          {canDelete && selectedCount > 0 && (
             <Button
               type="button"
               variant="destructive"
@@ -212,16 +214,18 @@ function MediaPage() {
             aria-label={MEDIA_LABELS.upload}
             onChange={handleFileChange}
           />
-          <Button
-            type="button"
-            disabled={uploadMutation.isPending}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <UploadIcon aria-hidden="true" className="size-4" />
-            {uploadMutation.isPending
-              ? MEDIA_LABELS.uploading
-              : MEDIA_LABELS.upload}
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              disabled={uploadMutation.isPending}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <UploadIcon aria-hidden="true" className="size-4" />
+              {uploadMutation.isPending
+                ? MEDIA_LABELS.uploading
+                : MEDIA_LABELS.upload}
+            </Button>
+          )}
         </div>
       </header>
 

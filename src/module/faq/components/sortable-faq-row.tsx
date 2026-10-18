@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ArticleLanguagePills } from '@/module/article/components/article-language-pills'
 import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
 import type { FaqListItem } from '@/module/faq/api/faq.api'
@@ -23,10 +24,12 @@ function SortableFaqRow({
   onEdit,
   onDelete,
 }: SortableFaqRowProps) {
+  const { canWrite, canDelete } = usePermissions()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `faq:${faq.id}`,
     index,
     group: 'faqs',
+    disabled: !canWrite,
   })
   const question = faq.question ?? ''
 
@@ -38,15 +41,17 @@ function SortableFaqRow({
     >
       {/* Draggable Button */}
       <TableCell className="w-12 px-2">
-        <button
-          ref={dragHandleRef}
-          type="button"
-          disabled={disabled}
-          aria-label={FAQ_LABELS.dragFaq(index + 1)}
-          className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <GripVerticalIcon aria-hidden="true" className="size-4" />
-        </button>
+        {canWrite && (
+          <button
+            ref={dragHandleRef}
+            type="button"
+            disabled={disabled}
+            aria-label={FAQ_LABELS.dragFaq(index + 1)}
+            className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <GripVerticalIcon aria-hidden="true" className="size-4" />
+          </button>
+        )}
       </TableCell>
 
       {/* Index */}
@@ -57,6 +62,7 @@ function SortableFaqRow({
         <button
           type="button"
           className="text-accent text-left font-medium"
+          disabled={!canWrite}
           onClick={onEdit}
         >
           {question}
@@ -72,30 +78,34 @@ function SortableFaqRow({
       <TableCell className="min-w-32 text-right">
         <div className="flex items-center justify-end gap-1">
           {/* Edit Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            disabled={disabled}
-            aria-label={FAQ_LABELS.editAction(question)}
-            onClick={onEdit}
-          >
-            <PencilIcon aria-hidden="true" className="size-4" />
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              disabled={disabled}
+              aria-label={FAQ_LABELS.editAction(question)}
+              onClick={onEdit}
+            >
+              <PencilIcon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
 
           {/* Delete Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            disabled={disabled}
-            aria-label={FAQ_LABELS.deleteAction(question)}
-            onClick={onDelete}
-          >
-            <Trash2Icon aria-hidden="true" className="size-4" />
-          </Button>
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              disabled={disabled}
+              aria-label={FAQ_LABELS.deleteAction(question)}
+              onClick={onDelete}
+            >
+              <Trash2Icon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>

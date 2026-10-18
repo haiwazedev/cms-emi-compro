@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from '@/shared/components/ui/popover'
 import { toast } from '@/shared/lib/toast'
+import { getInitials } from '@/shared/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { LoaderCircleIcon, LogOutIcon } from 'lucide-react'
@@ -99,7 +100,7 @@ function ProfileAvatar() {
           onPointerEnter={(event) => openOnMouseEnter(event.pointerType)}
           onPointerLeave={(event) => closeOnMouseLeave(event.pointerType)}
         >
-          {NAVIGATION_TOPBAR_LABELS.profileInitials}
+          {user ? getInitials(user.name) : null}
         </button>
       </PopoverTrigger>
 

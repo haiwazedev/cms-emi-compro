@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { DocumentCommitment } from '@/module/document_commitment/api/document-commitment.api'
 import { getDocumentCommitmentAssetUrl } from '@/module/document_commitment/api/document-commitment.api'
 import { DOCUMENT_COMMITMENT_LABELS } from '@/module/document_commitment/constants/document-commitment.constants'
@@ -35,6 +36,7 @@ import {
 import { useMemo } from 'react'
 
 function createColumns(
+  { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
   onEdit: (document: DocumentCommitment) => void,
   onDelete: (document: DocumentCommitment) => void,
   deletePending: boolean,
@@ -131,25 +133,29 @@ function createColumns(
       header: DOCUMENT_COMMITMENT_LABELS.actions,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${row.original.title}`}
-            onClick={() => onEdit(row.original)}
-          >
-            <PencilIcon aria-hidden="true" className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={deletePending}
-            aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${row.original.title}`}
-            onClick={() => onDelete(row.original)}
-          >
-            <Trash2Icon aria-hidden="true" className="size-4" />
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${row.original.title}`}
+              onClick={() => onEdit(row.original)}
+            >
+              <PencilIcon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={deletePending}
+              aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${row.original.title}`}
+              onClick={() => onDelete(row.original)}
+            >
+              <Trash2Icon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -181,9 +187,11 @@ function DocumentCommitmentDataTable({
   onPageIndexChange,
   onPageSizeChange,
 }: DocumentCommitmentDataTableProps) {
+  const { canWrite, canDelete } = usePermissions()
   const columns = useMemo(
-    () => createColumns(onEdit, onDelete, deletePending),
-    [deletePending, onDelete, onEdit],
+    () =>
+      createColumns({ canWrite, canDelete }, onEdit, onDelete, deletePending),
+    [canDelete, canWrite, deletePending, onDelete, onEdit],
   )
   const table = useReactTable({
     data: documents,

@@ -1,3 +1,5 @@
+import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   Division,
   DivisionStatus,
@@ -44,6 +46,7 @@ function DivisionFormDialog({
   pending,
   onSubmit,
 }: DivisionFormDialogProps) {
+  const { canPublish } = usePermissions()
   const content = division?.contents.find(
     (item) => item.language_id === languageId,
   )
@@ -175,9 +178,9 @@ function DivisionFormDialog({
             <div className="flex flex-col gap-2">
               <Label htmlFor="division-status">{DIVISION_LABELS.status}</Label>
               <Select
-                value={status}
+                value={canPublish ? status : 'DRAFT'}
                 onValueChange={(value) => setStatus(value as DivisionStatus)}
-                disabled={pending}
+                disabled={pending || !canPublish}
               >
                 <SelectTrigger id="division-status">
                   <SelectValue />
@@ -189,6 +192,11 @@ function DivisionFormDialog({
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {!canPublish && (
+                <p className="text-foreground/60 text-xs">
+                  {PERMISSION_HINTS.draftOnly}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">

@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createArticleCategory,
   deleteArticleCategory,
@@ -30,6 +31,7 @@ import { PencilIcon, PlusIcon, TagIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 function ArticleCategoriesPage() {
+  const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
   const categoriesQuery = useQuery(articleCategoriesQueryOptions())
   const [categoryFormOpen, setCategoryFormOpen] = useState(false)
@@ -130,14 +132,16 @@ function ArticleCategoriesPage() {
             </p>
           </div>
         </div>
-        <Button
-          type="button"
-          className="self-start lg:self-auto"
-          onClick={() => openCategoryForm()}
-        >
-          <PlusIcon aria-hidden="true" className="size-4" />
-          {ARTICLE_LABELS.addCategory}
-        </Button>
+        {canWrite && (
+          <Button
+            type="button"
+            className="self-start lg:self-auto"
+            onClick={() => openCategoryForm()}
+          >
+            <PlusIcon aria-hidden="true" className="size-4" />
+            {ARTICLE_LABELS.addCategory}
+          </Button>
+        )}
       </header>
 
       <section
@@ -187,25 +191,29 @@ function ArticleCategoriesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 self-end lg:self-auto">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={`${ARTICLE_LABELS.edit} ${category.name}`}
-                    onClick={() => openCategoryForm(category)}
-                  >
-                    <PencilIcon aria-hidden="true" className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    disabled={deleteMutation.isPending}
-                    aria-label={`${ARTICLE_LABELS.delete} ${category.name}`}
-                    onClick={() => setCategoryToDelete(category)}
-                  >
-                    <Trash2Icon aria-hidden="true" className="size-4" />
-                  </Button>
+                  {canWrite && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`${ARTICLE_LABELS.edit} ${category.name}`}
+                      onClick={() => openCategoryForm(category)}
+                    >
+                      <PencilIcon aria-hidden="true" className="size-4" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={deleteMutation.isPending}
+                      aria-label={`${ARTICLE_LABELS.delete} ${category.name}`}
+                      onClick={() => setCategoryToDelete(category)}
+                    >
+                      <Trash2Icon aria-hidden="true" className="size-4" />
+                    </Button>
+                  )}
                 </div>
               </li>
             ))}

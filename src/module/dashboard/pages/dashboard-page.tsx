@@ -1,3 +1,5 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
+import { authQueryOptions } from '@/module/auth/queries/auth.queries'
 import { DashboardViewSiteButton } from '@/module/dashboard/components/dashboard-view-site-button'
 import { DashboardRecentActivity } from '@/module/dashboard/components/dashboard-recent-activity'
 import { DashboardLatestArticles } from '@/module/dashboard/components/dashboard-latest-articles'
@@ -10,10 +12,10 @@ import {
 import {
   DASHBOARD_LABELS,
   DASHBOARD_QUICK_LINKS,
-  DASHBOARD_USER_NAME,
 } from '@/module/dashboard/constants/dashboard.constants'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
   FileTextIcon,
@@ -35,13 +37,17 @@ const QUICK_LINK_ICONS: Record<
 }
 
 function DashboardPage() {
+  const { canWrite } = usePermissions()
+  // The authenticated route loads the user before this page renders.
+  const { data: user } = useQuery(authQueryOptions())
+  const firstName = user?.name.trim().split(/\s+/)[0] ?? ''
   return (
     <div className="bg-primary flex min-h-full flex-col gap-6 p-4 lg:p-8">
       {/* Header */}
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {DASHBOARD_LABELS.greeting(DASHBOARD_USER_NAME)}
+            {DASHBOARD_LABELS.greeting(firstName)}
           </h1>
           <p className="text-foreground/60 text-sm lg:text-base">
             {DASHBOARD_LABELS.description}
@@ -50,12 +56,14 @@ function DashboardPage() {
 
         <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
           <DashboardViewSiteButton />
-          <Button asChild>
-            <Link to="/articles/create">
-              <PlusIcon aria-hidden="true" className="size-4" />
-              {DASHBOARD_LABELS.newArticle}
-            </Link>
-          </Button>
+          {canWrite && (
+            <Button asChild>
+              <Link to="/articles/create">
+                <PlusIcon aria-hidden="true" className="size-4" />
+                {DASHBOARD_LABELS.newArticle}
+              </Link>
+            </Button>
+          )}
         </div>
       </header>
 

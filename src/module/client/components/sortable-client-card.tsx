@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { Client } from '@/module/client/api/client.api'
 import { CLIENT_LABELS } from '@/module/client/constants/client.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
@@ -20,10 +21,12 @@ function SortableClientCard({
   onEdit,
   onDelete,
 }: SortableClientCardProps) {
+  const { canWrite, canDelete } = usePermissions()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `client:${client.id}`,
     index,
     group: 'clients',
+    disabled: !canWrite,
   })
 
   return (
@@ -38,39 +41,45 @@ function SortableClientCard({
           className="max-h-full max-w-full object-contain"
         />
 
-        <button
-          ref={dragHandleRef}
-          type="button"
-          disabled={disabled}
-          aria-label={CLIENT_LABELS.dragClient(client.name)}
-          className="bg-background/80 text-secondary absolute top-2 left-2 cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <GripVerticalIcon aria-hidden="true" className="size-4" />
-        </button>
+        {canWrite && (
+          <button
+            ref={dragHandleRef}
+            type="button"
+            disabled={disabled}
+            aria-label={CLIENT_LABELS.dragClient(client.name)}
+            className="bg-background/80 text-secondary absolute top-2 left-2 cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <GripVerticalIcon aria-hidden="true" className="size-4" />
+          </button>
+        )}
 
         <div className="absolute top-2 right-2 flex gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            disabled={disabled}
-            aria-label={CLIENT_LABELS.editAction(client.name)}
-            onClick={onEdit}
-          >
-            <PencilIcon aria-hidden="true" className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            disabled={disabled}
-            aria-label={CLIENT_LABELS.deleteAction(client.name)}
-            onClick={onDelete}
-          >
-            <Trash2Icon aria-hidden="true" className="size-3.5" />
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-7"
+              disabled={disabled}
+              aria-label={CLIENT_LABELS.editAction(client.name)}
+              onClick={onEdit}
+            >
+              <PencilIcon aria-hidden="true" className="size-3.5" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-7"
+              disabled={disabled}
+              aria-label={CLIENT_LABELS.deleteAction(client.name)}
+              onClick={onDelete}
+            >
+              <Trash2Icon aria-hidden="true" className="size-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -78,6 +87,7 @@ function SortableClientCard({
         <button
           type="button"
           className="text-accent truncate text-left text-sm font-medium"
+          disabled={!canWrite}
           onClick={onEdit}
         >
           {client.name}

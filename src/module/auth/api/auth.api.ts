@@ -3,6 +3,9 @@ import { ApiError, apiClient } from '@/shared/lib/api-client'
 export interface AuthUser {
   name: string
   email: string
+  role: { id: number; name: string } | null
+  // Allowed permission keys; viewing needs none.
+  permissions: string[]
 }
 
 export interface LoginCredentials {

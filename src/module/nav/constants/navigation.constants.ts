@@ -7,6 +7,7 @@ import {
   HouseIcon,
   ImagesIcon,
   KeyRoundIcon,
+  LayoutDashboardIcon,
   MailIcon,
   NewspaperIcon,
   SettingsIcon,
@@ -19,6 +20,7 @@ export const NAVIGATION_LABELS = {
   mainContent: 'Konten utama',
   openNavigation: 'Buka navigasi',
   closeNavigation: 'Tutup navigasi',
+  dashboard: 'Dashboard',
   contentManager: 'CONTENT MANAGER',
   home: 'Beranda',
   aboutUs: 'Tentang Kami',
@@ -45,7 +47,6 @@ export const NAVIGATION_TOPBAR_LABELS = {
   activeLanguage: 'ID',
   languages: ['ID', 'EN'],
   profile: 'Profil pengguna',
-  profileInitials: 'NA',
   logout: 'Keluar',
   loggingOut: 'Sedang keluar...',
   logoutSuccess: 'Berhasil keluar.',
@@ -56,6 +57,7 @@ type NavigationItem = {
   label: string
   href?: '#'
   to?:
+    | '/dashboard'
     | '/home'
     | '/about-us'
     | '/articles'
@@ -67,15 +69,26 @@ type NavigationItem = {
     | '/board_members'
     | '/media'
     | '/site_settings'
+    | '/users'
   icon: LucideIcon
 }
 
 type NavigationSection = {
-  label: string
+  // Sections without a label render no heading.
+  label?: string
   items: readonly NavigationItem[]
 }
 
 export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
+  {
+    items: [
+      {
+        label: NAVIGATION_LABELS.dashboard,
+        to: '/dashboard',
+        icon: LayoutDashboardIcon,
+      },
+    ],
+  },
   {
     label: NAVIGATION_LABELS.contentManager,
     items: [
@@ -146,7 +159,7 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
       },
       {
         label: NAVIGATION_LABELS.usersAndAccess,
-        href: '#',
+        to: '/users',
         icon: KeyRoundIcon,
       },
     ],

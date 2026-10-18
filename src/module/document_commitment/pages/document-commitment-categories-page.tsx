@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createDocumentCommitmentCategory,
   deleteDocumentCommitmentCategory,
@@ -24,6 +25,7 @@ import { useState } from 'react'
 import { documentCommitmentCategoriesQueryOptions } from '../queries/document-commitment.queries'
 
 function DocumentCommitmentCategoriesPage() {
+  const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
   const [categoryFormOpen, setCategoryFormOpen] = useState(false)
@@ -134,10 +136,12 @@ function DocumentCommitmentCategoriesPage() {
             </p>
           </div>
         </div>
-        <Button type="button" onClick={() => openCategoryForm()}>
-          <PlusIcon aria-hidden="true" className="size-4" />
-          {DOCUMENT_COMMITMENT_LABELS.addCategory}
-        </Button>
+        {canWrite && (
+          <Button type="button" onClick={() => openCategoryForm()}>
+            <PlusIcon aria-hidden="true" className="size-4" />
+            {DOCUMENT_COMMITMENT_LABELS.addCategory}
+          </Button>
+        )}
       </header>
 
       <section
@@ -182,25 +186,29 @@ function DocumentCommitmentCategoriesPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 self-end lg:self-auto">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${category.name}`}
-                    onClick={() => openCategoryForm(category)}
-                  >
-                    <PencilIcon aria-hidden="true" className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    disabled={deleteMutation.isPending}
-                    aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${category.name}`}
-                    onClick={() => setCategoryToDelete(category)}
-                  >
-                    <Trash2Icon aria-hidden="true" className="size-4" />
-                  </Button>
+                  {canWrite && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${category.name}`}
+                      onClick={() => openCategoryForm(category)}
+                    >
+                      <PencilIcon aria-hidden="true" className="size-4" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={deleteMutation.isPending}
+                      aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${category.name}`}
+                      onClick={() => setCategoryToDelete(category)}
+                    >
+                      <Trash2Icon aria-hidden="true" className="size-4" />
+                    </Button>
+                  )}
                 </div>
               </li>
             ))}

@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createFaq,
   deleteFaq,
@@ -43,6 +44,7 @@ import { useState } from 'react'
 type FormState = { faq?: FaqListItem }
 
 function FaqsPage() {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const faqsQuery = useQuery(faqsQueryOptions())
   const [form, setForm] = useState<FormState | null>(null)
@@ -135,15 +137,17 @@ function FaqsPage() {
           </div>
 
           {/* Add FAQ Button */}
-          <Button
-            type="button"
-            className="self-start lg:self-auto"
-            disabled={saveMutation.isPending}
-            onClick={() => setForm({})}
-          >
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {FAQ_LABELS.addQuestion}
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              className="self-start lg:self-auto"
+              disabled={saveMutation.isPending}
+              onClick={() => setForm({})}
+            >
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {FAQ_LABELS.addQuestion}
+            </Button>
+          )}
         </header>
 
         {/* Content */}

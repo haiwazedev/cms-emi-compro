@@ -1,3 +1,5 @@
+import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   DocumentCommitment,
   DocumentCommitmentCategory,
@@ -49,6 +51,7 @@ function DocumentCommitmentFormDialog({
   pending,
   onSubmit,
 }: DocumentCommitmentFormDialogProps) {
+  const { canPublish } = usePermissions()
   const isEditing = document !== undefined
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
   const [selectedFile, setSelectedFile] = useState<File>()
@@ -212,9 +215,9 @@ function DocumentCommitmentFormDialog({
                 name="status"
                 render={({ field }) => (
                   <Select
-                    value={field.value}
+                    value={canPublish ? field.value : 'DRAFT'}
                     onValueChange={field.onChange}
-                    disabled={pending}
+                    disabled={pending || !canPublish}
                   >
                     <SelectTrigger id="document-commitment-status">
                       <SelectValue />
@@ -230,6 +233,11 @@ function DocumentCommitmentFormDialog({
                   </Select>
                 )}
               />
+              {!canPublish && (
+                <p className="text-foreground/60 text-xs">
+                  {PERMISSION_HINTS.draftOnly}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
