@@ -10,8 +10,10 @@ import {
 } from '@/module/division/api/division.api'
 import type {
   Division,
+  DivisionContent,
   DivisionWriteFields,
   Service,
+  ServiceContent,
   ServiceWriteFields,
 } from '@/module/division/api/division.api'
 import { DivisionFormDialog } from '@/module/division/components/division-form-dialog'
@@ -19,6 +21,9 @@ import { ServiceFormDialog } from '@/module/division/components/service-form-dia
 import { SortableDivisionRow } from '@/module/division/components/sortable-division-row'
 import { SortableServiceRow } from '@/module/division/components/sortable-service-row'
 import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
+import type { Language } from '@/module/language/api/language.api'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import {
   divisionQueryKeys,
   divisionsQueryOptions,
@@ -54,8 +59,9 @@ import { DragDropProvider } from '@dnd-kit/react'
 import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type DivisionDialogState = { division?: Division }
 type ServiceDialogState = { service?: Service; divisionId?: number }
@@ -63,6 +69,60 @@ type DeleteTarget =
   { kind: 'division'; record: Division } | { kind: 'service'; record: Service }
 
 function DivisionsPage() {
+  const { lang } = useSearch({ from: '/_authenticated/divisions' })
+  const navigate = useNavigate({ from: '/divisions' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+
+  useEffect(() => {
+    if (urlLanguage || !language) return
+
+    void navigate({
+      search: { lang: language.id },
+      replace: true,
+    })
+  }, [language, navigate, urlLanguage])
+
+  if (languagesQuery.isPending) {
+    return <PageMessage message={DIVISION_LABELS.languageLoading} />
+  }
+  if (languagesQuery.isError) {
+    return (
+      <PageMessage
+        message={DIVISION_LABELS.languagesFailed}
+        onRetry={() => void languagesQuery.refetch()}
+      />
+    )
+  }
+  if (!language) {
+    return <PageMessage message={DIVISION_LABELS.noLanguages} />
+  }
+
+  return (
+    <DivisionsContent
+      languages={languages}
+      languageId={language.id}
+      onLanguageChange={(id) => {
+        const nextLanguage = languages.find((item) => item.id === id)
+        if (!nextLanguage) return
+
+        void navigate({ search: { lang: nextLanguage.id } })
+      }}
+    />
+  )
+}
+
+function DivisionsContent({
+  languages,
+  languageId,
+  onLanguageChange,
+}: {
+  languages: Language[]
+  languageId: string
+  onLanguageChange: (languageId: string) => void
+}) {
   const queryClient = useQueryClient()
   const divisionsQuery = useQuery(divisionsQueryOptions())
   const servicesQuery = useQuery(servicesQueryOptions())
@@ -327,6 +387,23 @@ function DivisionsPage() {
           </div>
         </header>
 
+        <Select value={languageId} onValueChange={onLanguageChange}>
+          <SelectTrigger
+            aria-label={DIVISION_LABELS.language}
+            className="w-full lg:w-64"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {languages.map((item) => (
+              <SelectItem key={item.id} value={item.id}>
+                <span aria-hidden="true">{item.flag}</span>
+                {item.language}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <Card aria-labelledby="division-list-title">
           <CardHeader>
             <CardTitle id="division-list-title">
@@ -369,6 +446,7 @@ function DivisionsPage() {
                     <SortableDivisionRow
                       key={division.id}
                       division={division}
+                      content={findDivisionContent(division, languageId)}
                       index={index}
                       serviceCount={
                         servicesQuery.isSuccess
@@ -394,7 +472,7 @@ function DivisionsPage() {
           <CardHeader className="flex-col items-start lg:flex-row lg:items-center">
             <CardTitle id="service-list-title">
               {selectedDivision
-                ? `${DIVISION_LABELS.services} — ${selectedDivision.name}`
+                ? `${DIVISION_LABELS.services} — ${findDivisionContent(selectedDivision, languageId)?.name ?? DIVISION_LABELS.missingTranslation}`
                 : DIVISION_LABELS.services}
             </CardTitle>
             {divisions.length > 0 && (
@@ -412,7 +490,7 @@ function DivisionsPage() {
                 <SelectContent>
                   {divisions.map((division) => (
                     <SelectItem key={division.id} value={String(division.id)}>
-                      {division.abbr} — {division.name}
+                      {divisionSelectLabel(division, languageId)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -450,8 +528,12 @@ function DivisionsPage() {
                       <SortableServiceRow
                         key={service.id}
                         service={service}
+                        content={findServiceContent(service, languageId)}
                         index={index}
-                        divisionAbbreviation={selectedDivision.abbr}
+                        divisionAbbreviation={
+                          findDivisionContent(selectedDivision, languageId)
+                            ?.abbr ?? DIVISION_LABELS.missingTranslation
+                        }
                         disabled={serviceReorderPending}
                         onEdit={() =>
                           setServiceDialog({
@@ -478,9 +560,10 @@ function DivisionsPage() {
 
         {divisionDialog && (
           <DivisionFormDialog
-            key={divisionDialog.division?.id ?? 'new-division'}
+            key={`${divisionDialog.division?.id ?? 'new-division'}-${languageId}`}
             open
             division={divisionDialog.division}
+            languageId={languageId}
             pending={saveDivisionMutation.isPending}
             onOpenChange={(open) => {
               if (!open && !saveDivisionMutation.isPending) {
@@ -498,11 +581,12 @@ function DivisionsPage() {
 
         {serviceDialog && (
           <ServiceFormDialog
-            key={serviceDialog.service?.id ?? 'new-service'}
+            key={`${serviceDialog.service?.id ?? 'new-service'}-${languageId}`}
             open
             divisions={divisions}
             selectedDivisionId={serviceDialog.divisionId}
             service={serviceDialog.service}
+            languageId={languageId}
             pending={saveServiceMutation.isPending}
             onOpenChange={(open) => {
               if (!open && !saveServiceMutation.isPending) {
@@ -542,7 +626,7 @@ function DivisionsPage() {
               {deleteTarget && (
                 <>
                   <p className="text-accent font-semibold break-words">
-                    “{deleteTarget.record.name}”
+                    “{deleteTargetName(deleteTarget, languageId)}”
                   </p>
                   <DialogDescription>
                     {deleteTarget.kind === 'division'
@@ -611,6 +695,51 @@ function SectionMessage({
       )}
     </div>
   )
+}
+
+function PageMessage({
+  message,
+  onRetry,
+}: {
+  message: string
+  onRetry?: () => void
+}) {
+  return (
+    <div className="bg-primary flex min-h-full flex-col justify-center p-4 lg:p-8">
+      <SectionMessage message={message} onRetry={onRetry} />
+    </div>
+  )
+}
+
+function findDivisionContent(
+  division: Division,
+  languageId: string,
+): DivisionContent | undefined {
+  return division.contents.find((item) => item.language_id === languageId)
+}
+
+function findServiceContent(
+  service: Service,
+  languageId: string,
+): ServiceContent | undefined {
+  return service.contents.find((item) => item.language_id === languageId)
+}
+
+function divisionSelectLabel(division: Division, languageId: string) {
+  const content = findDivisionContent(division, languageId)
+
+  return content
+    ? `${content.abbr} — ${content.name}`
+    : `${DIVISION_LABELS.missingTranslation} (#${division.id})`
+}
+
+function deleteTargetName(target: DeleteTarget, languageId: string) {
+  const content =
+    target.kind === 'division'
+      ? findDivisionContent(target.record, languageId)
+      : findServiceContent(target.record, languageId)
+
+  return content?.name ?? DIVISION_LABELS.missingTranslation
 }
 
 function moveItems<T>(items: T[], fromIndex: number, toIndex: number) {

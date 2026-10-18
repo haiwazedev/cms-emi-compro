@@ -50,7 +50,7 @@ Bearer JWTs are no longer accepted. Sign in again to create a session.
 For Fetch examples, define the base URL once:
 
 ```js
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'http://localhost:8000';
 ```
 
 ## Register
@@ -109,12 +109,12 @@ const response = await fetch(`${API_BASE_URL}/auth/register`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -170,12 +170,12 @@ const response = await fetch(`${API_BASE_URL}/auth/login`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -217,12 +217,12 @@ Return the current user's name and email using the session cookie.
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/me`, {
   credentials: 'include',
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -252,11 +252,11 @@ with no response body.
 const response = await fetch(`${API_BASE_URL}/auth/logout`, {
   method: 'POST',
   credentials: 'include',
-})
+});
 
 if (!response.ok) {
-  const data = await response.json()
-  throw new Error(data.message)
+  const data = await response.json();
+  throw new Error(data.message);
 }
 ```
 
@@ -637,10 +637,10 @@ const response = await fetch(`${API_BASE_URL}/articles`, {
     issue_date: '2026-10-10',
     primary_photo: 18,
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 ## Divisions and Services
@@ -648,7 +648,12 @@ if (!response.ok) throw new Error(data.message)
 Division and service reads are public. Creating, updating, deleting, and
 reordering require an authenticated session and the configured frontend
 `Origin` or `Referer`, as described under [Browser Sessions](#browser-sessions).
-Requests use JSON.
+Requests use JSON. Names, abbreviations, and descriptions are stored per
+language and returned in a `contents` array ordered by the language registry's
+`sort_order` and language ID. Responses include only translations that exist;
+clients choose the language to display and handle a missing translation.
+Create requests and updates to translated fields require an active
+`language_id`; unknown or inactive language IDs return `400 Bad Request`.
 
 ### Divisions
 
@@ -665,26 +670,33 @@ Requests use JSON.
 - `DELETE /divisions/:divisionId` returns `204 No Content`. Deleting a division
   also deletes its services and compacts the remaining divisions' order.
 
-Create and update bodies accept these fields:
+Create bodies accept these fields:
 
-| Field      | Type           | Rules                                                            |
-| ---------- | -------------- | ---------------------------------------------------------------- |
-| `name`     | string         | Required on create; trimmed; 1–200 characters.                   |
-| `abbr`     | string         | Required on create; trimmed; 1–50 characters.                    |
-| `icon_svg` | string or null | Optional; omitted on update to keep the current value.           |
-| `status`   | string         | Optional; `DRAFT` or `PUBLISHED`; defaults to `DRAFT` on create. |
+| Field         | Type           | Rules                                                                 |
+| ------------- | -------------- | --------------------------------------------------------------------- |
+| `language_id` | string         | Required; active language code such as `id`; normalized to lowercase. |
+| `name`        | string         | Required; trimmed; 1–200 characters.                                  |
+| `abbr`        | string         | Required; trimmed; 1–50 characters.                                   |
+| `description` | string or null | Optional; no length limit; blank string becomes `null`.               |
+| `icon_svg`    | string or null | Optional.                                                             |
+| `status`      | string         | Optional; `DRAFT` or `PUBLISHED`; defaults to `DRAFT` on create.      |
 
-On update, omitted fields remain unchanged. Send `null` for `icon_svg` to clear
-it. The authenticated user's name is stored in `created_by`; updates set
-`updated_by` and `updated_at`.
+Update bodies are partial. Updating `icon_svg` or `status` does not require a
+language. Updating `name`, `abbr`, or `description` requires `language_id`.
+Existing translations can be partially updated; adding a translation requires
+both `name` and `abbr`. Send `null` for `icon_svg` or `description` to clear it.
+The authenticated user's name is stored in `created_by`; updates set
+`updated_by` and `updated_at` on the division.
 
 Example create request:
 
 ```json
 {
+  "language_id": "en",
   "name": "Customer Services",
   "abbr": "CS",
   "icon_svg": "<svg></svg>",
+  "description": "Energy management services for organizations.",
   "status": "PUBLISHED"
 }
 ```
@@ -695,16 +707,34 @@ The response shape is:
 {
   "division": {
     "id": 1,
-    "name": "Customer Services",
-    "abbr": "CS",
     "icon_svg": "<svg></svg>",
     "status": "PUBLISHED",
     "sort_order": 1,
     "created_at": "2026-10-11T10:30:00.000Z",
     "created_by": "Ari Putra",
     "updated_at": null,
-    "updated_by": null
+    "updated_by": null,
+    "contents": [
+      {
+        "language_id": "en",
+        "name": "Customer Services",
+        "abbr": "CS",
+        "description": "Energy management services for organizations."
+      }
+    ]
   }
+}
+```
+
+For example, add Indonesian content to the same division with
+`PUT /divisions/1`:
+
+```json
+{
+  "language_id": "id",
+  "name": "Layanan Pelanggan",
+  "abbr": "LP",
+  "description": "Layanan manajemen energi untuk organisasi."
 }
 ```
 
@@ -734,14 +764,40 @@ divisions. Invalid status values and unknown query parameters return
   destination division and compacts its former division.
 - `POST /services/reorder` reorders all services for one division and returns
   `{ "services": [...] }` with `200 OK`.
-- `DELETE /services/:serviceId` returns `204 No Content`.
+- `DELETE /services/:serviceId` returns `204 No Content` and removes its
+  gallery links without deleting media records.
 
-Service create and update bodies accept `division_id` (positive integer ID of
-an existing division) and `name` (required on create; trimmed; 1–200
-characters). Updates are partial; omitted fields remain unchanged. New
+Service create and update bodies accept these fields:
+
+| Field         | Type              | Rules                                                                        |
+| ------------- | ----------------- | ---------------------------------------------------------------------------- |
+| `language_id` | string            | Required on create; active language code.                                    |
+| `division_id` | integer           | Positive ID of an existing division; required on create.                     |
+| `name`        | string            | Required on create; trimmed; 1–200 characters.                               |
+| `description` | string or null    | Optional; no length limit; blank string becomes `null`.                      |
+| `media_ids`   | array of integers | Optional; unique positive IDs of existing `PICTURE` media, in display order. |
+
+Updates are partial; omitted fields remain unchanged. Updating `name` or
+`description` requires `language_id`. Existing translations can be partially
+updated; adding a translation requires `name`. On create, an omitted
+`media_ids` creates an empty gallery. On update, an omitted `media_ids` keeps
+the current gallery; sending an array replaces it, and `[]` clears it. Invalid,
+duplicate, missing, or non-picture media IDs return `400 Bad Request`. New
 services append after the division's current maximum `sort_order`. The
 authenticated user's name is stored in `created_by`; updates set `updated_by`
-and `updated_at`.
+and `updated_at` on the service.
+
+Example create request:
+
+```json
+{
+  "language_id": "en",
+  "division_id": 1,
+  "name": "Customer Support",
+  "description": "Support for energy management initiatives.",
+  "media_ids": [24, 31]
+}
+```
 
 For example, `GET /services/:serviceId` returns:
 
@@ -750,23 +806,54 @@ For example, `GET /services/:serviceId` returns:
   "service": {
     "id": 12,
     "division_id": 1,
-    "name": "Customer Support",
     "sort_order": 1,
     "created_at": "2026-10-11T10:30:00.000Z",
     "created_by": "Ari Putra",
     "updated_at": null,
     "updated_by": null,
+    "contents": [
+      {
+        "language_id": "en",
+        "name": "Customer Support",
+        "description": "Support for energy management initiatives."
+      }
+    ],
+    "media": [
+      {
+        "id": 24,
+        "filename": "customer-support.jpg",
+        "path": "/public/media/customer-support.jpg",
+        "extension": "jpg",
+        "type": "PICTURE",
+        "size": 245760,
+        "metadata": { "width": 1600, "height": 900 },
+        "created_by": "Ari Putra",
+        "created_at": "2026-10-11T10:20:00.000Z"
+      }
+    ],
     "division": {
       "id": 1,
-      "name": "Customer Services",
-      "abbr": "CS",
       "icon_svg": null,
       "status": "PUBLISHED",
       "sort_order": 1,
       "created_at": "2026-10-11T10:00:00.000Z",
       "created_by": "Ari Putra",
       "updated_at": null,
-      "updated_by": null
+      "updated_by": null,
+      "contents": [
+        {
+          "language_id": "id",
+          "name": "Layanan Pelanggan",
+          "abbr": "LP",
+          "description": null
+        },
+        {
+          "language_id": "en",
+          "name": "Customer Services",
+          "abbr": "CS",
+          "description": null
+        }
+      ]
     }
   }
 }
@@ -882,20 +969,20 @@ A member response has this shape:
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Ari Putra')
-formData.append('role', 'President Director')
-formData.append('board_member_type_id', '1')
-formData.append('photo', imageFile)
+const formData = new FormData();
+formData.append('name', 'Ari Putra');
+formData.append('role', 'President Director');
+formData.append('board_member_type_id', '1');
+formData.append('photo', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/board_members`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -947,18 +1034,18 @@ A successful upload returns `201 Created`:
 Example browser request:
 
 ```js
-const formData = new FormData()
-formData.append('type', 'PICTURE')
-formData.append('file', imageFile)
+const formData = new FormData();
+formData.append('type', 'PICTURE');
+formData.append('file', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/media`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1001,7 +1088,8 @@ The bulk delete response is:
 ```
 
 Deleting media also clears any Article `primary_photo` relation that references
-it. The stored file is removed after the database deletion commits.
+it and removes any service gallery links that reference it. The stored file is
+removed after the database deletion commits.
 
 ## Article Categories
 
@@ -1100,20 +1188,20 @@ sets `updated_at` and `updated_by` to the current time and authenticated user's
 name.
 
 ```js
-const formData = new FormData()
-formData.append('document_commitment_category_id', '2')
-formData.append('title', 'Board decision 2026-10')
-formData.append('status', 'PUBLISHED')
-formData.append('file', pdfFile)
+const formData = new FormData();
+formData.append('document_commitment_category_id', '2');
+formData.append('title', 'Board decision 2026-10');
+formData.append('status', 'PUBLISHED');
+formData.append('file', pdfFile);
 
 const response = await fetch(`${API_BASE_URL}/document_commitments`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 `GET /document_commitments` accepts these optional query parameters:
@@ -1240,8 +1328,8 @@ const response = await fetch(`${API_BASE_URL}/faqs/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ faq_ids: [3, 1, 2, 4] }),
-})
-const { faqs } = await response.json()
+});
+const { faqs } = await response.json();
 ```
 
 ## Clients
@@ -1293,18 +1381,18 @@ Upload logos as transparent PNG or WEBP files.
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Accenture')
-formData.append('logo', logoFile)
+const formData = new FormData();
+formData.append('name', 'Accenture');
+formData.append('logo', logoFile);
 
 const response = await fetch(`${API_BASE_URL}/clients`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1352,8 +1440,8 @@ const response = await fetch(`${API_BASE_URL}/clients/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ client_ids: [3, 1, 2, 4] }),
-})
-const { clients } = await response.json()
+});
+const { clients } = await response.json();
 ```
 
 ## Inboxes
@@ -1448,8 +1536,8 @@ parameters return `400 Bad Request`; a missing inbox returns `404 Not Found`.
 ```ts
 const response = await fetch(`${API_BASE_URL}/inboxes?page=1&search=budi`, {
   credentials: 'include',
-})
-const { inboxes, pagination } = await response.json()
+});
+const { inboxes, pagination } = await response.json();
 ```
 
 ## Site Settings
@@ -1459,9 +1547,12 @@ links shown in the landing page navbar, footer, and "Hubungi Kami" page. Each
 setting is a key/value row per language; keys are seeded master data for each
 language. Social media items are shared by all languages.
 
-In the response, a configured key is a string (`""` until a value is saved)
-and a key with no row for that language is `null`. The CMS disables inputs
-whose key is `null`.
+Company location coordinates are sent and returned as numbers. Latitude must
+be between `-90` and `90`, and longitude between `-180` and `180`.
+
+In the response, configured text keys are strings (`""` until a value is
+saved), while unset coordinates are `null`. A key with no row for that
+language is also `null`. The CMS disables inputs whose key is `null`.
 
 - `GET /site_settings?language_id=id` is public and returns
   `{ "site_settings": ... }` with `200 OK`. `language_id` is optional and
@@ -1490,6 +1581,8 @@ The `data` payload:
 | `company_name`            | string         | Required; trimmed; 1–200 characters.                          |
 | `company_short_name`      | string \| null | Optional; up to 50 characters; blank is `null`.               |
 | `company_address`         | string         | Required; trimmed; 1–500 characters.                          |
+| `company_location_lat`    | number \| null | Optional; latitude from `-90` to `90`; `null` clears it.      |
+| `company_location_long`   | number \| null | Optional; longitude from `-180` to `180`; `null` clears it.   |
 | `company_phone_number`    | string \| null | Optional; up to 30 characters; blank is `null`.               |
 | `company_whatsapp_number` | string \| null | Optional; up to 30 characters; blank is `null`.               |
 | `main_email`              | string \| null | Optional; valid email; blank is `null`.                       |
@@ -1532,7 +1625,7 @@ language has no rows.
 Example browser request:
 
 ```js
-const formData = new FormData()
+const formData = new FormData();
 formData.append(
   'data',
   JSON.stringify({
@@ -1540,6 +1633,8 @@ formData.append(
     company_name: 'PT Energy Management Indonesia (Persero)',
     company_short_name: 'PLN EMI',
     company_address: 'Menara Sentraya Lt. 17, Jakarta Selatan 12160',
+    company_location_lat: -6.2249,
+    company_location_long: 106.8172,
     company_phone_number: '021-27881925',
     company_whatsapp_number: '0821-1779-291',
     main_email: 'emi@pln.co.id',
@@ -1562,18 +1657,18 @@ formData.append(
       },
     ],
   }),
-)
-formData.append('pln_logo', plnLogoFile)
-formData.append('social_icons', youtubeIconFile)
+);
+formData.append('pln_logo', plnLogoFile);
+formData.append('social_icons', youtubeIconFile);
 
 const response = await fetch(`${API_BASE_URL}/site_settings`, {
   method: 'PUT',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 The response shape is:
@@ -1587,6 +1682,8 @@ The response shape is:
     "danantara_logo_filepath": "",
     "pln_logo_filepath": "/public/site-logo-pln-emi-1792136400000.svg",
     "company_address": "Menara Sentraya Lt. 17, Jakarta Selatan 12160",
+    "company_location_lat": -6.2249,
+    "company_location_long": 106.8172,
     "company_phone_number": "021-27881925",
     "company_whatsapp_number": "0821-1779-291",
     "main_email": "emi@pln.co.id",

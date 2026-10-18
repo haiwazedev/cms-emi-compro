@@ -1,4 +1,7 @@
-import type { Division } from '@/module/division/api/division.api'
+import type {
+  Division,
+  DivisionContent,
+} from '@/module/division/api/division.api'
 import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
@@ -8,6 +11,7 @@ import { GripVerticalIcon, PencilIcon, Trash2Icon, ZapIcon } from 'lucide-react'
 
 interface SortableDivisionRowProps {
   division: Division
+  content?: DivisionContent
   index: number
   serviceCount?: number
   selected: boolean
@@ -19,6 +23,7 @@ interface SortableDivisionRowProps {
 
 function SortableDivisionRow({
   division,
+  content,
   index,
   serviceCount,
   selected,
@@ -27,6 +32,8 @@ function SortableDivisionRow({
   onEdit,
   onDelete,
 }: SortableDivisionRowProps) {
+  const name = content?.name ?? DIVISION_LABELS.missingTranslation
+  const abbreviation = content?.abbr ?? DIVISION_LABELS.missingTranslation
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `division:${division.id}`,
     index,
@@ -70,15 +77,17 @@ function SortableDivisionRow({
           aria-pressed={selected}
           onClick={onSelect}
         >
-          <span className="text-accent font-semibold">{division.name}</span>
+          <span className="text-accent font-semibold">{name}</span>
           <span className="text-foreground/55 text-sm">
-            /layanan#{division.abbr.toLowerCase()}
+            {content?.abbr
+              ? `/layanan#${content.abbr.toLowerCase()}`
+              : DIVISION_LABELS.missingTranslation}
           </span>
         </button>
       </TableCell>
       <TableCell>
         <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap">
-          {division.abbr}
+          {abbreviation}
         </span>
       </TableCell>
       <TableCell className="whitespace-nowrap">
@@ -120,7 +129,7 @@ function SortableDivisionRow({
             size="icon"
             className="size-8"
             disabled={disabled}
-            aria-label={DIVISION_LABELS.editDivisionAction(division.name)}
+            aria-label={DIVISION_LABELS.editDivisionAction(name)}
             onClick={onEdit}
           >
             <PencilIcon aria-hidden="true" className="size-4" />
@@ -131,7 +140,7 @@ function SortableDivisionRow({
             size="icon"
             className="size-8"
             disabled={disabled}
-            aria-label={DIVISION_LABELS.deleteDivisionAction(division.name)}
+            aria-label={DIVISION_LABELS.deleteDivisionAction(name)}
             onClick={onDelete}
           >
             <Trash2Icon aria-hidden="true" className="size-4" />

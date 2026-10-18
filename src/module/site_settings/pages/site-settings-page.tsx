@@ -356,6 +356,26 @@ function SiteSettingsForm({
             </div>
             <div className="flex flex-col gap-4 lg:flex-row">
               <SiteSettingsTextField
+                name="locationLat"
+                label={SITE_SETTINGS_LABELS.locationLat}
+                type="number"
+                min={-90}
+                max={90}
+                step="any"
+                helpText={SITE_SETTINGS_LABELS.locationLatHelp}
+              />
+              <SiteSettingsTextField
+                name="locationLong"
+                label={SITE_SETTINGS_LABELS.locationLong}
+                type="number"
+                min={-180}
+                max={180}
+                step="any"
+                helpText={SITE_SETTINGS_LABELS.locationLongHelp}
+              />
+            </div>
+            <div className="flex flex-col gap-4 lg:flex-row">
+              <SiteSettingsTextField
                 name="phone"
                 label={SITE_SETTINGS_LABELS.phone}
                 type="tel"

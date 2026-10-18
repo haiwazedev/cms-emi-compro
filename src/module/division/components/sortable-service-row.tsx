@@ -1,4 +1,7 @@
-import type { Service } from '@/module/division/api/division.api'
+import type {
+  Service,
+  ServiceContent,
+} from '@/module/division/api/division.api'
 import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
@@ -7,6 +10,7 @@ import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 
 interface SortableServiceRowProps {
   service: Service
+  content?: ServiceContent
   index: number
   divisionAbbreviation: string
   disabled: boolean
@@ -16,12 +20,14 @@ interface SortableServiceRowProps {
 
 function SortableServiceRow({
   service,
+  content,
   index,
   divisionAbbreviation,
   disabled,
   onEdit,
   onDelete,
 }: SortableServiceRowProps) {
+  const name = content?.name ?? DIVISION_LABELS.missingTranslation
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `service:${service.id}`,
     index,
@@ -43,7 +49,7 @@ function SortableServiceRow({
       </TableCell>
       <TableCell className="min-w-64">
         <div className="flex flex-col gap-1">
-          <span className="text-accent font-semibold">{service.name}</span>
+          <span className="text-accent font-semibold">{name}</span>
           <span className="text-foreground/55 text-sm">
             {DIVISION_LABELS.serviceHint}
           </span>
@@ -62,7 +68,7 @@ function SortableServiceRow({
             size="icon"
             className="size-8"
             disabled={disabled}
-            aria-label={DIVISION_LABELS.editServiceAction(service.name)}
+            aria-label={DIVISION_LABELS.editServiceAction(name)}
             onClick={onEdit}
           >
             <PencilIcon aria-hidden="true" className="size-4" />
@@ -73,7 +79,7 @@ function SortableServiceRow({
             size="icon"
             className="size-8"
             disabled={disabled}
-            aria-label={DIVISION_LABELS.deleteServiceAction(service.name)}
+            aria-label={DIVISION_LABELS.deleteServiceAction(name)}
             onClick={onDelete}
           >
             <Trash2Icon aria-hidden="true" className="size-4" />

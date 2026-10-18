@@ -10,6 +10,23 @@ const optionalEmailSchema = z
   .max(254)
   .or(z.literal(''))
 
+function optionalCoordinateSchema(min: number, max: number, label: string) {
+  return z
+    .string()
+    .trim()
+    .refine(
+      (value) => {
+        if (!value) return true
+
+        const coordinate = Number(value)
+        return (
+          Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
+        )
+      },
+      { message: `${label} harus berada di antara ${min} dan ${max}.` },
+    )
+}
+
 const socialLinkSchema = z.object({
   id: z.number().optional(),
   platform: z.string().trim().min(1, 'Platform wajib diisi.').max(50),
@@ -29,6 +46,8 @@ export const siteSettingsFormSchema = z
     danantaraLogo: imageSchema,
     plnLogo: imageSchema,
     address: z.string().trim().min(1, 'Alamat wajib diisi.').max(500),
+    locationLat: optionalCoordinateSchema(-90, 90, 'Latitude'),
+    locationLong: optionalCoordinateSchema(-180, 180, 'Longitude'),
     phone: z.string().trim().max(30),
     whatsapp: z.string().trim().max(30),
     mainEmail: optionalEmailSchema,

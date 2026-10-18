@@ -51,6 +51,8 @@ const TEXT_FIELDS = [
 
 export type SiteSettings = {
   language_id: string
+  company_location_lat: number | null
+  company_location_long: number | null
   social_medias: SiteSocialMedia[]
 } & Record<(typeof SETTING_FIELDS)[SiteSettingsField], string | null>
 
@@ -100,6 +102,8 @@ function toSettingsData(settings: SiteSettings): SiteSettingsData {
       danantaraLogo: toImage(settings.danantara_logo_filepath),
       plnLogo: toImage(settings.pln_logo_filepath),
       address: settings.company_address ?? '',
+      locationLat: settings.company_location_lat?.toString() ?? '',
+      locationLong: settings.company_location_long?.toString() ?? '',
       phone: settings.company_phone_number ?? '',
       whatsapp: settings.company_whatsapp_number ?? '',
       mainEmail: settings.main_email ?? '',
@@ -159,6 +163,12 @@ function toFormData(
     JSON.stringify({
       language_id: languageId,
       ...textValues,
+      company_location_lat: values.locationLat
+        ? Number(values.locationLat)
+        : null,
+      company_location_long: values.locationLong
+        ? Number(values.locationLong)
+        : null,
       social_medias: socialMedias,
     }),
   )
