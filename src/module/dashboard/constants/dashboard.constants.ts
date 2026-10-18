@@ -9,6 +9,9 @@ export const DASHBOARD_LABELS = {
   latestArticles: 'Artikel Terbaru',
   viewAll: 'Lihat semua',
   recentActivity: 'Aktivitas Terakhir',
+  loadingActivity: 'Memuat aktivitas…',
+  activityFailed: 'Gagal memuat aktivitas',
+  noActivity: 'Belum ada aktivitas.',
   quickAccess: 'Akses Cepat',
   articles: 'Artikel',
   languageCount: (languageId: string, published: number, draft: number) =>
@@ -29,30 +32,6 @@ export const DASHBOARD_LABELS = {
 export const DASHBOARD_USER_NAME = 'Neni'
 
 export const DASHBOARD_SITE_URL = import.meta.env.VITE_LANDING_SITE_URL
-
-export const DASHBOARD_ACTIVITIES = [
-  {
-    initials: 'NA',
-    actor: 'Neni A.',
-    action: 'menerbitkan artikel',
-    target: 'Kompas.com × PLN EMI',
-    time: '2 jam lalu',
-  },
-  {
-    initials: 'KR',
-    actor: 'Korkom',
-    action: 'mengunggah',
-    target: 'Laporan Keberlanjutan 2025.pdf',
-    time: 'Kemarin',
-  },
-  {
-    initials: 'NA',
-    actor: 'Neni A.',
-    action: 'memperbarui',
-    target: 'Slide Beranda',
-    time: '2 hari lalu',
-  },
-] as const
 
 export const DASHBOARD_QUICK_LINKS = [
   { key: 'article', label: 'Tulis artikel baru', to: '/articles/create' },

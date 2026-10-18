@@ -1,3 +1,4 @@
+import { DashboardRecentActivity } from '@/module/dashboard/components/dashboard-recent-activity'
 import { DashboardLatestArticles } from '@/module/dashboard/components/dashboard-latest-articles'
 import { DashboardArticleStatCard } from '@/module/dashboard/components/dashboard-article-stat-card'
 import {
@@ -6,7 +7,6 @@ import {
   DashboardServiceStatCard,
 } from '@/module/dashboard/components/dashboard-count-stat-cards'
 import {
-  DASHBOARD_ACTIVITIES,
   DASHBOARD_LABELS,
   DASHBOARD_QUICK_LINKS,
   DASHBOARD_SITE_URL,
@@ -81,39 +81,7 @@ function DashboardPage() {
 
         <aside className="flex flex-col gap-6 lg:w-80">
           {/* Recent activity */}
-          <Card>
-            <CardContent className="flex flex-col gap-4 space-y-0">
-              <h2 className="text-foreground/60 text-xs font-semibold tracking-wider uppercase">
-                {DASHBOARD_LABELS.recentActivity}
-              </h2>
-              <ul className="flex flex-col gap-4">
-                {DASHBOARD_ACTIVITIES.map((activity) => (
-                  <li
-                    key={`${activity.actor}-${activity.target}`}
-                    className="flex gap-3"
-                  >
-                    <span className="bg-secondary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white">
-                      {activity.initials}
-                    </span>
-                    <div className="flex flex-col gap-0.5 text-sm">
-                      <p className="text-foreground/70">
-                        <span className="text-accent font-semibold">
-                          {activity.actor}
-                        </span>{' '}
-                        {activity.action}{' '}
-                        <span className="text-accent font-semibold">
-                          {activity.target}
-                        </span>
-                      </p>
-                      <p className="text-foreground/55 text-xs">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <DashboardRecentActivity />
 
           {/* Quick access */}
           <Card>
