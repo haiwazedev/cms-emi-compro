@@ -10,10 +10,8 @@ import type {
 } from '@/module/article/api/article.api'
 import { deleteArticle } from '@/module/article/api/article.api'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
-import {
-  ArticleDataTable,
-  ArticleLanguageLegend,
-} from '@/module/article/components/article-data-table'
+import { ArticleDataTable } from '@/module/article/components/article-data-table'
+import { ArticleLanguageLegend } from '@/module/article/components/article-language-pills'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,

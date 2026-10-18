@@ -4,7 +4,9 @@ import {
   reorderFaqs,
   updateFaq,
 } from '@/module/faq/api/faq.api'
-import type { Faq, FaqWriteFields } from '@/module/faq/api/faq.api'
+import type { FaqListItem, FaqWriteFields } from '@/module/faq/api/faq.api'
+import { ArticleLanguageLegend } from '@/module/article/components/article-language-pills'
+import { FaqEditor } from '@/module/faq/components/faq-editor'
 import { FaqFormCard } from '@/module/faq/components/faq-form-card'
 import { SortableFaqRow } from '@/module/faq/components/sortable-faq-row'
 import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
@@ -12,6 +14,7 @@ import {
   faqQueryKeys,
   faqsQueryOptions,
 } from '@/module/faq/queries/faq.queries'
+import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { Button } from '@/shared/components/ui/button'
 import { Card } from '@/shared/components/ui/card'
 import {
@@ -37,13 +40,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
-type FormState = { faq?: Faq }
+type FormState = { faq?: FaqListItem }
 
 function FaqsPage() {
   const queryClient = useQueryClient()
   const faqsQuery = useQuery(faqsQueryOptions())
   const [form, setForm] = useState<FormState | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Faq | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<FaqListItem | null>(null)
 
   const faqs = faqsQuery.data ?? []
 
@@ -78,7 +81,7 @@ function FaqsPage() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (faq: Faq) => deleteFaq(faq.id),
+    mutationFn: (faq: FaqListItem) => deleteFaq(faq.id),
     onSuccess: async (_data, faq) => {
       if (form?.faq?.id === faq.id) setForm(null)
       setDeleteTarget(null)
@@ -155,7 +158,10 @@ function FaqsPage() {
           ) : faqs.length === 0 ? (
             <SectionMessage message={FAQ_LABELS.noFaqs} />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto pt-4">
+              {/* Language Status Legend */}
+              <ArticleLanguageLegend />
+
               <Table className="min-w-max">
                 <TableHeader className="bg-primary">
                   <TableRow className="hover:bg-transparent">
@@ -186,16 +192,33 @@ function FaqsPage() {
           )}
         </Card>
 
-        {form && (
-          <FaqFormCard
-            key={form.faq?.id ?? 'new-faq'}
+        {form?.faq ? (
+          <FaqEditor
+            key={form.faq.id}
             faq={form.faq}
             pending={saveMutation.isPending}
             onCancel={() => setForm(null)}
-            onSubmit={(fields) =>
-              saveMutation.mutate({ faqId: form.faq?.id, fields })
+            onSubmit={(languageId, fields) =>
+              saveMutation.mutate({
+                faqId: form.faq?.id,
+                fields: { ...fields, language_id: languageId },
+              })
             }
           />
+        ) : (
+          form && (
+            // New FAQs start with Bahasa Indonesia content.
+            <FaqFormCard
+              title={FAQ_LABELS.createTitle}
+              pending={saveMutation.isPending}
+              onCancel={() => setForm(null)}
+              onSubmit={(fields) =>
+                saveMutation.mutate({
+                  fields: { ...fields, language_id: DEFAULT_LANGUAGE_ID },
+                })
+              }
+            />
+          )
         )}
 
         <Dialog

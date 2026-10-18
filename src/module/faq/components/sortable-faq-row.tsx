@@ -1,13 +1,13 @@
+import { ArticleLanguagePills } from '@/module/article/components/article-language-pills'
 import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
-import type { Faq } from '@/module/faq/api/faq.api'
+import type { FaqListItem } from '@/module/faq/api/faq.api'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
-import { cn } from '@/shared/lib/utils'
 import { useSortable } from '@dnd-kit/react/sortable'
 import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 
 interface SortableFaqRowProps {
-  faq: Faq
+  faq: FaqListItem
   index: number
   selected: boolean
   disabled: boolean
@@ -28,7 +28,7 @@ function SortableFaqRow({
     index,
     group: 'faqs',
   })
-  const published = faq.status === 'PUBLISHED'
+  const question = faq.question ?? ''
 
   return (
     <TableRow
@@ -59,29 +59,13 @@ function SortableFaqRow({
           className="text-accent text-left font-medium"
           onClick={onEdit}
         >
-          {faq.question}
+          {question}
         </button>
       </TableCell>
 
-      {/* Status */}
+      {/* Status per language */}
       <TableCell>
-        <span
-          className={cn(
-            'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap',
-            published
-              ? 'bg-success/10 text-success'
-              : 'bg-warning/15 text-warning',
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={cn(
-              'size-1.5 rounded-full',
-              published ? 'bg-success' : 'bg-warning',
-            )}
-          />
-          {published ? FAQ_LABELS.published : FAQ_LABELS.draft}
-        </span>
+        <ArticleLanguagePills languages={faq.languages} />
       </TableCell>
 
       {/* Actions */}
@@ -94,7 +78,7 @@ function SortableFaqRow({
             size="icon"
             className="size-8"
             disabled={disabled}
-            aria-label={FAQ_LABELS.editAction(faq.question)}
+            aria-label={FAQ_LABELS.editAction(question)}
             onClick={onEdit}
           >
             <PencilIcon aria-hidden="true" className="size-4" />
@@ -107,7 +91,7 @@ function SortableFaqRow({
             size="icon"
             className="size-8"
             disabled={disabled}
-            aria-label={FAQ_LABELS.deleteAction(faq.question)}
+            aria-label={FAQ_LABELS.deleteAction(question)}
             onClick={onDelete}
           >
             <Trash2Icon aria-hidden="true" className="size-4" />
