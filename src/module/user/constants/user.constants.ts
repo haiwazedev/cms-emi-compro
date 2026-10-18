@@ -86,7 +86,6 @@ export const ROLE_LABELS = {
 
 // Backend sends permission keys; the CMS owns the labels.
 export const PERMISSION_LABELS: Record<string, string> = {
-  view: 'Lihat',
   write: 'Tulis',
   publish: 'Terbitkan',
   delete: 'Hapus',
