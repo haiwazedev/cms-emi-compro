@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import {
   getArticle,
+  getArticleCounts,
   getArticleCategories,
   getArticles,
 } from '../api/article.api'
@@ -14,6 +15,7 @@ export const articleQueryKeys = {
   list: (params: ArticleListParams) =>
     [...articleQueryKeys.lists(), params] as const,
   categories: () => [...articleQueryKeys.all, 'categories'] as const,
+  counts: () => [...articleQueryKeys.all, 'counts'] as const,
 }
 
 export function articleQueryOptions(articleId: number) {
@@ -36,5 +38,13 @@ export function articleCategoriesQueryOptions() {
     queryKey: articleQueryKeys.categories(),
     queryFn: getArticleCategories,
     staleTime: 5 * 60_000,
+  })
+}
+
+// No staleTime: the dashboard refetches on every visit.
+export function articleCountsQueryOptions() {
+  return queryOptions({
+    queryKey: articleQueryKeys.counts(),
+    queryFn: getArticleCounts,
   })
 }

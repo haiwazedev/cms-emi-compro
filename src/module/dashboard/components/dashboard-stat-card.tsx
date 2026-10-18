@@ -1,11 +1,12 @@
 import { Card } from '@/shared/components/ui/card'
 import { cn } from '@/shared/lib/utils'
 import type { LucideIcon } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 interface DashboardStatCardProps {
   label: string
-  value: number
-  note: string
+  value: ReactNode
+  note: ReactNode
   icon: LucideIcon
   iconClassName: string
 }
@@ -23,8 +24,8 @@ function DashboardStatCard({
         <p className="text-foreground/60 text-xs font-semibold tracking-wider uppercase">
           {label}
         </p>
-        <p className="text-accent text-3xl font-bold">{value}</p>
-        <p className="text-foreground/55 text-sm">{note}</p>
+        <div className="text-accent text-3xl font-bold">{value}</div>
+        <div className="text-foreground/55 text-sm">{note}</div>
       </div>
 
       <span

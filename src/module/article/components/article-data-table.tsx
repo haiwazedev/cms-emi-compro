@@ -39,7 +39,6 @@ import {
 
 function createArticleColumns(
   onDeleteArticle: (article: ArticleListItem) => void,
-  deletePending: boolean,
 ): ColumnDef<ArticleListItem>[] {
   return [
     {
@@ -111,7 +110,6 @@ function createArticleColumns(
             type="button"
             variant="outline"
             size="icon"
-            disabled={deletePending}
             aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
             onClick={() => onDeleteArticle(row.original)}
           >
@@ -123,32 +121,29 @@ function createArticleColumns(
   ]
 }
 
-interface ArticleDataTableProps {
-  articles: ArticleListItem[]
+interface ArticleTablePagination {
   pageIndex: number
   pageSize: number
   pageCount: number
   totalItems: number
-  deletePending: boolean
-  onDeleteArticle: (article: ArticleListItem) => void
   onPageIndexChange: (pageIndex: number) => void
   onPageSizeChange: (pageSize: number) => void
 }
 
+interface ArticleDataTableProps {
+  articles: ArticleListItem[]
+  onDeleteArticle: (article: ArticleListItem) => void
+  pagination?: ArticleTablePagination
+}
+
 function ArticleDataTable({
   articles,
-  pageIndex,
-  pageSize,
-  pageCount,
-  totalItems,
-  deletePending,
   onDeleteArticle,
-  onPageIndexChange,
-  onPageSizeChange,
+  pagination,
 }: ArticleDataTableProps) {
   const articleColumns = useMemo(
-    () => createArticleColumns(onDeleteArticle, deletePending),
-    [deletePending, onDeleteArticle],
+    () => createArticleColumns(onDeleteArticle),
+    [onDeleteArticle],
   )
 
   const table = useReactTable({
@@ -156,12 +151,7 @@ function ArticleDataTable({
     columns: articleColumns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    pageCount,
-    state: { pagination: { pageIndex, pageSize } },
   })
-
-  const start = totalItems === 0 ? 0 : pageIndex * pageSize + 1
-  const end = Math.min((pageIndex + 1) * pageSize, totalItems)
 
   return (
     <>
@@ -205,56 +195,72 @@ function ArticleDataTable({
         </TableBody>
       </Table>
 
-      <div className="border-border/10 flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-        <p className="text-foreground/60 text-sm">
-          {ARTICLE_LABELS.showingEntries(start, end, totalItems)}
-        </p>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={ARTICLE_LABELS.previousPage}
-            disabled={pageIndex === 0}
-            onClick={() => onPageIndexChange(pageIndex - 1)}
-          >
-            <ChevronLeftIcon aria-hidden="true" className="size-4" />
-          </Button>
-          <span className="bg-accent inline-flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm text-white">
-            {pageCount === 0 ? 0 : pageIndex + 1}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={ARTICLE_LABELS.nextPage}
-            disabled={pageIndex + 1 >= pageCount}
-            onClick={() => onPageIndexChange(pageIndex + 1)}
-          >
-            <ChevronRightIcon aria-hidden="true" className="size-4" />
-          </Button>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(value) => onPageSizeChange(Number(value))}
-          >
-            <SelectTrigger
-              aria-label={ARTICLE_LABELS.pageSize}
-              className="h-9 w-36"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {ARTICLE_PAGE_SIZES.map((size) => (
-                <SelectItem key={size} value={String(size)}>
-                  {ARTICLE_LABELS.pageSizeOption(size)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      {pagination && <ArticleTablePaginationBar {...pagination} />}
     </>
+  )
+}
+
+function ArticleTablePaginationBar({
+  pageIndex,
+  pageSize,
+  pageCount,
+  totalItems,
+  onPageIndexChange,
+  onPageSizeChange,
+}: ArticleTablePagination) {
+  const start = totalItems === 0 ? 0 : pageIndex * pageSize + 1
+  const end = Math.min((pageIndex + 1) * pageSize, totalItems)
+
+  return (
+    <div className="border-border/10 flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <p className="text-foreground/60 text-sm">
+        {ARTICLE_LABELS.showingEntries(start, end, totalItems)}
+      </p>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label={ARTICLE_LABELS.previousPage}
+          disabled={pageIndex === 0}
+          onClick={() => onPageIndexChange(pageIndex - 1)}
+        >
+          <ChevronLeftIcon aria-hidden="true" className="size-4" />
+        </Button>
+        <span className="bg-accent inline-flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm text-white">
+          {pageCount === 0 ? 0 : pageIndex + 1}
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          aria-label={ARTICLE_LABELS.nextPage}
+          disabled={pageIndex + 1 >= pageCount}
+          onClick={() => onPageIndexChange(pageIndex + 1)}
+        >
+          <ChevronRightIcon aria-hidden="true" className="size-4" />
+        </Button>
+        <Select
+          value={String(pageSize)}
+          onValueChange={(value) => onPageSizeChange(Number(value))}
+        >
+          <SelectTrigger
+            aria-label={ARTICLE_LABELS.pageSize}
+            className="h-9 w-36"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ARTICLE_PAGE_SIZES.map((size) => (
+              <SelectItem key={size} value={String(size)}>
+                {ARTICLE_LABELS.pageSizeOption(size)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   )
 }
 

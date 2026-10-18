@@ -8,68 +8,27 @@ export const DASHBOARD_LABELS = {
   newArticle: 'Artikel Baru',
   latestArticles: 'Artikel Terbaru',
   viewAll: 'Lihat semua',
-  photo: 'Foto',
-  title: 'Judul',
-  date: 'Tanggal',
-  status: 'Status',
-  actions: 'Aksi',
-  edit: 'Ubah',
-  delete: 'Hapus',
-  published: 'Terbit',
-  actionNeeded: 'Perlu Tindakan',
   recentActivity: 'Aktivitas Terakhir',
   quickAccess: 'Akses Cepat',
+  articles: 'Artikel',
+  languageCount: (languageId: string, published: number, draft: number) =>
+    `${languageId.toUpperCase()} - ${published} terbit | ${draft} draft`,
+  loadingArticleCounts: 'Memuat jumlah artikel…',
+  articleCountsFailed: 'Gagal memuat jumlah artikel',
+  documents: 'Dokumen',
+  categoryCount: (count: number) => `${count} kategori`,
+  services: 'Layanan',
+  divisionCount: (count: number) => `dalam ${count} divisi`,
+  inbox: 'Pesan Masuk',
+  unread: 'belum dibaca',
+  loadingCount: 'Memuat jumlah…',
+  countFailed: 'Gagal memuat jumlah',
 } as const
 
 // shortcut: static data until dashboard API exists, replace per feature.
 export const DASHBOARD_USER_NAME = 'Neni'
 
 export const DASHBOARD_SITE_URL = import.meta.env.VITE_LANDING_SITE_URL
-
-export const DASHBOARD_STATS = [
-  { key: 'articles', label: 'Artikel', value: 5, note: '4 terbit · 1 draf' },
-  { key: 'documents', label: 'Dokumen', value: 12, note: '4 kategori' },
-  { key: 'services', label: 'Layanan', value: 30, note: 'dalam 5 divisi' },
-  { key: 'inbox', label: 'Pesan Masuk', value: 3, note: 'belum dibaca' },
-] as const
-
-export type DashboardStatKey = (typeof DASHBOARD_STATS)[number]['key']
-
-export const DASHBOARD_ARTICLES = [
-  {
-    id: 1,
-    title: 'Kompas.com Bersama PLN EMI Dukung Dekarbonisasi Emisi Operasional',
-    category: 'Siaran Pers',
-    date: '12 Agu 2026',
-  },
-  {
-    id: 2,
-    title:
-      'PLN EMI Perkuat Pengembangan Karbon Kredit di Global Hydrogen Summit 2026',
-    category: 'Siaran Pers',
-    date: '21 Jul 2026',
-  },
-  {
-    id: 3,
-    title: 'PLN EMI dan Icon Green Jalin Kolaborasi Strategis Energi Hijau',
-    category: 'Siaran Pers',
-    date: '14 Jul 2026',
-  },
-  {
-    id: 4,
-    title: 'Hadapi Perubahan Iklim, PLN Group dan DLH Jabar Perkuat Kolaborasi',
-    category: 'Berita CSR',
-    date: '5 Jun 2026',
-  },
-] as const
-
-export const DASHBOARD_ACTION_ITEMS = [
-  {
-    title: '1 artikel masih berstatus draf',
-    description:
-      '“PLN EMI x Minimalistmom Gelar Pasar Tukar” belum diterbitkan sejak 22 Mei 2026.',
-  },
-] as const
 
 export const DASHBOARD_ACTIVITIES = [
   {

@@ -1,6 +1,5 @@
 import {
   articleCategoriesQueryOptions,
-  articleQueryKeys,
   articlesQueryOptions,
 } from '@/module/article/queries/article.queries'
 import type {
@@ -8,19 +7,11 @@ import type {
   ArticleListParams,
   ArticleStatus,
 } from '@/module/article/api/article.api'
-import { deleteArticle } from '@/module/article/api/article.api'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { ArticleDataTable } from '@/module/article/components/article-data-table'
+import { ArticleDeleteDialog } from '@/module/article/components/article-delete-dialog'
 import { ArticleLanguageLegend } from '@/module/article/components/article-language-pills'
 import { Button } from '@/shared/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import {
   Select,
@@ -29,10 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { toast } from '@/shared/lib/toast'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { PlusIcon, SearchIcon, Trash2Icon } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { PlusIcon, SearchIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 type StatusFilter = ArticleStatus | 'ALL'
@@ -40,7 +30,6 @@ type SortOrder = ArticleListParams['sort_order']
 
 function ArticlesPage() {
   const navigate = useNavigate({ from: '/articles' })
-  const queryClient = useQueryClient()
   const searchParams = useSearch({ from: '/_authenticated/articles' })
   const { page, limit, search, article_category_id, status, sort_order } =
     searchParams
@@ -69,41 +58,16 @@ function ArticlesPage() {
     setArticleToDelete(article)
   }, [])
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteArticle,
-    onSuccess: async (_data, deletedArticleId) => {
-      setArticleToDelete(null)
-      queryClient.removeQueries({
-        queryKey: articleQueryKeys.detail(deletedArticleId),
-        exact: true,
-      })
+  const closeDeleteDialog = useCallback(() => setArticleToDelete(null), [])
 
-      if (articles.length === 1 && page > 1) {
-        await navigate({
-          search: (previous) => ({ ...previous, page: page - 1 }),
-        })
-      }
-
-      await queryClient.invalidateQueries({
-        queryKey: articleQueryKeys.lists(),
+  // Deleting the last row of a page moves back one page.
+  async function goToPreviousPageIfEmpty() {
+    if (articles.length === 1 && page > 1) {
+      await navigate({
+        search: (previous) => ({ ...previous, page: page - 1 }),
       })
-      toast.add({
-        title: 'Berhasil',
-        description: ARTICLE_LABELS.articleDeleted,
-        type: 'success',
-      })
-    },
-    onError: (error) => {
-      toast.add({
-        title: 'Gagal',
-        description:
-          error instanceof Error
-            ? error.message
-            : ARTICLE_LABELS.articleDeleteFailed,
-        type: 'error',
-      })
-    },
-  })
+    }
+  }
 
   function updateCategory(value: string) {
     void navigate({
@@ -301,75 +265,24 @@ function ArticlesPage() {
         ) : (
           <ArticleDataTable
             articles={articles}
-            pageIndex={page - 1}
-            pageSize={limit}
-            pageCount={pagination?.totalPages ?? 0}
-            totalItems={pagination?.totalItems ?? 0}
-            deletePending={deleteMutation.isPending}
             onDeleteArticle={requestArticleDelete}
-            onPageIndexChange={updatePageIndex}
-            onPageSizeChange={updatePageSize}
+            pagination={{
+              pageIndex: page - 1,
+              pageSize: limit,
+              pageCount: pagination?.totalPages ?? 0,
+              totalItems: pagination?.totalItems ?? 0,
+              onPageIndexChange: updatePageIndex,
+              onPageSizeChange: updatePageSize,
+            }}
           />
         )}
       </section>
 
-      <Dialog
-        open={articleToDelete !== null}
-        onOpenChange={(open) => {
-          if (!open) setArticleToDelete(null)
-        }}
-      >
-        <DialogContent
-          className="max-w-xl"
-          closeLabel={ARTICLE_LABELS.closeDeleteDialog}
-        >
-          <DialogHeader className="border-border/15 border-b">
-            <DialogTitle>{ARTICLE_LABELS.deleteArticleTitle}</DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-5 px-5 py-6">
-            <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
-              <Trash2Icon aria-hidden="true" className="size-5" />
-            </span>
-            {articleToDelete && (
-              <div className="flex flex-col gap-2">
-                <p className="text-accent font-semibold break-words">
-                  “{articleToDelete.title ?? '-'}”
-                </p>
-                <DialogDescription>
-                  {ARTICLE_LABELS.deleteArticleDescription}
-                </DialogDescription>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="bg-primary">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={deleteMutation.isPending}
-              onClick={() => setArticleToDelete(null)}
-            >
-              {ARTICLE_LABELS.cancel}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-danger/30 text-danger hover:bg-danger/5 hover:text-danger"
-              disabled={!articleToDelete || deleteMutation.isPending}
-              onClick={() => {
-                if (articleToDelete) {
-                  deleteMutation.mutate(articleToDelete.id)
-                }
-              }}
-            >
-              {deleteMutation.isPending
-                ? ARTICLE_LABELS.deletingArticle
-                : ARTICLE_LABELS.confirmDeleteArticle}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ArticleDeleteDialog
+        article={articleToDelete}
+        onClose={closeDeleteDialog}
+        onDeleted={goToPreviousPageIfEmpty}
+      />
     </div>
   )
 }
