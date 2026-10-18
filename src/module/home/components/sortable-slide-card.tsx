@@ -52,6 +52,8 @@ function SortableSlideCard({
     id: slide.clientKey,
     index,
     group: 'home-carousel',
+    type: 'home-carousel',
+    accept: 'home-carousel',
   })
   const slideNumber = index + 1
   const summaryTitle =

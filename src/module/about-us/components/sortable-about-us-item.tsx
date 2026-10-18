@@ -30,6 +30,8 @@ function SortableAboutUsItem({
     id: clientKey,
     index,
     group,
+    type: group,
+    accept: group,
   })
   const itemNumber = index + 1
   const isMission = group === 'about-us-missions'

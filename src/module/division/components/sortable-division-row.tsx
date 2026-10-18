@@ -38,6 +38,8 @@ function SortableDivisionRow({
     id: `division:${division.id}`,
     index,
     group: 'divisions',
+    type: 'divisions',
+    accept: 'divisions',
   })
 
   return (
