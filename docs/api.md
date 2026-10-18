@@ -50,7 +50,7 @@ Bearer JWTs are no longer accepted. Sign in again to create a session.
 For Fetch examples, define the base URL once:
 
 ```js
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'http://localhost:8000';
 ```
 
 ## Register
@@ -109,12 +109,12 @@ const response = await fetch(`${API_BASE_URL}/auth/register`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -170,12 +170,12 @@ const response = await fetch(`${API_BASE_URL}/auth/login`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -217,12 +217,12 @@ Return the current user's name and email using the session cookie.
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/me`, {
   credentials: 'include',
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -252,11 +252,11 @@ with no response body.
 const response = await fetch(`${API_BASE_URL}/auth/logout`, {
   method: 'POST',
   credentials: 'include',
-})
+});
 
 if (!response.ok) {
-  const data = await response.json()
-  throw new Error(data.message)
+  const data = await response.json();
+  throw new Error(data.message);
 }
 ```
 
@@ -633,10 +633,10 @@ const response = await fetch(`${API_BASE_URL}/articles`, {
     issue_date: '2026-10-10',
     primary_photo: 18,
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 ## Divisions and Services
@@ -878,20 +878,20 @@ A member response has this shape:
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Ari Putra')
-formData.append('role', 'President Director')
-formData.append('board_member_type_id', '1')
-formData.append('photo', imageFile)
+const formData = new FormData();
+formData.append('name', 'Ari Putra');
+formData.append('role', 'President Director');
+formData.append('board_member_type_id', '1');
+formData.append('photo', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/board_members`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -943,18 +943,18 @@ A successful upload returns `201 Created`:
 Example browser request:
 
 ```js
-const formData = new FormData()
-formData.append('type', 'PICTURE')
-formData.append('file', imageFile)
+const formData = new FormData();
+formData.append('type', 'PICTURE');
+formData.append('file', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/media`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1096,20 +1096,20 @@ sets `updated_at` and `updated_by` to the current time and authenticated user's
 name.
 
 ```js
-const formData = new FormData()
-formData.append('document_commitment_category_id', '2')
-formData.append('title', 'Board decision 2026-10')
-formData.append('status', 'PUBLISHED')
-formData.append('file', pdfFile)
+const formData = new FormData();
+formData.append('document_commitment_category_id', '2');
+formData.append('title', 'Board decision 2026-10');
+formData.append('status', 'PUBLISHED');
+formData.append('file', pdfFile);
 
 const response = await fetch(`${API_BASE_URL}/document_commitments`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 `GET /document_commitments` accepts these optional query parameters:
@@ -1236,8 +1236,8 @@ const response = await fetch(`${API_BASE_URL}/faqs/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ faq_ids: [3, 1, 2, 4] }),
-})
-const { faqs } = await response.json()
+});
+const { faqs } = await response.json();
 ```
 
 ## Clients
@@ -1289,18 +1289,18 @@ Upload logos as transparent PNG or WEBP files.
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Accenture')
-formData.append('logo', logoFile)
+const formData = new FormData();
+formData.append('name', 'Accenture');
+formData.append('logo', logoFile);
 
 const response = await fetch(`${API_BASE_URL}/clients`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1348,8 +1348,8 @@ const response = await fetch(`${API_BASE_URL}/clients/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ client_ids: [3, 1, 2, 4] }),
-})
-const { clients } = await response.json()
+});
+const { clients } = await response.json();
 ```
 
 ## Inboxes
@@ -1444,8 +1444,8 @@ parameters return `400 Bad Request`; a missing inbox returns `404 Not Found`.
 ```ts
 const response = await fetch(`${API_BASE_URL}/inboxes?page=1&search=budi`, {
   credentials: 'include',
-})
-const { inboxes, pagination } = await response.json()
+});
+const { inboxes, pagination } = await response.json();
 ```
 
 ## Site Settings
@@ -1455,9 +1455,12 @@ links shown in the landing page navbar, footer, and "Hubungi Kami" page. Each
 setting is a key/value row per language; keys are seeded master data for each
 language. Social media items are shared by all languages.
 
-In the response, a configured key is a string (`""` until a value is saved)
-and a key with no row for that language is `null`. The CMS disables inputs
-whose key is `null`.
+Company location coordinates are sent and returned as numbers. Latitude must
+be between `-90` and `90`, and longitude between `-180` and `180`.
+
+In the response, configured text keys are strings (`""` until a value is
+saved), while unset coordinates are `null`. A key with no row for that
+language is also `null`. The CMS disables inputs whose key is `null`.
 
 - `GET /site_settings?language_id=id` is public and returns
   `{ "site_settings": ... }` with `200 OK`. `language_id` is optional and
@@ -1486,6 +1489,8 @@ The `data` payload:
 | `company_name`            | string         | Required; trimmed; 1–200 characters.                          |
 | `company_short_name`      | string \| null | Optional; up to 50 characters; blank is `null`.               |
 | `company_address`         | string         | Required; trimmed; 1–500 characters.                          |
+| `company_location_lat`    | number \| null | Optional; latitude from `-90` to `90`; `null` clears it.      |
+| `company_location_long`   | number \| null | Optional; longitude from `-180` to `180`; `null` clears it.   |
 | `company_phone_number`    | string \| null | Optional; up to 30 characters; blank is `null`.               |
 | `company_whatsapp_number` | string \| null | Optional; up to 30 characters; blank is `null`.               |
 | `main_email`              | string \| null | Optional; valid email; blank is `null`.                       |
@@ -1528,7 +1533,7 @@ language has no rows.
 Example browser request:
 
 ```js
-const formData = new FormData()
+const formData = new FormData();
 formData.append(
   'data',
   JSON.stringify({
@@ -1536,6 +1541,8 @@ formData.append(
     company_name: 'PT Energy Management Indonesia (Persero)',
     company_short_name: 'PLN EMI',
     company_address: 'Menara Sentraya Lt. 17, Jakarta Selatan 12160',
+    company_location_lat: -6.2249,
+    company_location_long: 106.8172,
     company_phone_number: '021-27881925',
     company_whatsapp_number: '0821-1779-291',
     main_email: 'emi@pln.co.id',
@@ -1558,18 +1565,18 @@ formData.append(
       },
     ],
   }),
-)
-formData.append('pln_logo', plnLogoFile)
-formData.append('social_icons', youtubeIconFile)
+);
+formData.append('pln_logo', plnLogoFile);
+formData.append('social_icons', youtubeIconFile);
 
 const response = await fetch(`${API_BASE_URL}/site_settings`, {
   method: 'PUT',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 The response shape is:
@@ -1583,6 +1590,8 @@ The response shape is:
     "danantara_logo_filepath": "",
     "pln_logo_filepath": "/public/site-logo-pln-emi-1792136400000.svg",
     "company_address": "Menara Sentraya Lt. 17, Jakarta Selatan 12160",
+    "company_location_lat": -6.2249,
+    "company_location_long": 106.8172,
     "company_phone_number": "021-27881925",
     "company_whatsapp_number": "0821-1779-291",
     "main_email": "emi@pln.co.id",

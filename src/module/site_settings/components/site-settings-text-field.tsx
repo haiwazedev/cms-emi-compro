@@ -17,12 +17,14 @@ interface SiteSettingsTextFieldProps extends Omit<
 > {
   name: TextFieldName
   label: string
+  helpText?: string
   notConfigured?: boolean
 }
 
 function SiteSettingsTextField({
   name,
   label,
+  helpText,
   required,
   maxLength,
   notConfigured = false,
@@ -53,6 +55,7 @@ function SiteSettingsTextField({
         {...register(name)}
         disabled={notConfigured}
       />
+      {helpText && <p className="text-foreground/55 text-xs">{helpText}</p>}
       {maxLength && (
         <p className="text-foreground/55 text-xs">
           {value.length + ` / ${maxLength} karakter`}
