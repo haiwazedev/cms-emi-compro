@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { saveAboutUsContent } from '@/module/about-us/api/about-us.api'
 import type {
   AboutUsContentRecord,
@@ -129,6 +130,7 @@ function AboutUsEditor({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const aboutUsQuery = useQuery(aboutUsContentQueryOptions(languageId))
   const mediaQuery = useQuery(mediaQueryOptions(pictureMediaParams))
@@ -398,23 +400,25 @@ function AboutUsEditor({
             >
               {ABOUT_US_LABELS.preview}
             </Button>
-            <Button
-              type="button"
-              disabled={!isDirty || saveMutation.isPending}
-              onClick={saveDraft}
-            >
-              {saveMutation.isPending ? (
-                <LoaderCircleIcon
-                  aria-hidden="true"
-                  className="size-4 animate-spin"
-                />
-              ) : (
-                <CheckIcon aria-hidden="true" className="size-4" />
-              )}
-              {saveMutation.isPending
-                ? ABOUT_US_LABELS.saving
-                : ABOUT_US_LABELS.savePublish}
-            </Button>
+            {canWrite && (
+              <Button
+                type="button"
+                disabled={!isDirty || saveMutation.isPending}
+                onClick={saveDraft}
+              >
+                {saveMutation.isPending ? (
+                  <LoaderCircleIcon
+                    aria-hidden="true"
+                    className="size-4 animate-spin"
+                  />
+                ) : (
+                  <CheckIcon aria-hidden="true" className="size-4" />
+                )}
+                {saveMutation.isPending
+                  ? ABOUT_US_LABELS.saving
+                  : ABOUT_US_LABELS.savePublish}
+              </Button>
+            )}
           </div>
         </header>
 
@@ -425,124 +429,179 @@ function AboutUsEditor({
           value={languageId}
           onChange={requestLanguage}
         />
+        {/* Read-only without write permission. */}
+        <fieldset disabled={!canWrite} className="contents">
+          <Card aria-labelledby="about-us-profile-title">
+            <CardHeader>
+              <CardTitle id="about-us-profile-title" className="text-base">
+                {ABOUT_US_LABELS.companyProfile}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="about-us-profile-content">
+                  {ABOUT_US_LABELS.profileContent}
+                  <span className="text-danger"> *</span>
+                </Label>
+                <div className="border-border/20 overflow-hidden rounded-lg border">
+                  <ArticleRichTextEditor
+                    id="about-us-profile-content"
+                    ariaLabel={ABOUT_US_LABELS.profileContent}
+                    content={editorDraft.profileContent}
+                    onChange={changeProfileContent}
+                  />
+                </div>
+              </div>
 
-        <Card aria-labelledby="about-us-profile-title">
-          <CardHeader>
-            <CardTitle id="about-us-profile-title" className="text-base">
-              {ABOUT_US_LABELS.companyProfile}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="about-us-profile-content">
-                {ABOUT_US_LABELS.profileContent}
-                <span className="text-danger"> *</span>
-              </Label>
-              <div className="border-border/20 overflow-hidden rounded-lg border">
-                <ArticleRichTextEditor
-                  id="about-us-profile-content"
-                  ariaLabel={ABOUT_US_LABELS.profileContent}
-                  content={editorDraft.profileContent}
-                  onChange={changeProfileContent}
+              <div className="flex flex-col gap-2">
+                <Label>{ABOUT_US_LABELS.companyPhoto}</Label>
+                <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
+                  <div className="bg-primary flex h-36 w-full items-center justify-center overflow-hidden rounded-md lg:h-32 lg:w-52">
+                    {selectedPhoto ? (
+                      <img
+                        src={getMediaAssetUrl(selectedPhoto.path)}
+                        alt={selectedPhoto.filename}
+                        className="size-full object-cover"
+                      />
+                    ) : mediaQuery.isPending &&
+                      editorDraft.companyPictureFilepath ? (
+                      <span
+                        role="status"
+                        className="text-foreground/55 text-xs"
+                      >
+                        {ABOUT_US_LABELS.loadingPhoto}
+                      </span>
+                    ) : (
+                      <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
+                        <ImageIcon aria-hidden="true" className="size-5" />
+                        <span>
+                          {mediaQuery.isError &&
+                          editorDraft.companyPictureFilepath
+                            ? ABOUT_US_LABELS.photoUnavailable
+                            : ABOUT_US_LABELS.noPhoto}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setPhotoPickerOpen(true)}
+                    >
+                      {editorDraft.companyPictureFilepath
+                        ? ABOUT_US_LABELS.changePhoto
+                        : ABOUT_US_LABELS.choosePhoto}
+                    </Button>
+                    {selectedPhoto && (
+                      <p className="text-foreground/55 text-xs">
+                        {selectedPhoto.filename}
+                        {selectedPhoto.metadata
+                          ? ` · ${selectedPhoto.metadata.width} × ${selectedPhoto.metadata.height}`
+                          : ''}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card aria-labelledby="about-us-vision-mission-title">
+            <CardHeader>
+              <CardTitle
+                id="about-us-vision-mission-title"
+                className="text-base"
+              >
+                {ABOUT_US_LABELS.visionMission}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="about-us-vision">
+                  {ABOUT_US_LABELS.vision}
+                  <span className="text-danger"> *</span>
+                </Label>
+                <Textarea
+                  id="about-us-vision"
+                  value={editorDraft.vision}
+                  onChange={(event) => changeVision(event.currentTarget.value)}
+                  className="min-h-16"
                 />
               </div>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>{ABOUT_US_LABELS.companyPhoto}</Label>
-              <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
-                <div className="bg-primary flex h-36 w-full items-center justify-center overflow-hidden rounded-md lg:h-32 lg:w-52">
-                  {selectedPhoto ? (
-                    <img
-                      src={getMediaAssetUrl(selectedPhoto.path)}
-                      alt={selectedPhoto.filename}
-                      className="size-full object-cover"
-                    />
-                  ) : mediaQuery.isPending &&
-                    editorDraft.companyPictureFilepath ? (
-                    <span role="status" className="text-foreground/55 text-xs">
-                      {ABOUT_US_LABELS.loadingPhoto}
-                    </span>
-                  ) : (
-                    <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
-                      <ImageIcon aria-hidden="true" className="size-5" />
-                      <span>
-                        {mediaQuery.isError &&
-                        editorDraft.companyPictureFilepath
-                          ? ABOUT_US_LABELS.photoUnavailable
-                          : ABOUT_US_LABELS.noPhoto}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col items-start gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setPhotoPickerOpen(true)}
+              <div className="flex flex-col gap-2">
+                <Label>{ABOUT_US_LABELS.missions}</Label>
+                {editorDraft.missions.length === 0 ? (
+                  <p
+                    role="status"
+                    className="text-foreground/55 py-6 text-center text-sm"
                   >
-                    {editorDraft.companyPictureFilepath
-                      ? ABOUT_US_LABELS.changePhoto
-                      : ABOUT_US_LABELS.choosePhoto}
-                  </Button>
-                  {selectedPhoto && (
-                    <p className="text-foreground/55 text-xs">
-                      {selectedPhoto.filename}
-                      {selectedPhoto.metadata
-                        ? ` · ${selectedPhoto.metadata.width} × ${selectedPhoto.metadata.height}`
-                        : ''}
-                    </p>
-                  )}
-                </div>
+                    {ABOUT_US_LABELS.emptyMissions}
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {editorDraft.missions.map((mission, index) => (
+                      <SortableAboutUsItem
+                        key={mission.clientKey}
+                        clientKey={mission.clientKey}
+                        index={index}
+                        group="about-us-missions"
+                        title={mission.title}
+                        description={mission.description}
+                        canDelete={canDeleteMission}
+                        onEdit={() =>
+                          openEditDialog('mission', mission.clientKey)
+                        }
+                        onDelete={() => deleteMission(mission.clientKey)}
+                      />
+                    ))}
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
+                  onClick={() => openAddDialog('mission')}
+                >
+                  {ABOUT_US_LABELS.addMission}
+                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card aria-labelledby="about-us-vision-mission-title">
-          <CardHeader>
-            <CardTitle id="about-us-vision-mission-title" className="text-base">
-              {ABOUT_US_LABELS.visionMission}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="about-us-vision">
-                {ABOUT_US_LABELS.vision}
-                <span className="text-danger"> *</span>
-              </Label>
-              <Textarea
-                id="about-us-vision"
-                value={editorDraft.vision}
-                onChange={(event) => changeVision(event.currentTarget.value)}
-                className="min-h-16"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label>{ABOUT_US_LABELS.missions}</Label>
-              {editorDraft.missions.length === 0 ? (
+          <Card aria-labelledby="about-us-timeline-title">
+            <CardHeader>
+              <CardTitle id="about-us-timeline-title" className="text-base">
+                {ABOUT_US_LABELS.timeline}
+              </CardTitle>
+              <span className="text-foreground/55 text-xs">
+                {ABOUT_US_LABELS.timelineCount(editorDraft.timeline.length)}
+              </span>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {editorDraft.timeline.length === 0 ? (
                 <p
                   role="status"
                   className="text-foreground/55 py-6 text-center text-sm"
                 >
-                  {ABOUT_US_LABELS.emptyMissions}
+                  {ABOUT_US_LABELS.emptyTimeline}
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {editorDraft.missions.map((mission, index) => (
+                  {editorDraft.timeline.map((entry, index) => (
                     <SortableAboutUsItem
-                      key={mission.clientKey}
-                      clientKey={mission.clientKey}
+                      key={entry.clientKey}
+                      clientKey={entry.clientKey}
                       index={index}
-                      group="about-us-missions"
-                      title={mission.title}
-                      description={mission.description}
-                      canDelete={canDeleteMission}
-                      onEdit={() =>
-                        openEditDialog('mission', mission.clientKey)
-                      }
-                      onDelete={() => deleteMission(mission.clientKey)}
+                      group="about-us-timeline"
+                      title={[entry.period, entry.title]
+                        .filter(Boolean)
+                        .join(' · ')}
+                      description={entry.description}
+                      canDelete={canDeleteTimeline}
+                      onEdit={() => openEditDialog('timeline', entry.clientKey)}
+                      onDelete={() => deleteTimeline(entry.clientKey)}
                     />
                   ))}
                 </div>
@@ -551,81 +610,34 @@ function AboutUsEditor({
                 type="button"
                 variant="outline"
                 className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-                onClick={() => openAddDialog('mission')}
+                onClick={() => openAddDialog('timeline')}
               >
-                {ABOUT_US_LABELS.addMission}
+                {ABOUT_US_LABELS.addTimeline}
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card aria-labelledby="about-us-timeline-title">
-          <CardHeader>
-            <CardTitle id="about-us-timeline-title" className="text-base">
-              {ABOUT_US_LABELS.timeline}
-            </CardTitle>
-            <span className="text-foreground/55 text-xs">
-              {ABOUT_US_LABELS.timelineCount(editorDraft.timeline.length)}
-            </span>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {editorDraft.timeline.length === 0 ? (
-              <p
-                role="status"
-                className="text-foreground/55 py-6 text-center text-sm"
-              >
-                {ABOUT_US_LABELS.emptyTimeline}
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {editorDraft.timeline.map((entry, index) => (
-                  <SortableAboutUsItem
-                    key={entry.clientKey}
-                    clientKey={entry.clientKey}
-                    index={index}
-                    group="about-us-timeline"
-                    title={[entry.period, entry.title]
-                      .filter(Boolean)
-                      .join(' · ')}
-                    description={entry.description}
-                    canDelete={canDeleteTimeline}
-                    onEdit={() => openEditDialog('timeline', entry.clientKey)}
-                    onDelete={() => deleteTimeline(entry.clientKey)}
-                  />
-                ))}
-              </div>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-              onClick={() => openAddDialog('timeline')}
-            >
-              {ABOUT_US_LABELS.addTimeline}
-            </Button>
-          </CardContent>
-        </Card>
+          {photoPickerOpen && (
+            <MediaPickerDialog
+              open
+              onOpenChange={setPhotoPickerOpen}
+              selectedMediaId={selectedPhoto?.id}
+              onSelect={changeCompanyPhoto}
+            />
+          )}
 
-        {photoPickerOpen && (
-          <MediaPickerDialog
-            open
-            onOpenChange={setPhotoPickerOpen}
-            selectedMediaId={selectedPhoto?.id}
-            onSelect={changeCompanyPhoto}
-          />
-        )}
-
-        {itemDialog && (
-          <AboutUsItemDialog
-            key={`${itemDialog.kind}-${itemDialog.clientKey ?? 'new'}`}
-            kind={itemDialog.kind}
-            initialValue={dialogInitialValue}
-            onOpenChange={(open) => {
-              if (!open) setItemDialog(null)
-            }}
-            onSave={saveItem}
-          />
-        )}
+          {itemDialog && (
+            <AboutUsItemDialog
+              key={`${itemDialog.kind}-${itemDialog.clientKey ?? 'new'}`}
+              kind={itemDialog.kind}
+              initialValue={dialogInitialValue}
+              onOpenChange={(open) => {
+                if (!open) setItemDialog(null)
+              }}
+              onSave={saveItem}
+            />
+          )}
+        </fieldset>
       </div>
     </DragDropProvider>
   )

@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   ARTICLE_LABELS,
   ARTICLE_PAGE_SIZES,
@@ -40,6 +41,7 @@ import {
 function createArticleColumns(
   onDeleteArticle: (article: ArticleListItem) => void,
   deletePending: boolean,
+  { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
 ): ColumnDef<ArticleListItem>[] {
   return [
     {
@@ -94,29 +96,35 @@ function createArticleColumns(
       header: ARTICLE_LABELS.actions,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
-          <Button
-            asChild
-            variant="outline"
-            size="icon"
-            aria-label={ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')}
-          >
-            <Link
-              to="/articles/$articleId/edit"
-              params={{ articleId: String(row.original.id) }}
+          {canWrite && (
+            <Button
+              asChild
+              variant="outline"
+              size="icon"
+              aria-label={
+                ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')
+              }
             >
-              <PencilIcon aria-hidden="true" className="size-4" />
-            </Link>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={deletePending}
-            aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
-            onClick={() => onDeleteArticle(row.original)}
-          >
-            <Trash2Icon aria-hidden="true" className="size-4" />
-          </Button>
+              <Link
+                to="/articles/$articleId/edit"
+                params={{ articleId: String(row.original.id) }}
+              >
+                <PencilIcon aria-hidden="true" className="size-4" />
+              </Link>
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={deletePending}
+              aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
+              onClick={() => onDeleteArticle(row.original)}
+            >
+              <Trash2Icon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -146,9 +154,14 @@ function ArticleDataTable({
   onPageIndexChange,
   onPageSizeChange,
 }: ArticleDataTableProps) {
+  const { canWrite, canDelete } = usePermissions()
   const articleColumns = useMemo(
-    () => createArticleColumns(onDeleteArticle, deletePending),
-    [deletePending, onDeleteArticle],
+    () =>
+      createArticleColumns(onDeleteArticle, deletePending, {
+        canWrite,
+        canDelete,
+      }),
+    [canDelete, canWrite, deletePending, onDeleteArticle],
   )
 
   const table = useReactTable({

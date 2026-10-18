@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createClient,
   deleteClient,
@@ -33,6 +34,7 @@ import { useState } from 'react'
 type FormState = { client?: Client }
 
 function ClientsPage() {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const clientsQuery = useQuery(clientsQueryOptions())
   const [form, setForm] = useState<FormState | null>(null)
@@ -122,14 +124,16 @@ function ClientsPage() {
               {CLIENT_LABELS.description}
             </p>
           </div>
-          <Button
-            type="button"
-            className="self-start lg:self-auto"
-            onClick={() => setForm({})}
-          >
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {CLIENT_LABELS.addClient}
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              className="self-start lg:self-auto"
+              onClick={() => setForm({})}
+            >
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {CLIENT_LABELS.addClient}
+            </Button>
+          )}
         </header>
 
         <div className="flex flex-col gap-3">

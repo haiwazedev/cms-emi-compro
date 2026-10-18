@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   articleCategoriesQueryOptions,
   articleQueryKeys,
@@ -39,6 +40,7 @@ type StatusFilter = ArticleStatus | 'ALL'
 type SortOrder = ArticleListParams['sort_order']
 
 function ArticlesPage() {
+  const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/articles' })
   const queryClient = useQueryClient()
   const searchParams = useSearch({ from: '/_authenticated/articles' })
@@ -172,12 +174,14 @@ function ArticlesPage() {
           </Button>
 
           {/* "+ Buat Artikel" button */}
-          <Button asChild>
-            <Link to="/articles/create">
-              <PlusIcon aria-hidden="true" className="size-4" />
-              {ARTICLE_LABELS.createArticle}
-            </Link>
-          </Button>
+          {canWrite && (
+            <Button asChild>
+              <Link to="/articles/create">
+                <PlusIcon aria-hidden="true" className="size-4" />
+                {ARTICLE_LABELS.createArticle}
+              </Link>
+            </Button>
+          )}
         </div>
       </header>
 

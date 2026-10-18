@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { Inbox } from '@/module/inbox/api/inbox.api'
 import { INBOX_LABELS } from '@/module/inbox/constants/inbox.constants'
 import { Button } from '@/shared/components/ui/button'
@@ -29,6 +30,7 @@ function InboxMessageDetail({
   onToggleRead: () => void
   onDelete: () => void
 }) {
+  const { canDelete } = usePermissions()
   const replyHref = `mailto:${message.email}?subject=${encodeURIComponent(
     INBOX_LABELS.replyPrefix + message.inbox_subject.name,
   )}`
@@ -75,15 +77,17 @@ function InboxMessageDetail({
         <Button type="button" variant="outline" onClick={onToggleRead}>
           {message.is_read ? INBOX_LABELS.markUnread : INBOX_LABELS.markRead}
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="text-danger border-danger/40 hover:text-danger lg:ml-auto"
-          onClick={onDelete}
-        >
-          <Trash2Icon aria-hidden="true" className="size-4" />
-          {INBOX_LABELS.delete}
-        </Button>
+        {canDelete && (
+          <Button
+            type="button"
+            variant="outline"
+            className="text-danger border-danger/40 hover:text-danger lg:ml-auto"
+            onClick={onDelete}
+          >
+            <Trash2Icon aria-hidden="true" className="size-4" />
+            {INBOX_LABELS.delete}
+          </Button>
+        )}
       </div>
     </article>
   )

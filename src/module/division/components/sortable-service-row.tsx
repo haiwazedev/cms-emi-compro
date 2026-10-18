@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   Service,
   ServiceContent,
@@ -27,6 +28,7 @@ function SortableServiceRow({
   onEdit,
   onDelete,
 }: SortableServiceRowProps) {
+  const { canWrite, canDelete } = usePermissions()
   const name = content?.name ?? DIVISION_LABELS.missingTranslation
   const group = `services-${service.division_id}`
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
@@ -35,20 +37,23 @@ function SortableServiceRow({
     group,
     type: group,
     accept: group,
+    disabled: !canWrite,
   })
 
   return (
     <TableRow ref={sortableRef}>
       <TableCell className="w-12 px-2">
-        <button
-          ref={dragHandleRef}
-          type="button"
-          aria-label={DIVISION_LABELS.dragService(index + 1)}
-          disabled={disabled}
-          className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <GripVerticalIcon aria-hidden="true" className="size-4" />
-        </button>
+        {canWrite && (
+          <button
+            ref={dragHandleRef}
+            type="button"
+            aria-label={DIVISION_LABELS.dragService(index + 1)}
+            disabled={disabled}
+            className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <GripVerticalIcon aria-hidden="true" className="size-4" />
+          </button>
+        )}
       </TableCell>
       <TableCell className="min-w-64">
         <div className="flex flex-col gap-1">
@@ -65,28 +70,32 @@ function SortableServiceRow({
       </TableCell>
       <TableCell className="min-w-24 text-right">
         <div className="flex items-center justify-end gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            disabled={disabled}
-            aria-label={DIVISION_LABELS.editServiceAction(name)}
-            onClick={onEdit}
-          >
-            <PencilIcon aria-hidden="true" className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-8"
-            disabled={disabled}
-            aria-label={DIVISION_LABELS.deleteServiceAction(name)}
-            onClick={onDelete}
-          >
-            <Trash2Icon aria-hidden="true" className="size-4" />
-          </Button>
+          {canWrite && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              disabled={disabled}
+              aria-label={DIVISION_LABELS.editServiceAction(name)}
+              onClick={onEdit}
+            >
+              <PencilIcon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              disabled={disabled}
+              aria-label={DIVISION_LABELS.deleteServiceAction(name)}
+              onClick={onDelete}
+            >
+              <Trash2Icon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
       </TableCell>
     </TableRow>

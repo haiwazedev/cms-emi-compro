@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   createBoardMemberType,
   deleteBoardMemberType,
@@ -91,6 +92,7 @@ function BoardMemberTypesContent({
   language: Language
   onLanguageChange: (languageId: string) => void
 }) {
+  const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
   const typesQuery = useQuery(boardMemberTypesQueryOptions())
   const types = typesQuery.data ?? EMPTY_TYPES
@@ -202,10 +204,12 @@ function BoardMemberTypesContent({
             </p>
           </div>
         </div>
-        <Button type="button" onClick={() => openTypeForm()}>
-          <PlusIcon aria-hidden="true" className="size-4" />
-          {BOARD_MEMBER_LABELS.addType}
-        </Button>
+        {canWrite && (
+          <Button type="button" onClick={() => openTypeForm()}>
+            <PlusIcon aria-hidden="true" className="size-4" />
+            {BOARD_MEMBER_LABELS.addType}
+          </Button>
+        )}
       </header>
 
       <BoardMemberLanguageSelect
@@ -256,25 +260,29 @@ function BoardMemberTypesContent({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 self-end lg:self-auto">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    aria-label={`${BOARD_MEMBER_LABELS.editType} ${memberType.type}`}
-                    onClick={() => openTypeForm(memberType)}
-                  >
-                    <PencilIcon aria-hidden="true" className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    disabled={deleteMutation.isPending}
-                    aria-label={`${BOARD_MEMBER_LABELS.deleteTypeTitle} ${memberType.type}`}
-                    onClick={() => setTypeToDelete(memberType)}
-                  >
-                    <Trash2Icon aria-hidden="true" className="size-4" />
-                  </Button>
+                  {canWrite && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      aria-label={`${BOARD_MEMBER_LABELS.editType} ${memberType.type}`}
+                      onClick={() => openTypeForm(memberType)}
+                    >
+                      <PencilIcon aria-hidden="true" className="size-4" />
+                    </Button>
+                  )}
+                  {canDelete && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={deleteMutation.isPending}
+                      aria-label={`${BOARD_MEMBER_LABELS.deleteTypeTitle} ${memberType.type}`}
+                      onClick={() => setTypeToDelete(memberType)}
+                    >
+                      <Trash2Icon aria-hidden="true" className="size-4" />
+                    </Button>
+                  )}
                 </div>
               </li>
             ))}

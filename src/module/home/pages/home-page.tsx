@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { saveHomeContent } from '@/module/home/api/home.api'
 import type {
   HomeContentRecord,
@@ -114,6 +115,7 @@ function HomeEditor({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const homeQuery = useQuery(homeContentQueryOptions(languageId))
   const mediaQuery = useQuery(mediaQueryOptions(pictureMediaParams))
@@ -387,23 +389,25 @@ function HomeEditor({
             >
               {HOME_LABELS.preview}
             </Button>
-            <Button
-              type="button"
-              disabled={!isDirty || saveMutation.isPending}
-              onClick={saveDraft}
-            >
-              {saveMutation.isPending ? (
-                <LoaderCircleIcon
-                  aria-hidden="true"
-                  className="size-4 animate-spin"
-                />
-              ) : (
-                <CheckIcon aria-hidden="true" className="size-4" />
-              )}
-              {saveMutation.isPending
-                ? HOME_LABELS.saving
-                : HOME_LABELS.savePublish}
-            </Button>
+            {canWrite && (
+              <Button
+                type="button"
+                disabled={!isDirty || saveMutation.isPending}
+                onClick={saveDraft}
+              >
+                {saveMutation.isPending ? (
+                  <LoaderCircleIcon
+                    aria-hidden="true"
+                    className="size-4 animate-spin"
+                  />
+                ) : (
+                  <CheckIcon aria-hidden="true" className="size-4" />
+                )}
+                {saveMutation.isPending
+                  ? HOME_LABELS.saving
+                  : HOME_LABELS.savePublish}
+              </Button>
+            )}
           </div>
         </header>
 
@@ -414,176 +418,181 @@ function HomeEditor({
           value={languageId}
           onChange={requestLanguage}
         />
-
-        <Card aria-labelledby="home-carousel-title">
-          <CardHeader>
-            <CardTitle id="home-carousel-title" className="text-base">
-              {HOME_LABELS.carousel}
-            </CardTitle>
-            <span className="text-foreground/55 text-xs">
-              {HOME_LABELS.slideCount(editorDraft.slides.length)}
-            </span>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="bg-secondary/10 text-accent border-secondary/20 flex items-start gap-2 rounded-lg border p-3 text-xs">
-              <InfoIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-              <p>{HOME_LABELS.carouselHint}</p>
-            </div>
-
-            {editorDraft.slides.length === 0 ? (
-              <p
-                role="status"
-                className="text-foreground/55 py-6 text-center text-sm"
-              >
-                {HOME_LABELS.emptySlides}
-              </p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {editorDraft.slides.map((slide, index) => (
-                  <SortableSlideCard
-                    key={slide.clientKey}
-                    slide={slide}
-                    index={index}
-                    total={editorDraft.slides.length}
-                    media={
-                      slide.mediaFilepath == null
-                        ? undefined
-                        : mediaByPath.get(slide.mediaFilepath)
-                    }
-                    mediaLoading={mediaQuery.isPending}
-                    mediaFailed={mediaQuery.isError}
-                    canDelete={canDeleteSlide}
-                    onChange={changeSlide}
-                    onMove={moveSlides}
-                    onDelete={deleteSlide}
-                    onChoosePhoto={setPhotoPickerKey}
-                  />
-                ))}
+        {/* Read-only without write permission. */}
+        <fieldset disabled={!canWrite} className="contents">
+          <Card aria-labelledby="home-carousel-title">
+            <CardHeader>
+              <CardTitle id="home-carousel-title" className="text-base">
+                {HOME_LABELS.carousel}
+              </CardTitle>
+              <span className="text-foreground/55 text-xs">
+                {HOME_LABELS.slideCount(editorDraft.slides.length)}
+              </span>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="bg-secondary/10 text-accent border-secondary/20 flex items-start gap-2 rounded-lg border p-3 text-xs">
+                <InfoIcon
+                  aria-hidden="true"
+                  className="mt-0.5 size-4 shrink-0"
+                />
+                <p>{HOME_LABELS.carouselHint}</p>
               </div>
-            )}
 
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-              onClick={addSlide}
-            >
-              {HOME_LABELS.addSlide}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card aria-labelledby="home-statistics-title">
-          <CardHeader>
-            <CardTitle id="home-statistics-title" className="text-base">
-              {HOME_LABELS.statistics}
-            </CardTitle>
-            <span className="text-foreground/55 text-xs">
-              {HOME_LABELS.statisticCount(editorDraft.statistics.length)}
-            </span>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {editorDraft.statistics.length === 0 ? (
-              <p
-                role="status"
-                className="text-foreground/55 py-6 text-center text-sm"
-              >
-                {HOME_LABELS.emptyStatistics}
-              </p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 px-2" />
-                    <TableHead>{HOME_LABELS.statisticLabel}</TableHead>
-                    <TableHead>{HOME_LABELS.statisticNumber}</TableHead>
-                    <TableHead>{HOME_LABELS.statisticDescription}</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {editorDraft.statistics.map((statistic, index) => (
-                    <SortableStatisticRow
-                      key={statistic.clientKey}
-                      statistic={statistic}
+              {editorDraft.slides.length === 0 ? (
+                <p
+                  role="status"
+                  className="text-foreground/55 py-6 text-center text-sm"
+                >
+                  {HOME_LABELS.emptySlides}
+                </p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {editorDraft.slides.map((slide, index) => (
+                    <SortableSlideCard
+                      key={slide.clientKey}
+                      slide={slide}
                       index={index}
-                      total={editorDraft.statistics.length}
-                      canDelete={canDeleteStatistic}
-                      onChange={changeStatistic}
-                      onMove={moveStatistics}
-                      onDuplicate={duplicateStatistic}
-                      onDelete={deleteStatistic}
+                      total={editorDraft.slides.length}
+                      media={
+                        slide.mediaFilepath == null
+                          ? undefined
+                          : mediaByPath.get(slide.mediaFilepath)
+                      }
+                      mediaLoading={mediaQuery.isPending}
+                      mediaFailed={mediaQuery.isError}
+                      canDelete={canDeleteSlide}
+                      onChange={changeSlide}
+                      onMove={moveSlides}
+                      onDelete={deleteSlide}
+                      onChoosePhoto={setPhotoPickerKey}
                     />
                   ))}
-                </TableBody>
-              </Table>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-              onClick={addStatistic}
-            >
-              {HOME_LABELS.addStatistic}
-            </Button>
-          </CardContent>
-        </Card>
+                </div>
+              )}
 
-        <Card aria-labelledby="home-teaser-title">
-          <CardHeader>
-            <CardTitle id="home-teaser-title" className="text-base">
-              {HOME_LABELS.teaser}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-3 lg:flex-row">
-                <HomeTextField
-                  id="home-teaser-heading"
-                  label={HOME_LABELS.teaserTitle}
-                  value={editorDraft.teaserTitle}
-                  onChange={(value) => changeTeaser('teaserTitle', value)}
-                />
-                <HomeTextField
-                  id="home-teaser-cta"
-                  label={HOME_LABELS.ctaTitle}
-                  value={editorDraft.ctaTitle}
-                  onChange={(value) => changeTeaser('ctaTitle', value)}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="home-teaser-content">
-                  {HOME_LABELS.teaserContent}
-                </Label>
-                <Textarea
-                  id="home-teaser-content"
-                  value={editorDraft.teaserContent}
-                  onChange={(event) =>
-                    changeTeaser('teaserContent', event.currentTarget.value)
-                  }
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <Button
+                type="button"
+                variant="outline"
+                className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
+                onClick={addSlide}
+              >
+                {HOME_LABELS.addSlide}
+              </Button>
+            </CardContent>
+          </Card>
 
-        {selectedSlide && (
-          <MediaPickerDialog
-            key={`${selectedSlide.clientKey}-${selectedSlide.mediaFilepath ?? 'none'}`}
-            open
-            onOpenChange={(open) => {
-              if (!open) setPhotoPickerKey(null)
-            }}
-            selectedMediaId={
-              selectedSlide.mediaFilepath == null
-                ? undefined
-                : mediaByPath.get(selectedSlide.mediaFilepath)?.id
-            }
-            onSelect={(media) =>
-              changeSlideMedia(selectedSlide.clientKey, media)
-            }
-          />
-        )}
+          <Card aria-labelledby="home-statistics-title">
+            <CardHeader>
+              <CardTitle id="home-statistics-title" className="text-base">
+                {HOME_LABELS.statistics}
+              </CardTitle>
+              <span className="text-foreground/55 text-xs">
+                {HOME_LABELS.statisticCount(editorDraft.statistics.length)}
+              </span>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {editorDraft.statistics.length === 0 ? (
+                <p
+                  role="status"
+                  className="text-foreground/55 py-6 text-center text-sm"
+                >
+                  {HOME_LABELS.emptyStatistics}
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-primary hover:bg-primary">
+                      <TableHead className="w-12 px-2" />
+                      <TableHead>{HOME_LABELS.statisticLabel}</TableHead>
+                      <TableHead>{HOME_LABELS.statisticNumber}</TableHead>
+                      <TableHead>{HOME_LABELS.statisticDescription}</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {editorDraft.statistics.map((statistic, index) => (
+                      <SortableStatisticRow
+                        key={statistic.clientKey}
+                        statistic={statistic}
+                        index={index}
+                        total={editorDraft.statistics.length}
+                        canDelete={canDeleteStatistic}
+                        onChange={changeStatistic}
+                        onMove={moveStatistics}
+                        onDuplicate={duplicateStatistic}
+                        onDelete={deleteStatistic}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
+                onClick={addStatistic}
+              >
+                {HOME_LABELS.addStatistic}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card aria-labelledby="home-teaser-title">
+            <CardHeader>
+              <CardTitle id="home-teaser-title" className="text-base">
+                {HOME_LABELS.teaser}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 lg:flex-row">
+                  <HomeTextField
+                    id="home-teaser-heading"
+                    label={HOME_LABELS.teaserTitle}
+                    value={editorDraft.teaserTitle}
+                    onChange={(value) => changeTeaser('teaserTitle', value)}
+                  />
+                  <HomeTextField
+                    id="home-teaser-cta"
+                    label={HOME_LABELS.ctaTitle}
+                    value={editorDraft.ctaTitle}
+                    onChange={(value) => changeTeaser('ctaTitle', value)}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="home-teaser-content">
+                    {HOME_LABELS.teaserContent}
+                  </Label>
+                  <Textarea
+                    id="home-teaser-content"
+                    value={editorDraft.teaserContent}
+                    onChange={(event) =>
+                      changeTeaser('teaserContent', event.currentTarget.value)
+                    }
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {selectedSlide && (
+            <MediaPickerDialog
+              key={`${selectedSlide.clientKey}-${selectedSlide.mediaFilepath ?? 'none'}`}
+              open
+              onOpenChange={(open) => {
+                if (!open) setPhotoPickerKey(null)
+              }}
+              selectedMediaId={
+                selectedSlide.mediaFilepath == null
+                  ? undefined
+                  : mediaByPath.get(selectedSlide.mediaFilepath)?.id
+              }
+              onSelect={(media) =>
+                changeSlideMedia(selectedSlide.clientKey, media)
+              }
+            />
+          )}
+        </fieldset>
       </div>
     </DragDropProvider>
   )

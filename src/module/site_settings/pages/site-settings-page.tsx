@@ -1,3 +1,4 @@
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { Language } from '@/module/language/api/language.api'
 import { findDefaultLanguage } from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
@@ -149,6 +150,7 @@ function SiteSettingsForm({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const form = useForm<SiteSettingsFormValues>({
     resolver: zodResolver(siteSettingsFormSchema),
@@ -258,14 +260,16 @@ function SiteSettingsForm({
               {SITE_SETTINGS_LABELS.description}
             </p>
           </div>
-          <Button
-            type="submit"
-            disabled={!isDirty || saveMutation.isPending || isRequiredMissing}
-            className="self-start"
-          >
-            <CheckIcon aria-hidden="true" className="size-4" />
-            {SITE_SETTINGS_LABELS.save}
-          </Button>
+          {canWrite && (
+            <Button
+              type="submit"
+              disabled={!isDirty || saveMutation.isPending || isRequiredMissing}
+              className="self-start"
+            >
+              <CheckIcon aria-hidden="true" className="size-4" />
+              {SITE_SETTINGS_LABELS.save}
+            </Button>
+          )}
         </header>
 
         {/* Controlled by the URL: a cancelled discard keeps the current language. */}
@@ -288,217 +292,222 @@ function SiteSettingsForm({
             ))}
           </SelectContent>
         </Select>
+        {/* Read-only without write permission. */}
+        <fieldset disabled={!canWrite} className="contents">
+          <Card aria-labelledby="site-settings-identity-title">
+            <CardHeader>
+              <CardTitle
+                id="site-settings-identity-title"
+                className="text-base"
+              >
+                {SITE_SETTINGS_LABELS.identity}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 space-y-0">
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <SiteSettingsTextField
+                  name="companyName"
+                  label={SITE_SETTINGS_LABELS.companyName}
+                  maxLength={200}
+                  required
+                  notConfigured={isMissing('companyName')}
+                />
+                <SiteSettingsTextField
+                  name="shortName"
+                  label={SITE_SETTINGS_LABELS.shortName}
+                  maxLength={50}
+                  notConfigured={isMissing('shortName')}
+                />
+              </div>
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <LogoField
+                  name="danantaraLogo"
+                  label={SITE_SETTINGS_LABELS.danantaraLogo}
+                  notConfigured={isMissing('danantaraLogo')}
+                />
+                <LogoField
+                  name="plnLogo"
+                  label={SITE_SETTINGS_LABELS.plnLogo}
+                  notConfigured={isMissing('plnLogo')}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card aria-labelledby="site-settings-identity-title">
-          <CardHeader>
-            <CardTitle id="site-settings-identity-title" className="text-base">
-              {SITE_SETTINGS_LABELS.identity}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4 space-y-0">
-            <div className="flex flex-col gap-4 lg:flex-row">
-              <SiteSettingsTextField
-                name="companyName"
-                label={SITE_SETTINGS_LABELS.companyName}
-                maxLength={200}
-                required
-                notConfigured={isMissing('companyName')}
-              />
-              <SiteSettingsTextField
-                name="shortName"
-                label={SITE_SETTINGS_LABELS.shortName}
-                maxLength={50}
-                notConfigured={isMissing('shortName')}
-              />
-            </div>
-            <div className="flex flex-col gap-4 lg:flex-row">
-              <LogoField
-                name="danantaraLogo"
-                label={SITE_SETTINGS_LABELS.danantaraLogo}
-                notConfigured={isMissing('danantaraLogo')}
-              />
-              <LogoField
-                name="plnLogo"
-                label={SITE_SETTINGS_LABELS.plnLogo}
-                notConfigured={isMissing('plnLogo')}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card aria-labelledby="site-settings-contact-title">
-          <CardHeader>
-            <CardTitle id="site-settings-contact-title" className="text-base">
-              {SITE_SETTINGS_LABELS.contact}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4 space-y-0">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="site-settings-address">
-                {SITE_SETTINGS_LABELS.address}
-                <span className="text-danger">*</span>
-              </Label>
-              <Textarea
-                id="site-settings-address"
-                maxLength={500}
-                aria-invalid={Boolean(addressError)}
-                {...register('address')}
-                disabled={isMissing('address')}
-              />
-              <p className="text-foreground/55 text-xs">
-                {addressValue.length + ' / 500 karakter'}
-              </p>
-              {addressError && (
-                <p role="alert" className="text-danger text-sm">
-                  {addressError}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-4 lg:flex-row">
-              <SiteSettingsTextField
-                name="locationLat"
-                label={SITE_SETTINGS_LABELS.locationLat}
-                type="number"
-                min={-90}
-                max={90}
-                step="any"
-                helpText={SITE_SETTINGS_LABELS.locationLatHelp}
-              />
-              <SiteSettingsTextField
-                name="locationLong"
-                label={SITE_SETTINGS_LABELS.locationLong}
-                type="number"
-                min={-180}
-                max={180}
-                step="any"
-                helpText={SITE_SETTINGS_LABELS.locationLongHelp}
-              />
-            </div>
-            <div className="flex flex-col gap-4 lg:flex-row">
-              <SiteSettingsTextField
-                name="phone"
-                label={SITE_SETTINGS_LABELS.phone}
-                type="tel"
-                maxLength={30}
-                notConfigured={isMissing('phone')}
-              />
-              <SiteSettingsTextField
-                name="whatsapp"
-                label={SITE_SETTINGS_LABELS.whatsapp}
-                type="tel"
-                maxLength={30}
-                notConfigured={isMissing('whatsapp')}
-              />
-            </div>
-            <div className="flex flex-col gap-4 lg:flex-row">
-              <SiteSettingsTextField
-                name="mainEmail"
-                label={SITE_SETTINGS_LABELS.mainEmail}
-                type="email"
-                maxLength={254}
-                notConfigured={isMissing('mainEmail')}
-              />
-              <SiteSettingsTextField
-                name="marketingEmail"
-                label={SITE_SETTINGS_LABELS.marketingEmail}
-                type="email"
-                maxLength={254}
-                notConfigured={isMissing('marketingEmail')}
-              />
-            </div>
-            <div className="flex flex-col gap-4 lg:flex-row">
-              <SiteSettingsTextField
-                name="operatingDays"
-                label={SITE_SETTINGS_LABELS.operatingDays}
-                maxLength={100}
-                notConfigured={isMissing('operatingDays')}
-              />
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <Label htmlFor="site-settings-openTime">
-                  {SITE_SETTINGS_LABELS.operatingHours}
+          <Card aria-labelledby="site-settings-contact-title">
+            <CardHeader>
+              <CardTitle id="site-settings-contact-title" className="text-base">
+                {SITE_SETTINGS_LABELS.contact}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 space-y-0">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="site-settings-address">
+                  {SITE_SETTINGS_LABELS.address}
+                  <span className="text-danger">*</span>
                 </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="site-settings-openTime"
-                    type="time"
-                    aria-label={SITE_SETTINGS_LABELS.openTime}
-                    {...register('openTime')}
-                    disabled={isMissing('openTime')}
-                  />
-                  <span className="text-foreground/55">-</span>
-                  <Input
-                    type="time"
-                    aria-label={SITE_SETTINGS_LABELS.closeTime}
-                    aria-invalid={Boolean(hoursError)}
-                    {...register('closeTime')}
-                    disabled={isMissing('closeTime')}
-                  />
-                </div>
-                {hoursError && (
+                <Textarea
+                  id="site-settings-address"
+                  maxLength={500}
+                  aria-invalid={Boolean(addressError)}
+                  {...register('address')}
+                  disabled={isMissing('address')}
+                />
+                <p className="text-foreground/55 text-xs">
+                  {addressValue.length + ' / 500 karakter'}
+                </p>
+                {addressError && (
                   <p role="alert" className="text-danger text-sm">
-                    {hoursError}
+                    {addressError}
                   </p>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <SiteSettingsTextField
+                  name="locationLat"
+                  label={SITE_SETTINGS_LABELS.locationLat}
+                  type="number"
+                  min={-90}
+                  max={90}
+                  step="any"
+                  helpText={SITE_SETTINGS_LABELS.locationLatHelp}
+                />
+                <SiteSettingsTextField
+                  name="locationLong"
+                  label={SITE_SETTINGS_LABELS.locationLong}
+                  type="number"
+                  min={-180}
+                  max={180}
+                  step="any"
+                  helpText={SITE_SETTINGS_LABELS.locationLongHelp}
+                />
+              </div>
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <SiteSettingsTextField
+                  name="phone"
+                  label={SITE_SETTINGS_LABELS.phone}
+                  type="tel"
+                  maxLength={30}
+                  notConfigured={isMissing('phone')}
+                />
+                <SiteSettingsTextField
+                  name="whatsapp"
+                  label={SITE_SETTINGS_LABELS.whatsapp}
+                  type="tel"
+                  maxLength={30}
+                  notConfigured={isMissing('whatsapp')}
+                />
+              </div>
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <SiteSettingsTextField
+                  name="mainEmail"
+                  label={SITE_SETTINGS_LABELS.mainEmail}
+                  type="email"
+                  maxLength={254}
+                  notConfigured={isMissing('mainEmail')}
+                />
+                <SiteSettingsTextField
+                  name="marketingEmail"
+                  label={SITE_SETTINGS_LABELS.marketingEmail}
+                  type="email"
+                  maxLength={254}
+                  notConfigured={isMissing('marketingEmail')}
+                />
+              </div>
+              <div className="flex flex-col gap-4 lg:flex-row">
+                <SiteSettingsTextField
+                  name="operatingDays"
+                  label={SITE_SETTINGS_LABELS.operatingDays}
+                  maxLength={100}
+                  notConfigured={isMissing('operatingDays')}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <Label htmlFor="site-settings-openTime">
+                    {SITE_SETTINGS_LABELS.operatingHours}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="site-settings-openTime"
+                      type="time"
+                      aria-label={SITE_SETTINGS_LABELS.openTime}
+                      {...register('openTime')}
+                      disabled={isMissing('openTime')}
+                    />
+                    <span className="text-foreground/55">-</span>
+                    <Input
+                      type="time"
+                      aria-label={SITE_SETTINGS_LABELS.closeTime}
+                      aria-invalid={Boolean(hoursError)}
+                      {...register('closeTime')}
+                      disabled={isMissing('closeTime')}
+                    />
+                  </div>
+                  {hoursError && (
+                    <p role="alert" className="text-danger text-sm">
+                      {hoursError}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card aria-labelledby="site-settings-social-title">
-          <CardHeader>
-            <CardTitle id="site-settings-social-title" className="text-base">
-              {SITE_SETTINGS_LABELS.socialMedia}
-            </CardTitle>
-            <span className="text-foreground/55 text-xs">
-              {SITE_SETTINGS_LABELS.socialCount(socialLinks.fields.length)}
-            </span>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {socialLinks.fields.length === 0 ? (
-              <p
-                role="status"
-                className="text-foreground/55 py-6 text-center text-sm"
+          <Card aria-labelledby="site-settings-social-title">
+            <CardHeader>
+              <CardTitle id="site-settings-social-title" className="text-base">
+                {SITE_SETTINGS_LABELS.socialMedia}
+              </CardTitle>
+              <span className="text-foreground/55 text-xs">
+                {SITE_SETTINGS_LABELS.socialCount(socialLinks.fields.length)}
+              </span>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {socialLinks.fields.length === 0 ? (
+                <p
+                  role="status"
+                  className="text-foreground/55 py-6 text-center text-sm"
+                >
+                  {SITE_SETTINGS_LABELS.emptySocial}
+                </p>
+              ) : (
+                <DragDropProvider onDragEnd={handleDragEnd}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-primary hover:bg-primary">
+                        <TableHead className="w-12 px-2" />
+                        <TableHead>{SITE_SETTINGS_LABELS.icon}</TableHead>
+                        <TableHead>{SITE_SETTINGS_LABELS.platform}</TableHead>
+                        <TableHead>{SITE_SETTINGS_LABELS.url}</TableHead>
+                        <TableHead>{SITE_SETTINGS_LABELS.visible}</TableHead>
+                        <TableHead className="text-right">
+                          {SITE_SETTINGS_LABELS.action}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {socialLinks.fields.map((field, index) => (
+                        <SortableSocialLinkRow
+                          key={field.key}
+                          id={field.key}
+                          index={index}
+                          onDelete={socialLinks.remove}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </DragDropProvider>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
+                onClick={() => socialLinks.append(emptySocialLink)}
               >
-                {SITE_SETTINGS_LABELS.emptySocial}
-              </p>
-            ) : (
-              <DragDropProvider onDragEnd={handleDragEnd}>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="w-12 px-2" />
-                      <TableHead>{SITE_SETTINGS_LABELS.icon}</TableHead>
-                      <TableHead>{SITE_SETTINGS_LABELS.platform}</TableHead>
-                      <TableHead>{SITE_SETTINGS_LABELS.url}</TableHead>
-                      <TableHead>{SITE_SETTINGS_LABELS.visible}</TableHead>
-                      <TableHead className="text-right">
-                        {SITE_SETTINGS_LABELS.action}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {socialLinks.fields.map((field, index) => (
-                      <SortableSocialLinkRow
-                        key={field.key}
-                        id={field.key}
-                        index={index}
-                        onDelete={socialLinks.remove}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </DragDropProvider>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-              onClick={() => socialLinks.append(emptySocialLink)}
-            >
-              {SITE_SETTINGS_LABELS.addSocial}
-            </Button>
-          </CardContent>
-        </Card>
+                {SITE_SETTINGS_LABELS.addSocial}
+              </Button>
+            </CardContent>
+          </Card>
+        </fieldset>
       </form>
     </FormProvider>
   )

@@ -4,7 +4,13 @@ import {
 } from '@/module/user/constants/user.constants'
 import { UsersPage } from '@/module/user/pages/users-page'
 import { userSearchSchema } from '@/module/user/schemas/user-search.schema'
-import { createFileRoute, stripSearchParams } from '@tanstack/react-router'
+import { authQueryOptions } from '@/module/auth/queries/auth.queries'
+import { getPermissions } from '@/module/auth/hooks/use-permissions'
+import {
+  createFileRoute,
+  redirect,
+  stripSearchParams,
+} from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/users')({
   validateSearch: userSearchSchema,
@@ -12,6 +18,13 @@ export const Route = createFileRoute('/_authenticated/users')({
     middlewares: [
       stripSearchParams({ page: 1, limit: USER_DEFAULT_PAGE_SIZE }),
     ],
+  },
+  beforeLoad: async ({ context }) => {
+    const user = await context.queryClient.query(authQueryOptions())
+
+    if (!getPermissions(user).canManageUsers) {
+      throw redirect({ to: '/home' })
+    }
   },
   component: UsersPage,
   staticData: { title: USER_LABELS.pageTitle },

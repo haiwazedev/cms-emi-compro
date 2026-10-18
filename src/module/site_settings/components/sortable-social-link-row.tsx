@@ -1,3 +1,5 @@
+import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ImageFileField } from '@/module/site_settings/components/image-file-field'
 import {
   SITE_SETTINGS_ICON_MAX_SIZE,
@@ -24,6 +26,7 @@ function SortableSocialLinkRow({
   index,
   onDelete,
 }: SortableSocialLinkRowProps) {
+  const { canPublish } = usePermissions()
   const { ref, handleRef } = useSortable({ id, index, group: 'social-links' })
   const {
     control,
@@ -100,6 +103,9 @@ function SortableSocialLinkRow({
               aria-label={SITE_SETTINGS_LABELS.toggleSocial(rowNumber)}
               checked={field.value}
               onCheckedChange={field.onChange}
+              // Without publish the server keeps each link's saved status.
+              disabled={!canPublish}
+              title={canPublish ? undefined : PERMISSION_HINTS.draftOnly}
             />
           )}
         />

@@ -1,3 +1,5 @@
+import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
 import type { FaqStatus, FaqWriteFields } from '@/module/faq/api/faq.api'
@@ -35,6 +37,7 @@ function FaqFormCard({
   onSubmit,
   onDirtyChange,
 }: FaqFormCardProps) {
+  const { canPublish } = usePermissions()
   const [question, setQuestion] = useState(initial?.question ?? '')
   const [answer, setAnswer] = useState(initial?.answer ?? '')
   const [status, setStatus] = useState<FaqStatus>(initial?.status ?? 'DRAFT')
@@ -108,8 +111,8 @@ function FaqFormCard({
           <div className="flex flex-col gap-2">
             <Label htmlFor="faq-status">{FAQ_LABELS.status}</Label>
             <Select
-              value={status}
-              disabled={pending}
+              value={canPublish ? status : 'DRAFT'}
+              disabled={pending || !canPublish}
               onValueChange={(value) => setStatus(value as FaqStatus)}
             >
               <SelectTrigger id="faq-status" className="w-full lg:max-w-xs">
@@ -122,6 +125,11 @@ function FaqFormCard({
                 </SelectItem>
               </SelectContent>
             </Select>
+            {!canPublish && (
+              <p className="text-foreground/60 text-xs">
+                {PERMISSION_HINTS.draftOnly}
+              </p>
+            )}
           </div>
 
           {formError && (

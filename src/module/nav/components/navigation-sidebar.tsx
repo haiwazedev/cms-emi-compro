@@ -8,6 +8,7 @@ import {
 import { documentCommitmentsQueryOptions } from '@/module/document_commitment/queries/document-commitment.queries'
 import { faqsQueryOptions } from '@/module/faq/queries/faq.queries'
 import { inboxCountsQueryOptions } from '@/module/inbox/queries/inbox.queries'
+import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { Badge } from '@/shared/components/ui/badge'
 import { cn } from '@/shared/lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -28,6 +29,7 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
   // Show unread messages first; once all are read, show the inbox total.
   const inboxCount = inboxCounts?.unreadCount || inboxCounts?.readCount
   const counts = useNavigationCounts()
+  const { canManageUsers } = usePermissions()
 
   return (
     <aside
@@ -55,24 +57,27 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
               {section.label}
             </h2>
             <ul className="space-y-1">
-              {section.items.map((item) => (
-                <li key={item.label}>
-                  <NavigationItemLink
-                    item={item}
-                    count={
-                      item.to === '/inbox'
-                        ? inboxCount
-                          ? String(inboxCount)
-                          : undefined
-                        : item.to && counts[item.to]
-                    }
-                    highlighted={
-                      item.to === '/inbox' && Boolean(inboxCounts?.unreadCount)
-                    }
-                    isCurrent={item.to === pathname}
-                  />
-                </li>
-              ))}
+              {section.items
+                .filter((item) => item.to !== '/users' || canManageUsers)
+                .map((item) => (
+                  <li key={item.label}>
+                    <NavigationItemLink
+                      item={item}
+                      count={
+                        item.to === '/inbox'
+                          ? inboxCount
+                            ? String(inboxCount)
+                            : undefined
+                          : item.to && counts[item.to]
+                      }
+                      highlighted={
+                        item.to === '/inbox' &&
+                        Boolean(inboxCounts?.unreadCount)
+                      }
+                      isCurrent={item.to === pathname}
+                    />
+                  </li>
+                ))}
             </ul>
           </section>
         ))}
