@@ -1,5 +1,6 @@
 import type { BoardMemberType } from '@/module/board_member/api/board-member.api'
 import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import type { Language } from '@/module/language/api/language.api'
 import type { BoardMemberTypeFormValues } from '@/module/board_member/schemas/board-member-type-form.schema'
 import { boardMemberTypeFormSchema } from '@/module/board_member/schemas/board-member-type-form.schema'
 import { Button } from '@/shared/components/ui/button'
@@ -21,6 +22,7 @@ interface BoardMemberTypeFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   memberType?: BoardMemberType
+  language: Language
   pending: boolean
   onSubmit: (type: string) => void
 }
@@ -29,6 +31,7 @@ function BoardMemberTypeFormDialog({
   open,
   onOpenChange,
   memberType,
+  language,
   pending,
   onSubmit,
 }: BoardMemberTypeFormDialogProps) {
@@ -51,7 +54,8 @@ function BoardMemberTypeFormDialog({
               : BOARD_MEMBER_LABELS.createType}
           </DialogTitle>
           <DialogDescription>
-            {BOARD_MEMBER_LABELS.typesDescription}
+            {BOARD_MEMBER_LABELS.typesDescription} — {language.flag}{' '}
+            {language.language}
           </DialogDescription>
         </DialogHeader>
 

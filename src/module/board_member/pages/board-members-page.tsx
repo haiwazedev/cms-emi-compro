@@ -8,6 +8,7 @@ import type {
   BoardMemberFields,
   BoardMemberType,
 } from '@/module/board_member/api/board-member.api'
+import { BoardMemberLanguageSelect } from '@/module/board_member/components/board-member-language-select'
 import { BoardMemberFormDialog } from '@/module/board_member/components/board-member-form-dialog'
 import { SortableBoardMemberRow } from '@/module/board_member/components/sortable-board-member-row'
 import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
@@ -17,6 +18,9 @@ import {
   boardMembersQueryOptions,
 } from '@/module/board_member/queries/board-member.queries'
 import type { BoardMemberSearch } from '@/module/board_member/schemas/board-member-search.schema'
+import type { Language } from '@/module/language/api/language.api'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -55,6 +59,78 @@ const EMPTY_TYPES: BoardMemberType[] = []
 
 function BoardMembersPage() {
   const navigate = useNavigate({ from: '/board_members' })
+  const { lang } = useSearch({ from: '/_authenticated/board_members' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+
+  useEffect(() => {
+    if (urlLanguage || !language) return
+
+    void navigate({
+      search: (previous) => ({
+        ...previous,
+        lang: language.id,
+        board_member_type_id: undefined,
+      }),
+      replace: true,
+    })
+  }, [language, navigate, urlLanguage])
+
+  if (languagesQuery.isPending) {
+    return <BoardMemberMessage message={BOARD_MEMBER_LABELS.languageLoading} />
+  }
+  if (languagesQuery.isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
+        <p role="alert" className="text-danger text-sm">
+          {BOARD_MEMBER_LABELS.languagesFailed}
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => void languagesQuery.refetch()}
+        >
+          {BOARD_MEMBER_LABELS.retry}
+        </Button>
+      </div>
+    )
+  }
+  if (!language) {
+    return <BoardMemberMessage message={BOARD_MEMBER_LABELS.noLanguages} />
+  }
+
+  return (
+    <BoardMembersContent
+      languages={languages}
+      language={language}
+      onLanguageChange={(languageId) => {
+        const nextLanguage = languages.find((item) => item.id === languageId)
+        if (!nextLanguage) return
+
+        void navigate({
+          search: (previous) => ({
+            ...previous,
+            lang: nextLanguage.id,
+            board_member_type_id: undefined,
+          }),
+        })
+      }}
+    />
+  )
+}
+
+function BoardMembersContent({
+  languages,
+  language,
+  onLanguageChange,
+}: {
+  languages: Language[]
+  language: Language
+  onLanguageChange: (languageId: string) => void
+}) {
+  const navigate = useNavigate({ from: '/board_members' })
   const queryClient = useQueryClient()
   const { search, board_member_type_id } = useSearch({
     from: '/_authenticated/board_members',
@@ -74,29 +150,17 @@ function BoardMembersPage() {
   const typesQuery = useQuery(boardMemberTypesQueryOptions())
   const members = membersQuery.data ?? EMPTY_MEMBERS
   const types = typesQuery.data ?? EMPTY_TYPES
-
-  const groupedMembers = useMemo(() => {
-    const buckets = new Map<number, BoardMember[]>()
-    for (const member of members) {
-      const group = buckets.get(member.board_member_type_id) ?? []
-      group.push(member)
-      buckets.set(member.board_member_type_id, group)
-    }
-
-    const typeById = new Map(types.map((type) => [type.id, type]))
-    const orderedTypeIds = [
-      ...types.map((type) => type.id).filter((typeId) => buckets.has(typeId)),
-      ...[...buckets.keys()].filter((typeId) => !typeById.has(typeId)),
-    ]
-
-    return orderedTypeIds.flatMap((typeId) =>
-      (buckets.get(typeId) ?? []).map((member, index) => ({
-        member,
-        index,
-        group: `board-members-${typeId}`,
-      })),
-    )
-  }, [members, types])
+  const localizedTypes = types.filter(
+    (type) => type.language_id === language.id,
+  )
+  const orderedMembers = useMemo(
+    () =>
+      [...members].sort(
+        (first, second) =>
+          first.sort_order - second.sort_order || first.id - second.id,
+      ),
+    [members],
+  )
 
   const saveMutation = useMutation({
     mutationFn: ({
@@ -214,7 +278,13 @@ function BoardMembersPage() {
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    if (event.canceled || search || reorderMutation.isPending) return
+    if (
+      event.canceled ||
+      search ||
+      board_member_type_id ||
+      reorderMutation.isPending
+    )
+      return
 
     const { source, target } = event.operation
     if (!source || !target || !isSortable(source) || !isSortable(target)) return
@@ -227,8 +297,9 @@ function BoardMembersPage() {
     reorderMutation.mutate({ memberId, sortOrder: target.index + 1 })
   }
 
-  const canAddMember = typesQuery.isSuccess && types.length > 0
-  const isReorderDisabled = Boolean(search) || reorderMutation.isPending
+  const canAddMember = typesQuery.isSuccess && localizedTypes.length > 0
+  const isReorderDisabled =
+    Boolean(search || board_member_type_id) || reorderMutation.isPending
 
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
@@ -244,7 +315,7 @@ function BoardMembersPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
             <Button asChild variant="outline">
-              <Link to="/board_member_types">
+              <Link to="/board_member_types" search={{ lang: language.id }}>
                 {BOARD_MEMBER_LABELS.manageTypes}
               </Link>
             </Button>
@@ -258,6 +329,12 @@ function BoardMembersPage() {
             </Button>
           </div>
         </header>
+
+        <BoardMemberLanguageSelect
+          languages={languages}
+          languageId={language.id}
+          onLanguageChange={onLanguageChange}
+        />
 
         <section
           aria-label={BOARD_MEMBER_LABELS.pageTitle}
@@ -280,7 +357,7 @@ function BoardMembersPage() {
                 <SelectItem value="ALL">
                   {BOARD_MEMBER_LABELS.allTypes}
                 </SelectItem>
-                {types.map((type) => (
+                {localizedTypes.map((type) => (
                   <SelectItem key={type.id} value={String(type.id)}>
                     {type.type}
                   </SelectItem>
@@ -335,16 +412,16 @@ function BoardMembersPage() {
             <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
               <BoardMemberMessage
                 message={
-                  types.length === 0
+                  localizedTypes.length === 0
                     ? BOARD_MEMBER_LABELS.noTypes
                     : search || board_member_type_id
                       ? BOARD_MEMBER_LABELS.noSearchResults
                       : BOARD_MEMBER_LABELS.noMembers
                 }
               />
-              {types.length === 0 && (
+              {localizedTypes.length === 0 && typesQuery.isSuccess && (
                 <Button asChild variant="outline">
-                  <Link to="/board_member_types">
+                  <Link to="/board_member_types" search={{ lang: language.id }}>
                     {BOARD_MEMBER_LABELS.manageTypes}
                   </Link>
                 </Button>
@@ -367,12 +444,15 @@ function BoardMembersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {groupedMembers.map(({ member, index, group }) => (
+                  {orderedMembers.map((member, index) => (
                     <SortableBoardMemberRow
                       key={member.id}
                       member={member}
+                      content={member.contents.find(
+                        (item) => item.language_id === language.id,
+                      )}
                       index={index}
-                      group={group}
+                      group="board-members"
                       disabled={isReorderDisabled}
                       onEdit={() => openMemberForm(member)}
                       onDelete={() => setMemberToDelete(member)}
@@ -390,11 +470,12 @@ function BoardMembersPage() {
 
         {memberFormOpen && (
           <BoardMemberFormDialog
-            key={`${memberToEdit?.id ?? 'new-member'}-${memberFormOpen}`}
+            key={`${memberToEdit?.id ?? 'new-member'}-${language.id}-${memberFormOpen}`}
             open
             onOpenChange={handleFormOpenChange}
             member={memberToEdit}
-            types={types}
+            language={language}
+            types={localizedTypes}
             pending={saveMutation.isPending}
             onSubmit={(fields, photo) =>
               saveMutation.mutate({

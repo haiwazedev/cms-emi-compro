@@ -50,7 +50,7 @@ Bearer JWTs are no longer accepted. Sign in again to create a session.
 For Fetch examples, define the base URL once:
 
 ```js
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'http://localhost:8000';
 ```
 
 ## Register
@@ -109,12 +109,12 @@ const response = await fetch(`${API_BASE_URL}/auth/register`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -170,12 +170,12 @@ const response = await fetch(`${API_BASE_URL}/auth/login`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -217,12 +217,12 @@ Return the current user's name and email using the session cookie.
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/me`, {
   credentials: 'include',
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -252,11 +252,11 @@ with no response body.
 const response = await fetch(`${API_BASE_URL}/auth/logout`, {
   method: 'POST',
   credentials: 'include',
-})
+});
 
 if (!response.ok) {
-  const data = await response.json()
-  throw new Error(data.message)
+  const data = await response.json();
+  throw new Error(data.message);
 }
 ```
 
@@ -629,10 +629,10 @@ const response = await fetch(`${API_BASE_URL}/articles`, {
     issue_date: '2026-10-10',
     primary_photo: 18,
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 ## Divisions and Services
@@ -889,13 +889,17 @@ types or members require an authenticated session and the configured frontend
   `200 OK`.
 - `POST /board_member_types` creates a type and returns
   `{ "board_member_type": ... }` with `201 Created`.
-- `PUT /board_member_types/:typeId` partially updates a type and returns
+- `PUT /board_member_types/:typeId` updates a type name and returns
   `{ "board_member_type": ... }` with `200 OK`.
 - `DELETE /board_member_types/:typeId` returns `204 No Content`. Deleting a
-  type also deletes its members and their stored photos.
+  type removes only member translations that reference it. Members with other
+  translations remain; members with no translations are deleted with their
+  stored photos.
 
-Create and update requests use JSON with a `type` string of 1–100 characters.
-Updates require at least one field. A type response contains `id` and `type`.
+Create requests use JSON with a `type` string of 1–100 characters and a required
+`language_id` for an active language. Updates accept a `type` string;
+`language_id` is fixed when the type is created. A type response contains `id`,
+`type`, and `language_id`.
 
 ### Board members
 
@@ -909,26 +913,32 @@ Updates require at least one field. A type response contains `id` and `type`.
 - `DELETE /board_members/:memberId` returns `204 No Content` and removes its
   stored photo, if present.
 
-The list is ordered by `board_member_type_id`, `sort_order`, then ID. The
-optional query parameters can be combined:
+Members are ordered by the shared `sort_order`, then ID. The optional query
+parameters can be combined:
 
-| Query parameter        | Type   | Rules                                             |
-| ---------------------- | ------ | ------------------------------------------------- |
-| `search`               | string | Case-insensitive substring search in member name. |
-| `board_member_type_id` | number | Positive ID of the board member type.             |
+| Query parameter        | Type   | Rules                                                          |
+| ---------------------- | ------ | -------------------------------------------------------------- |
+| `search`               | string | Case-insensitive substring search in member name.              |
+| `board_member_type_id` | number | Positive ID; returns members with content linked to this type. |
 
-Create requests require `name` (1–200 characters), `role` (1–100 characters),
-and `board_member_type_id` (positive ID of an existing type). Updates accept
-the same fields optionally and require at least one field or a photo upload.
-Both requests may include `sort_order`, a positive integer position within the
-member's type.
+Create requests require `name` (1–200 characters), `language_id` (an active
+language), `role` (1–100 characters), and `board_member_type_id` (positive ID
+of a type in the same language). `company_name` is an optional nullable shared
+field of up to 100 characters; omitting it stores `null`. Blank values are
+trimmed and treated as `null`. `description` is optional and nullable.
+Updates accept `name`, `company_name`, `sort_order`, or translated fields
+optionally, and require at least one field or a photo upload. Omitting
+`company_name` leaves it unchanged, while `null` or a blank value clears it.
+Updating `role`, `board_member_type_id`, or `description` requires
+`language_id`. When adding a translation, both `role` and
+`board_member_type_id` are required. The type must use that same language.
+`name`, `company_name`, and `sort_order` are shared across translations.
 
-New members append to their type when `sort_order` is omitted. A supplied
-position inserts the member and shifts the following members. Updating a
-member's type appends it to the new type if `sort_order` is omitted, and
-compacts the previous type. Deleting a member also compacts its type. Positions
-must be between 1 and the resulting list length; invalid positions return
-`400 Bad Request`.
+New members append to the global member order when `sort_order` is omitted. A
+supplied position inserts the member and shifts following members. Updating a
+member's `sort_order` moves it in that same order, and deleting a member
+compacts the remaining positions. Positions must be between 1 and the resulting
+list length; invalid positions return `400 Bad Request`.
 
 Requests without a photo use JSON. To upload or replace a photo, send
 `multipart/form-data` with the same fields and an optional file field named
@@ -938,22 +948,44 @@ the image content and stores the file at
 contains this public path. Omitting `photo` during an update keeps the current
 photo.
 
-A member response has this shape:
+A member response includes every available translation:
 
 ```json
 {
   "board_member": {
     "id": 12,
     "name": "Ari Putra",
-    "role": "President Director",
-    "board_member_type_id": 1,
+    "company_name": "PLN Energi Primer Indonesia",
     "photo": "/public/board_member/12.jpg",
     "sort_order": 1,
     "created_at": "2026-10-11T10:30:00.000Z",
     "created_by": "Ari Putra",
     "updated_at": null,
     "updated_by": null,
-    "board_member_type": { "id": 1, "type": "Dewan Direksi" }
+    "contents": [
+      {
+        "language_id": "id",
+        "role": "Direktur Utama",
+        "board_member_type_id": 1,
+        "description": null,
+        "board_member_type": {
+          "id": 1,
+          "type": "Dewan Direksi",
+          "language_id": "id"
+        }
+      },
+      {
+        "language_id": "en",
+        "role": "President Director",
+        "board_member_type_id": 3,
+        "description": "Leads the company.",
+        "board_member_type": {
+          "id": 3,
+          "type": "Board of Directors",
+          "language_id": "en"
+        }
+      }
+    ]
   }
 }
 ```
@@ -961,20 +993,23 @@ A member response has this shape:
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Ari Putra')
-formData.append('role', 'President Director')
-formData.append('board_member_type_id', '1')
-formData.append('photo', imageFile)
+const formData = new FormData();
+formData.append('name', 'Ari Putra');
+formData.append('company_name', 'PLN Energi Primer Indonesia');
+formData.append('language_id', 'en');
+formData.append('role', 'President Director');
+formData.append('board_member_type_id', '3');
+formData.append('description', 'Leads the company.');
+formData.append('photo', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/board_members`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1026,18 +1061,18 @@ A successful upload returns `201 Created`:
 Example browser request:
 
 ```js
-const formData = new FormData()
-formData.append('type', 'PICTURE')
-formData.append('file', imageFile)
+const formData = new FormData();
+formData.append('type', 'PICTURE');
+formData.append('file', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/media`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1180,20 +1215,20 @@ sets `updated_at` and `updated_by` to the current time and authenticated user's
 name.
 
 ```js
-const formData = new FormData()
-formData.append('document_commitment_category_id', '2')
-formData.append('title', 'Board decision 2026-10')
-formData.append('status', 'PUBLISHED')
-formData.append('file', pdfFile)
+const formData = new FormData();
+formData.append('document_commitment_category_id', '2');
+formData.append('title', 'Board decision 2026-10');
+formData.append('status', 'PUBLISHED');
+formData.append('file', pdfFile);
 
 const response = await fetch(`${API_BASE_URL}/document_commitments`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 `GET /document_commitments` accepts these optional query parameters:
@@ -1320,8 +1355,8 @@ const response = await fetch(`${API_BASE_URL}/faqs/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ faq_ids: [3, 1, 2, 4] }),
-})
-const { faqs } = await response.json()
+});
+const { faqs } = await response.json();
 ```
 
 ## Clients
@@ -1373,18 +1408,18 @@ Upload logos as transparent PNG or WEBP files.
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Accenture')
-formData.append('logo', logoFile)
+const formData = new FormData();
+formData.append('name', 'Accenture');
+formData.append('logo', logoFile);
 
 const response = await fetch(`${API_BASE_URL}/clients`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1432,8 +1467,8 @@ const response = await fetch(`${API_BASE_URL}/clients/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ client_ids: [3, 1, 2, 4] }),
-})
-const { clients } = await response.json()
+});
+const { clients } = await response.json();
 ```
 
 ## Inboxes
@@ -1528,8 +1563,8 @@ parameters return `400 Bad Request`; a missing inbox returns `404 Not Found`.
 ```ts
 const response = await fetch(`${API_BASE_URL}/inboxes?page=1&search=budi`, {
   credentials: 'include',
-})
-const { inboxes, pagination } = await response.json()
+});
+const { inboxes, pagination } = await response.json();
 ```
 
 ## Site Settings
@@ -1617,7 +1652,7 @@ language has no rows.
 Example browser request:
 
 ```js
-const formData = new FormData()
+const formData = new FormData();
 formData.append(
   'data',
   JSON.stringify({
@@ -1649,18 +1684,18 @@ formData.append(
       },
     ],
   }),
-)
-formData.append('pln_logo', plnLogoFile)
-formData.append('social_icons', youtubeIconFile)
+);
+formData.append('pln_logo', plnLogoFile);
+formData.append('social_icons', youtubeIconFile);
 
 const response = await fetch(`${API_BASE_URL}/site_settings`, {
   method: 'PUT',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 The response shape is:

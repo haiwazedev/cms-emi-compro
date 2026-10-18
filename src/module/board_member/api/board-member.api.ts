@@ -3,20 +3,28 @@ import { apiClient } from '@/shared/lib/api-client'
 export interface BoardMemberType {
   id: number
   type: string
+  language_id: string
+}
+
+export interface BoardMemberContent {
+  language_id: string
+  role: string
+  board_member_type_id: number
+  description: string | null
+  board_member_type: BoardMemberType
 }
 
 export interface BoardMember {
   id: number
   name: string
-  role: string
-  board_member_type_id: number
+  company_name: string | null
   photo: string | null
   sort_order: number
   created_at: string
   created_by: string
   updated_at: string | null
   updated_by: string | null
-  board_member_type: BoardMemberType
+  contents: BoardMemberContent[]
 }
 
 export interface BoardMemberListParams {
@@ -26,12 +34,21 @@ export interface BoardMemberListParams {
 
 export interface BoardMemberFields {
   name: string
+  company_name?: string | null
+  language_id: string
   role: string
   board_member_type_id: number
+  description?: string | null
   sort_order?: number
 }
 
-export type BoardMemberUpdateFields = Partial<BoardMemberFields>
+export type BoardMemberUpdateFields =
+  | (Partial<Pick<BoardMemberFields, 'name' | 'company_name' | 'sort_order'>> &
+      Pick<BoardMemberFields, 'language_id'> &
+      Partial<
+        Pick<BoardMemberFields, 'role' | 'board_member_type_id' | 'description'>
+      >)
+  | Partial<Pick<BoardMemberFields, 'name' | 'company_name' | 'sort_order'>>
 
 interface BoardMembersResponse {
   board_members: BoardMember[]
@@ -96,10 +113,10 @@ export async function deleteBoardMember(memberId: number) {
   await apiClient.delete<void>(`/board_members/${memberId}`)
 }
 
-export async function createBoardMemberType(type: string) {
+export async function createBoardMemberType(type: string, languageId: string) {
   const { data } = await apiClient.post<BoardMemberTypeResponse>(
     '/board_member_types',
-    { type },
+    { type, language_id: languageId },
   )
 
   return data.board_member_type
@@ -118,18 +135,25 @@ export async function deleteBoardMemberType(typeId: number) {
   await apiClient.delete<void>(`/board_member_types/${typeId}`)
 }
 
-export function getBoardMemberAssetUrl(path: string) {
-  return new URL(
+export function getBoardMemberAssetUrl(path: string, version?: string) {
+  const url = new URL(
     path,
     apiClient.defaults.baseURL ?? window.location.origin,
-  ).toString()
+  )
+  if (version !== undefined) url.searchParams.set('v', version)
+
+  return url.toString()
 }
 
 function toBoardMemberFormData(fields: BoardMemberUpdateFields, photo: File) {
   const formData = new FormData()
 
   for (const [key, value] of Object.entries(fields)) {
-    if (value !== undefined) formData.append(key, String(value))
+    if (value !== undefined) {
+      const serializedValue =
+        key === 'company_name' && value === null ? '' : String(value)
+      formData.append(key, serializedValue)
+    }
   }
   formData.append('photo', photo)
 

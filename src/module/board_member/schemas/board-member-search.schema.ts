@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
+const languageSearch = z.string().toLowerCase().optional().catch(undefined)
+
 export const boardMemberSearchSchema = z.object({
+  lang: languageSearch,
   search: z
     .string()
     .trim()
@@ -13,6 +16,10 @@ export const boardMemberSearchSchema = z.object({
     .positive()
     .optional()
     .catch(undefined),
+})
+
+export const boardMemberTypeSearchSchema = z.object({
+  lang: languageSearch,
 })
 
 export type BoardMemberSearch = z.infer<typeof boardMemberSearchSchema>

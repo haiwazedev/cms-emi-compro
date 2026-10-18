@@ -4,12 +4,16 @@ import {
   updateBoardMemberType,
 } from '@/module/board_member/api/board-member.api'
 import type { BoardMemberType } from '@/module/board_member/api/board-member.api'
+import { BoardMemberLanguageSelect } from '@/module/board_member/components/board-member-language-select'
 import { BoardMemberTypeFormDialog } from '@/module/board_member/components/board-member-type-form-dialog'
 import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
 import {
   boardMemberQueryKeys,
   boardMemberTypesQueryOptions,
 } from '@/module/board_member/queries/board-member.queries'
+import type { Language } from '@/module/language/api/language.api'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -20,14 +24,79 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { toast } from '@/shared/lib/toast'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PencilIcon, PlusIcon, TagIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+const EMPTY_TYPES: BoardMemberType[] = []
 
 function BoardMemberTypesPage() {
+  const navigate = useNavigate({ from: '/board_member_types' })
+  const { lang } = useSearch({ from: '/_authenticated/board_member_types' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+
+  useEffect(() => {
+    if (urlLanguage || !language) return
+
+    void navigate({ search: { lang: language.id }, replace: true })
+  }, [language, navigate, urlLanguage])
+
+  if (languagesQuery.isPending) {
+    return <TypeMessage message={BOARD_MEMBER_LABELS.languageLoading} />
+  }
+  if (languagesQuery.isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
+        <p role="alert" className="text-danger text-sm">
+          {BOARD_MEMBER_LABELS.languagesFailed}
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => void languagesQuery.refetch()}
+        >
+          {BOARD_MEMBER_LABELS.retry}
+        </Button>
+      </div>
+    )
+  }
+  if (!language) {
+    return <TypeMessage message={BOARD_MEMBER_LABELS.noLanguages} />
+  }
+
+  return (
+    <BoardMemberTypesContent
+      languages={languages}
+      language={language}
+      onLanguageChange={(languageId) => {
+        const nextLanguage = languages.find((item) => item.id === languageId)
+        if (!nextLanguage) return
+
+        void navigate({ search: { lang: nextLanguage.id } })
+      }}
+    />
+  )
+}
+
+function BoardMemberTypesContent({
+  languages,
+  language,
+  onLanguageChange,
+}: {
+  languages: Language[]
+  language: Language
+  onLanguageChange: (languageId: string) => void
+}) {
   const queryClient = useQueryClient()
   const typesQuery = useQuery(boardMemberTypesQueryOptions())
+  const types = typesQuery.data ?? EMPTY_TYPES
+  const localizedTypes = types.filter(
+    (memberType) => memberType.language_id === language.id,
+  )
   const [typeFormOpen, setTypeFormOpen] = useState(false)
   const [typeToEdit, setTypeToEdit] = useState<BoardMemberType>()
   const [typeToDelete, setTypeToDelete] = useState<BoardMemberType | null>(null)
@@ -36,7 +105,7 @@ function BoardMemberTypesPage() {
     mutationFn: ({ typeId, type }: { typeId?: number; type: string }) =>
       typeId
         ? updateBoardMemberType(typeId, type)
-        : createBoardMemberType(type),
+        : createBoardMemberType(type, language.id),
     onSuccess: async () => {
       closeTypeForm()
       await Promise.all([
@@ -120,7 +189,9 @@ function BoardMemberTypesPage() {
             variant="link"
             className="text-secondary h-auto self-start px-0"
           >
-            <Link to="/board_members">{BOARD_MEMBER_LABELS.backToMembers}</Link>
+            <Link to="/board_members" search={{ lang: language.id }}>
+              {BOARD_MEMBER_LABELS.backToMembers}
+            </Link>
           </Button>
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
@@ -136,6 +207,12 @@ function BoardMemberTypesPage() {
           {BOARD_MEMBER_LABELS.addType}
         </Button>
       </header>
+
+      <BoardMemberLanguageSelect
+        languages={languages}
+        languageId={language.id}
+        onLanguageChange={onLanguageChange}
+      />
 
       <section
         aria-label={BOARD_MEMBER_LABELS.typesPageTitle}
@@ -161,11 +238,11 @@ function BoardMemberTypesPage() {
               {BOARD_MEMBER_LABELS.retry}
             </Button>
           </div>
-        ) : typesQuery.data.length === 0 ? (
+        ) : localizedTypes.length === 0 ? (
           <TypeMessage message={BOARD_MEMBER_LABELS.noTypesList} />
         ) : (
           <ul className="divide-border/10 divide-y">
-            {typesQuery.data.map((memberType) => (
+            {localizedTypes.map((memberType) => (
               <li
                 key={memberType.id}
                 className="flex flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-6"
@@ -207,10 +284,11 @@ function BoardMemberTypesPage() {
 
       {typeFormOpen && (
         <BoardMemberTypeFormDialog
-          key={`${typeToEdit?.id ?? 'new-type'}-${typeFormOpen}`}
+          key={`${typeToEdit?.id ?? 'new-type'}-${language.id}-${typeFormOpen}`}
           open
           onOpenChange={handleFormOpenChange}
           memberType={typeToEdit}
+          language={language}
           pending={saveMutation.isPending}
           onSubmit={(type) =>
             saveMutation.mutate({

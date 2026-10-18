@@ -1,4 +1,7 @@
-import type { BoardMember } from '@/module/board_member/api/board-member.api'
+import type {
+  BoardMember,
+  BoardMemberContent,
+} from '@/module/board_member/api/board-member.api'
 import { getBoardMemberAssetUrl } from '@/module/board_member/api/board-member.api'
 import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
 import { Button } from '@/shared/components/ui/button'
@@ -9,6 +12,7 @@ import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 
 interface SortableBoardMemberRowProps {
   member: BoardMember
+  content?: BoardMemberContent
   index: number
   group: string
   disabled: boolean
@@ -18,6 +22,7 @@ interface SortableBoardMemberRowProps {
 
 function SortableBoardMemberRow({
   member,
+  content,
   index,
   group,
   disabled,
@@ -55,7 +60,10 @@ function SortableBoardMemberRow({
         <span className="bg-secondary/10 text-accent flex size-10 items-center justify-center overflow-hidden rounded-full text-xs font-semibold">
           {member.photo ? (
             <img
-              src={getBoardMemberAssetUrl(member.photo)}
+              src={getBoardMemberAssetUrl(
+                member.photo,
+                member.updated_at ?? member.created_at,
+              )}
               alt=""
               className="size-full object-cover"
             />
@@ -67,12 +75,15 @@ function SortableBoardMemberRow({
       <TableCell className="min-w-64">
         <div className="flex flex-col items-start gap-1 text-left">
           <span className="text-accent font-semibold">{member.name}</span>
-          <span className="text-foreground/55 text-sm">{member.role}</span>
+          <span className="text-foreground/55 text-sm">
+            {content?.role ?? BOARD_MEMBER_LABELS.missingTranslation}
+          </span>
         </div>
       </TableCell>
       <TableCell className="min-w-32">
         <span className="bg-secondary/10 text-accent inline-flex max-w-32 rounded-full px-3 py-1 text-xs font-medium whitespace-normal">
-          {member.board_member_type?.type ?? '—'}
+          {content?.board_member_type.type ??
+            BOARD_MEMBER_LABELS.missingTranslation}
         </span>
       </TableCell>
       <TableCell>{member.sort_order}</TableCell>

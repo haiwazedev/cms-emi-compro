@@ -4,6 +4,7 @@ import type {
   BoardMemberType,
 } from '@/module/board_member/api/board-member.api'
 import { getBoardMemberAssetUrl } from '@/module/board_member/api/board-member.api'
+import type { Language } from '@/module/language/api/language.api'
 import {
   BOARD_MEMBER_LABELS,
   BOARD_MEMBER_MAX_PHOTO_SIZE,
@@ -28,15 +29,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import { Textarea } from '@/shared/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon, UploadIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 interface BoardMemberFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   member?: BoardMember
+  language: Language
   types: BoardMemberType[]
   pending: boolean
   onSubmit: (fields: BoardMemberFields, photo?: File) => void
@@ -46,14 +49,34 @@ function BoardMemberFormDialog({
   open,
   onOpenChange,
   member,
+  language,
   types,
   pending,
   onSubmit,
 }: BoardMemberFormDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<File>()
+  const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string>()
   const [photoError, setPhotoError] = useState<string>()
   const isEditing = member !== undefined
+  const content = member?.contents.find(
+    (item) => item.language_id === language.id,
+  )
+  const photoPreviewUrl =
+    selectedPhotoPreview ??
+    (member?.photo
+      ? getBoardMemberAssetUrl(
+          member.photo,
+          member.updated_at ?? member.created_at,
+        )
+      : undefined)
+
+  useEffect(() => {
+    return () => {
+      if (selectedPhotoPreview) URL.revokeObjectURL(selectedPhotoPreview)
+    }
+  }, [selectedPhotoPreview])
+
   const {
     control,
     formState: { errors },
@@ -63,13 +86,16 @@ function BoardMemberFormDialog({
     resolver: zodResolver(boardMemberFormSchema),
     defaultValues: {
       name: member?.name ?? '',
-      role: member?.role ?? '',
-      board_member_type_id: member?.board_member_type_id ?? types[0]?.id ?? 0,
+      company_name: member?.company_name ?? '',
+      role: content?.role ?? '',
+      description: content?.description ?? '',
+      board_member_type_id: content?.board_member_type_id ?? types[0]?.id ?? 0,
     },
   })
 
   function handlePhotoChange(file: File | undefined) {
     setSelectedPhoto(undefined)
+    setSelectedPhotoPreview(undefined)
     setPhotoError(undefined)
     if (!file) return
 
@@ -89,11 +115,20 @@ function BoardMemberFormDialog({
     }
 
     setSelectedPhoto(file)
+    setSelectedPhotoPreview(URL.createObjectURL(file))
   }
 
   function submitForm(values: BoardMemberFormValues) {
     if (photoError) return
-    onSubmit(values, selectedPhoto)
+    onSubmit(
+      {
+        ...values,
+        company_name: values.company_name.trim() || null,
+        language_id: language.id,
+        description: values.description || null,
+      },
+      selectedPhoto,
+    )
   }
 
   return (
@@ -106,7 +141,8 @@ function BoardMemberFormDialog({
               : BOARD_MEMBER_LABELS.createMember}
           </DialogTitle>
           <DialogDescription>
-            {BOARD_MEMBER_LABELS.description}
+            {BOARD_MEMBER_LABELS.description} — {language.flag}{' '}
+            {language.language}
           </DialogDescription>
         </DialogHeader>
 
@@ -136,6 +172,24 @@ function BoardMemberFormDialog({
             </div>
 
             <div className="flex flex-col gap-2">
+              <Label htmlFor="board-member-company-name">
+                {BOARD_MEMBER_LABELS.companyNameField}
+              </Label>
+              <Input
+                id="board-member-company-name"
+                maxLength={100}
+                disabled={pending}
+                aria-invalid={Boolean(errors.company_name)}
+                {...register('company_name')}
+              />
+              {errors.company_name?.message && (
+                <p role="alert" className="text-danger text-sm">
+                  {errors.company_name.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-role">
                 {BOARD_MEMBER_LABELS.roleField}
               </Label>
@@ -150,6 +204,23 @@ function BoardMemberFormDialog({
               {errors.role?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.role.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="board-member-description">
+                {BOARD_MEMBER_LABELS.descriptionField}
+              </Label>
+              <Textarea
+                id="board-member-description"
+                disabled={pending}
+                aria-invalid={Boolean(errors.description)}
+                {...register('description')}
+              />
+              {errors.description?.message && (
+                <p role="alert" className="text-danger text-sm">
+                  {errors.description.message}
                 </p>
               )}
             </div>
@@ -196,10 +267,10 @@ function BoardMemberFormDialog({
               <Label htmlFor="board-member-photo">
                 {BOARD_MEMBER_LABELS.photoField}
               </Label>
-              {member?.photo && (
+              {photoPreviewUrl && (
                 <div className="flex items-center gap-3">
                   <img
-                    src={getBoardMemberAssetUrl(member.photo)}
+                    src={photoPreviewUrl}
                     alt=""
                     className="size-12 rounded-full object-cover"
                   />
