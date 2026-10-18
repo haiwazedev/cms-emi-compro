@@ -48,6 +48,7 @@ export const MEDIA_LABELS = {
 export const MEDIA_PICKER_LABELS = {
   title: 'Pilih dari Media Library',
   description: 'Pilih satu gambar untuk digunakan sebagai foto utama.',
+  multipleDescription: 'Pilih satu atau beberapa gambar untuk galeri layanan.',
   searchLabel: 'Cari gambar',
   searchPlaceholder: 'Cari berkas...',
   upload: 'Unggah berkas baru',
@@ -57,6 +58,7 @@ export const MEDIA_PICKER_LABELS = {
   selectedCount: (count: number) => `${count} berkas dipilih`,
   cancel: 'Batal',
   useFile: 'Gunakan berkas',
+  useFiles: 'Gunakan gambar terpilih',
   close: 'Tutup dialog pilih media',
   unsupportedFile: 'Pilih gambar PNG, JPG, atau JPEG.',
 } as const

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import { Textarea } from '@/shared/components/ui/textarea'
 import { LoaderCircleIcon, UploadIcon } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useRef, useState } from 'react'
@@ -30,6 +31,7 @@ interface DivisionFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   division?: Division
+  languageId: string
   pending: boolean
   onSubmit: (fields: DivisionWriteFields) => void
 }
@@ -38,12 +40,17 @@ function DivisionFormDialog({
   open,
   onOpenChange,
   division,
+  languageId,
   pending,
   onSubmit,
 }: DivisionFormDialogProps) {
+  const content = division?.contents.find(
+    (item) => item.language_id === languageId,
+  )
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [name, setName] = useState(division?.name ?? '')
-  const [abbreviation, setAbbreviation] = useState(division?.abbr ?? '')
+  const [name, setName] = useState(content?.name ?? '')
+  const [abbreviation, setAbbreviation] = useState(content?.abbr ?? '')
+  const [description, setDescription] = useState(content?.description ?? '')
   const [status, setStatus] = useState<DivisionStatus>(
     division?.status ?? 'DRAFT',
   )
@@ -101,8 +108,10 @@ function DivisionFormDialog({
     }
 
     onSubmit({
+      language_id: languageId,
       name: name.trim(),
       abbr: abbreviation.trim(),
+      description: description.trim() || null,
       icon_svg: iconSvg,
       status,
     })
@@ -148,6 +157,18 @@ function DivisionFormDialog({
                 disabled={pending}
                 value={abbreviation}
                 onChange={(event) => setAbbreviation(event.currentTarget.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="division-description">
+                {DIVISION_LABELS.divisionDescription}
+              </Label>
+              <Textarea
+                id="division-description"
+                disabled={pending}
+                value={description}
+                onChange={(event) => setDescription(event.currentTarget.value)}
               />
             </div>
 

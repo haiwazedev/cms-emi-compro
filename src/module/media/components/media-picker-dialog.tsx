@@ -35,12 +35,25 @@ import type { ChangeEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
 import { cn } from '@/shared/lib/utils'
 
-interface MediaPickerDialogProps {
+interface MediaPickerDialogBaseProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+interface SingleMediaPickerDialogProps extends MediaPickerDialogBaseProps {
+  selectionMode?: 'single'
   selectedMediaId?: number
   onSelect: (media: Media) => void
 }
+
+interface MultipleMediaPickerDialogProps extends MediaPickerDialogBaseProps {
+  selectionMode: 'multiple'
+  selectedMediaIds: number[]
+  onSelectMultiple: (media: Media[]) => void
+}
+
+type MediaPickerDialogProps =
+  SingleMediaPickerDialogProps | MultipleMediaPickerDialogProps
 
 const pictureMediaParams = {
   type: 'PICTURE',
@@ -51,17 +64,35 @@ const pictureMediaParams = {
 function MediaPickerDialog({
   open,
   onOpenChange,
-  selectedMediaId,
-  onSelect,
+  ...selectionProps
 }: MediaPickerDialogProps) {
+  const selectionMode = selectionProps.selectionMode ?? 'single'
+  const multipleSelectedMediaIds =
+    selectionProps.selectionMode === 'multiple'
+      ? selectionProps.selectedMediaIds
+      : undefined
+  const singleSelectedMediaId =
+    selectionProps.selectionMode === 'multiple'
+      ? undefined
+      : selectionProps.selectedMediaId
+  const selectedMediaIds = useMemo(
+    () =>
+      selectionMode === 'multiple'
+        ? (multipleSelectedMediaIds ?? [])
+        : singleSelectedMediaId === undefined
+          ? []
+          : [singleSelectedMediaId],
+    [multipleSelectedMediaIds, selectionMode, singleSelectedMediaId],
+  )
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState('')
-  const [pendingMediaId, setPendingMediaId] = useState(selectedMediaId)
+  const [pendingMediaIds, setPendingMediaIds] = useState(selectedMediaIds)
   const mediaQuery = useQuery({
     ...mediaQueryOptions(pictureMediaParams),
     enabled: open,
   })
+
   const visibleMedia = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase()
 
@@ -69,15 +100,20 @@ function MediaPickerDialog({
       media.filename.toLocaleLowerCase().includes(normalizedSearch),
     )
   }, [mediaQuery.data, search])
-  const pendingMedia = mediaQuery.data?.find(
-    (media) => media.id === pendingMediaId,
-  )
+  const pendingMedia =
+    mediaQuery.data?.filter((media) => pendingMediaIds.includes(media.id)) ?? []
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => uploadMedia(file, 'PICTURE'),
     onSuccess: async (media) => {
       setSearch('')
-      setPendingMediaId(media.id)
+      setPendingMediaIds((current) =>
+        selectionMode === 'multiple'
+          ? current.includes(media.id)
+            ? current
+            : [...current, media.id]
+          : [media.id],
+      )
       await queryClient.invalidateQueries({ queryKey: mediaQueryKeys.all })
       toast.add({
         title: 'Berhasil',
@@ -123,9 +159,16 @@ function MediaPickerDialog({
   }
 
   function useSelectedMedia() {
-    if (!pendingMedia) return
-
-    onSelect(pendingMedia)
+    if (selectionProps.selectionMode === 'multiple') {
+      const selected = pendingMediaIds
+        .map((id) => mediaQuery.data?.find((media) => media.id === id))
+        .filter((media): media is Media => media !== undefined)
+      selectionProps.onSelectMultiple(selected)
+    } else {
+      const selected = pendingMedia[0]
+      if (!selected) return
+      selectionProps.onSelect(selected)
+    }
     onOpenChange(false)
   }
 
@@ -138,7 +181,9 @@ function MediaPickerDialog({
         <DialogHeader className="border-border/15 border-b">
           <DialogTitle>{MEDIA_PICKER_LABELS.title}</DialogTitle>
           <DialogDescription>
-            {MEDIA_PICKER_LABELS.description}
+            {selectionMode === 'multiple'
+              ? MEDIA_PICKER_LABELS.multipleDescription
+              : MEDIA_PICKER_LABELS.description}
           </DialogDescription>
         </DialogHeader>
 
@@ -228,8 +273,18 @@ function MediaPickerDialog({
                 <MediaPickerCard
                   key={media.id}
                   media={media}
-                  selected={media.id === pendingMediaId}
-                  onSelect={() => setPendingMediaId(media.id)}
+                  selected={pendingMediaIds.includes(media.id)}
+                  onSelect={() => {
+                    if (selectionMode === 'multiple') {
+                      setPendingMediaIds((current) =>
+                        current.includes(media.id)
+                          ? current.filter((id) => id !== media.id)
+                          : [...current, media.id],
+                      )
+                    } else {
+                      setPendingMediaIds([media.id])
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -238,7 +293,7 @@ function MediaPickerDialog({
 
         <DialogFooter className="lg:items-center lg:justify-between">
           <span className="text-foreground/55 text-sm">
-            {MEDIA_PICKER_LABELS.selectedCount(pendingMediaId == null ? 0 : 1)}
+            {MEDIA_PICKER_LABELS.selectedCount(pendingMediaIds.length)}
           </span>
           <div className="flex flex-col-reverse gap-2 lg:flex-row">
             <Button
@@ -250,10 +305,12 @@ function MediaPickerDialog({
             </Button>
             <Button
               type="button"
-              disabled={!pendingMedia || uploadMutation.isPending}
+              disabled={pendingMedia.length === 0 || uploadMutation.isPending}
               onClick={useSelectedMedia}
             >
-              {MEDIA_PICKER_LABELS.useFile}
+              {selectionMode === 'multiple'
+                ? MEDIA_PICKER_LABELS.useFiles
+                : MEDIA_PICKER_LABELS.useFile}
             </Button>
           </div>
         </DialogFooter>

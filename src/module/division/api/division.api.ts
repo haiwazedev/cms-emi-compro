@@ -1,11 +1,18 @@
+import type { Media } from '@/module/media/api/media.api'
 import { apiClient } from '@/shared/lib/api-client'
 
 export type DivisionStatus = 'DRAFT' | 'PUBLISHED'
 
-export interface Division {
-  id: number
+export interface DivisionContent {
+  language_id: string
   name: string
   abbr: string
+  description: string | null
+}
+
+export interface Division {
+  id: number
+  contents: DivisionContent[]
   icon_svg: string | null
   status: DivisionStatus
   sort_order: number
@@ -15,10 +22,17 @@ export interface Division {
   updated_by: string | null
 }
 
+export interface ServiceContent {
+  language_id: string
+  name: string
+  description: string | null
+}
+
 export interface Service {
   id: number
   division_id: number
-  name: string
+  contents: ServiceContent[]
+  media?: Media[]
   sort_order: number
   created_at: string
   created_by: string
@@ -27,16 +41,26 @@ export interface Service {
   division?: Division
 }
 
+export interface ServiceDetails extends Service {
+  media: Media[]
+  division: Division
+}
+
 export interface DivisionWriteFields {
+  language_id: string
   name: string
   abbr: string
+  description: string | null
   icon_svg: string | null
   status: DivisionStatus
 }
 
 export interface ServiceWriteFields {
+  language_id: string
   division_id: number
   name: string
+  description: string | null
+  media_ids: number[]
 }
 
 interface DivisionsResponse {
@@ -53,6 +77,10 @@ interface ServicesResponse {
 
 interface ServiceResponse {
   service: Service
+}
+
+interface ServiceDetailsResponse {
+  service: ServiceDetails
 }
 
 export async function getDivisions() {
@@ -91,6 +119,13 @@ export async function reorderDivisions(divisionIds: number[]) {
 export async function getServices() {
   const { data } = await apiClient.get<ServicesResponse>('/services')
   return data.services
+}
+
+export async function getService(serviceId: number) {
+  const { data } = await apiClient.get<ServiceDetailsResponse>(
+    '/services/' + serviceId,
+  )
+  return data.service
 }
 
 export async function createService(fields: ServiceWriteFields) {
