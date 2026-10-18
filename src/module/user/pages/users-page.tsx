@@ -37,7 +37,7 @@ import {
 } from '@/shared/components/ui/table'
 import { ApiError } from '@/shared/lib/api-client'
 import { toast } from '@/shared/lib/toast'
-import { cn } from '@/shared/lib/utils'
+import { cn, getInitials } from '@/shared/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import {
@@ -536,15 +536,6 @@ function getVisiblePages(currentPage: number, pageCount: number) {
     { length: visiblePageCount },
     (_, index) => firstPage + index,
   )
-}
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
 }
 
 export { UsersPage }

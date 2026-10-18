@@ -47,7 +47,6 @@ export const NAVIGATION_TOPBAR_LABELS = {
   activeLanguage: 'ID',
   languages: ['ID', 'EN'],
   profile: 'Profil pengguna',
-  profileInitials: 'NA',
   logout: 'Keluar',
   loggingOut: 'Sedang keluar...',
   logoutSuccess: 'Berhasil keluar.',
