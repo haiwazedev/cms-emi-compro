@@ -2,10 +2,7 @@ import {
   ARTICLE_LABELS,
   ARTICLE_PAGE_SIZES,
 } from '@/module/article/constants/article.constants'
-import type {
-  ArticleListItem,
-  ArticleStatus,
-} from '@/module/article/api/article.api'
+import type { ArticleListItem } from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
 import {
   Table,
@@ -22,8 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import { ArticleLanguagePills } from '@/module/article/components/article-language-pills'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
-import { cn } from '@/shared/lib/utils'
 import { Link } from '@tanstack/react-router'
 import {
   flexRender,
@@ -32,7 +29,6 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import type { ComponentProps } from 'react'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -90,27 +86,7 @@ function createArticleColumns(
       id: 'languages',
       header: ARTICLE_LABELS.languages,
       cell: ({ row }) => (
-        <div className="flex flex-wrap gap-1">
-          {row.original.languages.map((language) => {
-            const status = language.status ?? 'MISSING'
-            const code = language.language_id.toUpperCase()
-            const label = ARTICLE_LABELS.languageStatus(
-              code,
-              LANGUAGE_PILLS[status].label,
-            )
-
-            return (
-              <LanguagePill
-                key={language.language_id}
-                status={status}
-                title={label}
-                aria-label={label}
-              >
-                {code}
-              </LanguagePill>
-            )
-          })}
-        </div>
+        <ArticleLanguagePills languages={row.original.languages} />
       ),
     },
     {
@@ -282,56 +258,6 @@ function ArticleDataTable({
   )
 }
 
-type LanguagePillStatus = ArticleStatus | 'MISSING'
-
-const LANGUAGE_PILLS: Record<
-  LanguagePillStatus,
-  { label: string; className: string }
-> = {
-  PUBLISHED: {
-    label: ARTICLE_LABELS.published,
-    className: 'bg-success/10 text-success',
-  },
-  DRAFT: {
-    label: ARTICLE_LABELS.draft,
-    className: 'bg-warning/15 text-warning',
-  },
-  MISSING: {
-    label: ARTICLE_LABELS.translationMissing,
-    className: 'bg-foreground/10 text-foreground/50',
-  },
-}
-
-function LanguagePill({
-  status,
-  className,
-  ...props
-}: ComponentProps<'span'> & { status: LanguagePillStatus }) {
-  return (
-    <span
-      className={cn(
-        'rounded-full px-2 py-0.5 text-xs font-medium',
-        LANGUAGE_PILLS[status].className,
-        className,
-      )}
-      {...props}
-    />
-  )
-}
-
-function ArticleLanguageLegend() {
-  return (
-    <div className="text-foreground/55 flex flex-wrap items-center gap-2 px-4 pb-4 text-xs">
-      <span>{ARTICLE_LABELS.languageLegend}</span>
-      {(Object.keys(LANGUAGE_PILLS) as LanguagePillStatus[]).map((status) => (
-        <LanguagePill key={status} status={status}>
-          {LANGUAGE_PILLS[status].label}
-        </LanguagePill>
-      ))}
-    </div>
-  )
-}
-
 function ArticlePhoto({ article }: { article: ArticleListItem }) {
   if (!article.primary_photo_url) {
     return (
@@ -364,4 +290,4 @@ function formatIssueDate(issueDate: string | null) {
   }).format(date)
 }
 
-export { ArticleDataTable, ArticleLanguageLegend }
+export { ArticleDataTable }

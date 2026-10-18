@@ -13,6 +13,13 @@ export const FAQ_LABELS = {
   published: 'Terbit',
   noFaqs: 'Belum ada pertanyaan. Tambahkan pertanyaan untuk memulai.',
   loadingFaqs: 'Memuat pertanyaan...',
+  loadingFaq: 'Memuat jawaban...',
+  faqFailed: 'Jawaban gagal dimuat.',
+  language: 'Bahasa',
+  languagesFailed: 'Daftar bahasa gagal dimuat.',
+  noLanguages: 'Tidak ada bahasa aktif.',
+  discardChangesConfirm:
+    'Perubahan yang belum disimpan akan hilang. Lanjutkan?',
   faqsFailed: 'Pertanyaan gagal dimuat.',
   retry: 'Coba lagi',
   saving: 'Menyimpan...',

@@ -1,6 +1,6 @@
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
-import type { Faq, FaqStatus, FaqWriteFields } from '@/module/faq/api/faq.api'
+import type { FaqStatus, FaqWriteFields } from '@/module/faq/api/faq.api'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Input } from '@/shared/components/ui/input'
@@ -14,20 +14,37 @@ import {
 } from '@/shared/components/ui/select'
 import { CheckIcon, LoaderCircleIcon } from 'lucide-react'
 import type { FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+export type FaqFormFields = Omit<FaqWriteFields, 'language_id'>
 
 interface FaqFormCardProps {
-  faq?: Faq
+  title: string
+  initial?: FaqFormFields
   pending: boolean
   onCancel: () => void
-  onSubmit: (fields: FaqWriteFields) => void
+  onSubmit: (fields: FaqFormFields) => void
+  onDirtyChange?: (dirty: boolean) => void
 }
 
-function FaqFormCard({ faq, pending, onCancel, onSubmit }: FaqFormCardProps) {
-  const [question, setQuestion] = useState(faq?.question ?? '')
-  const [answer, setAnswer] = useState(faq?.answer ?? '')
-  const [status, setStatus] = useState<FaqStatus>(faq?.status ?? 'DRAFT')
+function FaqFormCard({
+  title,
+  initial,
+  pending,
+  onCancel,
+  onSubmit,
+  onDirtyChange,
+}: FaqFormCardProps) {
+  const [question, setQuestion] = useState(initial?.question ?? '')
+  const [answer, setAnswer] = useState(initial?.answer ?? '')
+  const [status, setStatus] = useState<FaqStatus>(initial?.status ?? 'DRAFT')
   const [formError, setFormError] = useState<string>()
+  const dirty =
+    question !== (initial?.question ?? '') ||
+    answer !== (initial?.answer ?? '') ||
+    status !== (initial?.status ?? 'DRAFT')
+
+  useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -50,11 +67,12 @@ function FaqFormCard({ faq, pending, onCancel, onSubmit }: FaqFormCardProps) {
     <Card aria-labelledby="faq-form-title">
       <CardHeader>
         <CardTitle id="faq-form-title" className="break-words">
-          {faq ? FAQ_LABELS.editTitle(faq.question) : FAQ_LABELS.createTitle}
+          {title}
         </CardTitle>
       </CardHeader>
 
-      <form onSubmit={handleSubmit} className="flex flex-col">
+      {/* relative: keeps Radix Select's hidden native <select> inside the layout's scroll area. */}
+      <form onSubmit={handleSubmit} className="relative flex flex-col">
         <div className="flex flex-col gap-4 p-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="faq-question">
