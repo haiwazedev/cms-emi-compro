@@ -3,7 +3,7 @@ export interface HomeSlideDraft {
   title1: string
   title2: string
   subtitle: string
-  mediaId: number | null
+  mediaFilepath: string | null
 }
 
 export interface HomeStatisticDraft {

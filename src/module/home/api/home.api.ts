@@ -6,8 +6,7 @@ export interface HomeContentRecord {
   block_key: string
   block_type: string
   sort_order: number
-  data: Record<string, string> | null
-  media_id: number | null
+  data: Record<string, string | null> | null
   created_at: string
   created_by: string
   updated_at: string | null
@@ -20,8 +19,12 @@ export type HomeContentWriteItem =
       block_key: 'hero-carousel'
       block_type: 'carousel-slide'
       sort_order: number
-      data: { title_1: string; title_2: string; subtitle: string }
-      media_id: number | null
+      data: {
+        title_1: string
+        title_2: string
+        subtitle: string
+        media_filepath: string | null
+      }
     }
   | {
       page: 'home'
@@ -50,19 +53,28 @@ export type HomeContentWriteItem =
     }
 
 interface HomeContentResponse {
-  contents: HomeContentRecord[]
+  site_contents: { language_id: string; items: HomeContentRecord[] }
 }
 
-export async function getHomeContent() {
-  const { data } = await apiClient.get<HomeContentResponse>('/contents', {
-    params: { page: 'home' },
+export async function getHomeContent(languageId: string) {
+  const { data } = await apiClient.get<HomeContentResponse>('/site_contents', {
+    params: { page: 'home', language_id: languageId },
   })
 
-  return data.contents
+  return data.site_contents.items
 }
 
-export async function saveHomeContent(items: HomeContentWriteItem[]) {
-  const { data } = await apiClient.put<HomeContentResponse>('/contents', items)
+export async function saveHomeContent({
+  languageId,
+  items,
+}: {
+  languageId: string
+  items: HomeContentWriteItem[]
+}) {
+  const { data } = await apiClient.put<HomeContentResponse>('/site_contents', {
+    language_id: languageId,
+    items,
+  })
 
-  return data.contents
+  return data.site_contents.items
 }

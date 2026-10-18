@@ -28,10 +28,13 @@ function SortableServiceRow({
   onDelete,
 }: SortableServiceRowProps) {
   const name = content?.name ?? DIVISION_LABELS.missingTranslation
+  const group = `services-${service.division_id}`
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `service:${service.id}`,
     index,
-    group: `services-${service.division_id}`,
+    group,
+    type: group,
+    accept: group,
   })
 
   return (

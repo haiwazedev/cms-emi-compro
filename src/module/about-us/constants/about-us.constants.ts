@@ -1,4 +1,9 @@
 export const ABOUT_US_LABELS = {
+  language: 'Bahasa',
+  languagesFailed: 'Daftar bahasa gagal dimuat.',
+  noLanguages: 'Belum ada bahasa aktif.',
+  discardChangesConfirm:
+    'Perubahan yang belum disimpan akan hilang. Lanjutkan?',
   pageTitle: 'Tentang Kami',
   documentTitle: 'Tentang Kami | PLN EMI Admin',
   description: 'Single Type - halaman profil perusahaan.',
@@ -38,6 +43,7 @@ export const ABOUT_US_LABELS = {
   editTimeline: (index: number) => `Edit tonggak sejarah ${index}`,
   deleteTimeline: (index: number) => `Hapus tonggak sejarah ${index}`,
   timelinePeriod: 'Periode',
+  timelineTitle: 'Judul',
   timelineDescription: 'Deskripsi',
   keepOneTimeline: 'Minimal satu tonggak sejarah harus dipertahankan.',
   dragMission: (index: number) => `Geser misi ${index}`,

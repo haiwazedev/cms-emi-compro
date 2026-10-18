@@ -15,6 +15,10 @@ import type {
   HomeSlideDraft,
   HomeStatisticDraft,
 } from '@/module/home/types/home.types'
+import type { Language } from '@/module/language/api/language.api'
+import { LanguageSelect } from '@/module/language/components/language-select'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import type { Media } from '@/module/media/api/media.api'
 import { mediaQueryOptions } from '@/module/media/queries/media.queries'
@@ -40,8 +44,9 @@ import { DragDropProvider } from '@dnd-kit/react'
 import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useBlocker, useNavigate, useSearch } from '@tanstack/react-router'
 import { CheckIcon, InfoIcon, LoaderCircleIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const pictureMediaParams = {
   type: 'PICTURE',
@@ -58,8 +63,59 @@ const emptyHomeDraft: HomeDraft = {
 }
 
 function HomePage() {
+  const { lang } = useSearch({ from: '/_authenticated/home' })
+  const navigate = useNavigate({ from: '/home' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+
+  useEffect(() => {
+    if (urlLanguage || !language) return
+
+    void navigate({ search: { lang: language.id }, replace: true })
+  }, [language, navigate, urlLanguage])
+
+  if (languagesQuery.isPending) {
+    return <HomePageMessage message={HOME_LABELS.loading} />
+  }
+  if (languagesQuery.isError) {
+    return (
+      <HomePageMessage
+        message={HOME_LABELS.languagesFailed}
+        onRetry={() => void languagesQuery.refetch()}
+      />
+    )
+  }
+  if (!language) {
+    return <HomePageMessage message={HOME_LABELS.noLanguages} />
+  }
+
+  return (
+    <HomeEditor
+      // Remount per language: switching discards every unsaved edit.
+      key={language.id}
+      languages={languages}
+      languageId={language.id}
+      onLanguageChange={(id) =>
+        // The editor already confirmed discarding changes.
+        void navigate({ search: { lang: id }, ignoreBlocker: true })
+      }
+    />
+  )
+}
+
+function HomeEditor({
+  languages,
+  languageId,
+  onLanguageChange,
+}: {
+  languages: Language[]
+  languageId: string
+  onLanguageChange: (languageId: string) => void
+}) {
   const queryClient = useQueryClient()
-  const homeQuery = useQuery(homeContentQueryOptions())
+  const homeQuery = useQuery(homeContentQueryOptions(languageId))
   const mediaQuery = useQuery(mediaQueryOptions(pictureMediaParams))
   const [draft, setDraft] = useState<HomeDraft | null>(null)
   const [savedDraft, setSavedDraft] = useState<HomeDraft | null>(null)
@@ -71,8 +127,8 @@ function HomePage() {
   )
   const editorDraft = draft ?? apiDraft
   const baselineDraft = savedDraft ?? apiDraft
-  const mediaById = useMemo(
-    () => new Map((mediaQuery.data ?? []).map((media) => [media.id, media])),
+  const mediaByPath = useMemo(
+    () => new Map((mediaQuery.data ?? []).map((media) => [media.path, media])),
     [mediaQuery.data],
   )
   const selectedSlide = editorDraft?.slides.find(
@@ -85,10 +141,24 @@ function HomePage() {
       JSON.stringify(buildHomeContentPayload(baselineDraft)),
   )
 
+  // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
+  useBlocker({
+    shouldBlockFn: () =>
+      isDirty && !window.confirm(HOME_LABELS.discardChangesConfirm),
+    enableBeforeUnload: () => isDirty,
+  })
+
+  function requestLanguage(id: string) {
+    if (id === languageId) return
+    if (isDirty && !window.confirm(HOME_LABELS.discardChangesConfirm)) return
+
+    onLanguageChange(id)
+  }
+
   const saveMutation = useMutation({
     mutationFn: saveHomeContent,
     onSuccess: (contents) => {
-      queryClient.setQueryData(homeContentQueryKeys.page(), contents)
+      queryClient.setQueryData(homeContentQueryKeys.page(languageId), contents)
       setSavedDraft(mapHomeContents(contents))
       toast.add({
         title: 'Berhasil',
@@ -127,7 +197,9 @@ function HomePage() {
     updateDraft((current) => ({
       ...current,
       slides: current.slides.map((slide) =>
-        slide.clientKey === clientKey ? { ...slide, mediaId: media.id } : slide,
+        slide.clientKey === clientKey
+          ? { ...slide, mediaFilepath: media.path }
+          : slide,
       ),
     }))
   }
@@ -202,7 +274,7 @@ function HomePage() {
           title1: '',
           title2: '',
           subtitle: '',
-          mediaId: null,
+          mediaFilepath: null,
         },
       ],
     }))
@@ -266,7 +338,10 @@ function HomePage() {
 
   function saveDraft() {
     if (!editorDraft || !isDirty || saveMutation.isPending) return
-    saveMutation.mutate(buildHomeContentPayload(editorDraft))
+    saveMutation.mutate({
+      languageId,
+      items: buildHomeContentPayload(editorDraft),
+    })
   }
 
   if (homeQuery.isError && !homeQuery.data) {
@@ -332,6 +407,14 @@ function HomePage() {
           </div>
         </header>
 
+        {/* Controlled by the URL: a cancelled discard keeps the current language. */}
+        <LanguageSelect
+          label={HOME_LABELS.language}
+          languages={languages}
+          value={languageId}
+          onChange={requestLanguage}
+        />
+
         <Card aria-labelledby="home-carousel-title">
           <CardHeader>
             <CardTitle id="home-carousel-title" className="text-base">
@@ -363,9 +446,9 @@ function HomePage() {
                     index={index}
                     total={editorDraft.slides.length}
                     media={
-                      slide.mediaId == null
+                      slide.mediaFilepath == null
                         ? undefined
-                        : mediaById.get(slide.mediaId)
+                        : mediaByPath.get(slide.mediaFilepath)
                     }
                     mediaLoading={mediaQuery.isPending}
                     mediaFailed={mediaQuery.isError}
@@ -486,12 +569,16 @@ function HomePage() {
 
         {selectedSlide && (
           <MediaPickerDialog
-            key={`${selectedSlide.clientKey}-${selectedSlide.mediaId ?? 'none'}`}
+            key={`${selectedSlide.clientKey}-${selectedSlide.mediaFilepath ?? 'none'}`}
             open
             onOpenChange={(open) => {
               if (!open) setPhotoPickerKey(null)
             }}
-            selectedMediaId={selectedSlide.mediaId ?? undefined}
+            selectedMediaId={
+              selectedSlide.mediaFilepath == null
+                ? undefined
+                : mediaByPath.get(selectedSlide.mediaFilepath)?.id
+            }
             onSelect={(media) =>
               changeSlideMedia(selectedSlide.clientKey, media)
             }
@@ -566,7 +653,7 @@ function mapHomeContents(contents: HomeContentRecord[]): HomeDraft {
       title1: content.data?.title_1 ?? '',
       title2: content.data?.title_2 ?? '',
       subtitle: content.data?.subtitle ?? '',
-      mediaId: content.media_id,
+      mediaFilepath: content.data?.media_filepath ?? null,
     }))
 
   const statistics = contents
@@ -619,8 +706,8 @@ function buildHomeContentPayload(draft: HomeDraft): HomeContentWriteItem[] {
         title_1: slide.title1,
         title_2: slide.title2,
         subtitle: slide.subtitle,
+        media_filepath: slide.mediaFilepath,
       },
-      media_id: slide.mediaId,
     })
   })
 

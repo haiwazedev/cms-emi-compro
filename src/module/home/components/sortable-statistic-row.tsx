@@ -41,6 +41,8 @@ function SortableStatisticRow({
     id: statistic.clientKey,
     index,
     group: 'home-statistics',
+    type: 'home-statistics',
+    accept: 'home-statistics',
   })
   const statisticNumber = index + 1
 

@@ -15,6 +15,10 @@ import type {
   AboutUsTimelineDraft,
 } from '@/module/about-us/types/about-us.types'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
+import type { Language } from '@/module/language/api/language.api'
+import { LanguageSelect } from '@/module/language/components/language-select'
+import { findDefaultLanguage } from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
@@ -41,8 +45,9 @@ import { DragDropProvider } from '@dnd-kit/react'
 import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useBlocker, useNavigate, useSearch } from '@tanstack/react-router'
 import { CheckIcon, ImageIcon, LoaderCircleIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 const pictureMediaParams = {
   type: 'PICTURE',
@@ -52,7 +57,7 @@ const pictureMediaParams = {
 
 const emptyAboutUsDraft: AboutUsDraft = {
   profileContent: '',
-  companyPictureMediaId: null,
+  companyPictureFilepath: null,
   vision: '',
   missions: [],
   timeline: [],
@@ -67,12 +72,65 @@ interface ItemDialogState {
 
 interface ItemDialogValue {
   primary: string
+  // Timeline entries only.
+  title?: string
   description: string
 }
 
 function AboutUsPage() {
+  const { lang } = useSearch({ from: '/_authenticated/about-us' })
+  const navigate = useNavigate({ from: '/about-us' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+
+  useEffect(() => {
+    if (urlLanguage || !language) return
+
+    void navigate({ search: { lang: language.id }, replace: true })
+  }, [language, navigate, urlLanguage])
+
+  if (languagesQuery.isPending) {
+    return <AboutUsPageMessage message={ABOUT_US_LABELS.loading} />
+  }
+  if (languagesQuery.isError) {
+    return (
+      <AboutUsPageMessage
+        message={ABOUT_US_LABELS.languagesFailed}
+        onRetry={() => void languagesQuery.refetch()}
+      />
+    )
+  }
+  if (!language) {
+    return <AboutUsPageMessage message={ABOUT_US_LABELS.noLanguages} />
+  }
+
+  return (
+    <AboutUsEditor
+      // Remount per language: switching discards every unsaved edit.
+      key={language.id}
+      languages={languages}
+      languageId={language.id}
+      onLanguageChange={(id) =>
+        // The editor already confirmed discarding changes.
+        void navigate({ search: { lang: id }, ignoreBlocker: true })
+      }
+    />
+  )
+}
+
+function AboutUsEditor({
+  languages,
+  languageId,
+  onLanguageChange,
+}: {
+  languages: Language[]
+  languageId: string
+  onLanguageChange: (languageId: string) => void
+}) {
   const queryClient = useQueryClient()
-  const aboutUsQuery = useQuery(aboutUsContentQueryOptions())
+  const aboutUsQuery = useQuery(aboutUsContentQueryOptions(languageId))
   const mediaQuery = useQuery(mediaQueryOptions(pictureMediaParams))
   const [draft, setDraft] = useState<AboutUsDraft | null>(null)
   const [savedDraft, setSavedDraft] = useState<AboutUsDraft | null>(null)
@@ -85,12 +143,12 @@ function AboutUsPage() {
   )
   const editorDraft = draft ?? apiDraft
   const baselineDraft = savedDraft ?? apiDraft
-  const mediaById = useMemo(
-    () => new Map((mediaQuery.data ?? []).map((media) => [media.id, media])),
+  const mediaByPath = useMemo(
+    () => new Map((mediaQuery.data ?? []).map((media) => [media.path, media])),
     [mediaQuery.data],
   )
-  const selectedPhoto = editorDraft?.companyPictureMediaId
-    ? mediaById.get(editorDraft.companyPictureMediaId)
+  const selectedPhoto = editorDraft?.companyPictureFilepath
+    ? mediaByPath.get(editorDraft.companyPictureFilepath)
     : undefined
   const isDirty = Boolean(
     editorDraft &&
@@ -99,10 +157,29 @@ function AboutUsPage() {
       JSON.stringify(buildAboutUsContentPayload(baselineDraft)),
   )
 
+  // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
+  useBlocker({
+    shouldBlockFn: () =>
+      isDirty && !window.confirm(ABOUT_US_LABELS.discardChangesConfirm),
+    enableBeforeUnload: () => isDirty,
+  })
+
+  function requestLanguage(id: string) {
+    if (id === languageId) return
+    if (isDirty && !window.confirm(ABOUT_US_LABELS.discardChangesConfirm)) {
+      return
+    }
+
+    onLanguageChange(id)
+  }
+
   const saveMutation = useMutation({
     mutationFn: saveAboutUsContent,
     onSuccess: (contents) => {
-      queryClient.setQueryData(aboutUsContentQueryKeys.page(), contents)
+      queryClient.setQueryData(
+        aboutUsContentQueryKeys.page(languageId),
+        contents,
+      )
       setSavedDraft(mapAboutUsContents(contents))
       toast.add({
         title: 'Berhasil',
@@ -135,7 +212,7 @@ function AboutUsPage() {
   function changeCompanyPhoto(media: Media) {
     updateDraft((current) => ({
       ...current,
-      companyPictureMediaId: media.id,
+      companyPictureFilepath: media.path,
     }))
   }
 
@@ -183,6 +260,7 @@ function AboutUsPage() {
                 ? {
                     ...entry,
                     period: value.primary,
+                    title: value.title ?? '',
                     description: value.description,
                   }
                 : entry,
@@ -192,6 +270,7 @@ function AboutUsPage() {
               {
                 clientKey,
                 period: value.primary,
+                title: value.title ?? '',
                 description: value.description,
               },
             ],
@@ -249,7 +328,10 @@ function AboutUsPage() {
 
   function saveDraft() {
     if (!editorDraft || !isDirty || saveMutation.isPending) return
-    saveMutation.mutate(buildAboutUsContentPayload(editorDraft))
+    saveMutation.mutate({
+      languageId,
+      items: buildAboutUsContentPayload(editorDraft),
+    })
   }
 
   if (aboutUsQuery.isError && !aboutUsQuery.data) {
@@ -290,6 +372,7 @@ function AboutUsPage() {
         }
       : {
           primary: (dialogEntry as AboutUsTimelineDraft).period,
+          title: (dialogEntry as AboutUsTimelineDraft).title,
           description: dialogEntry.description,
         }
     : undefined
@@ -335,6 +418,14 @@ function AboutUsPage() {
           </div>
         </header>
 
+        {/* Controlled by the URL: a cancelled discard keeps the current language. */}
+        <LanguageSelect
+          label={ABOUT_US_LABELS.language}
+          languages={languages}
+          value={languageId}
+          onChange={requestLanguage}
+        />
+
         <Card aria-labelledby="about-us-profile-title">
           <CardHeader>
             <CardTitle id="about-us-profile-title" className="text-base">
@@ -368,7 +459,7 @@ function AboutUsPage() {
                       className="size-full object-cover"
                     />
                   ) : mediaQuery.isPending &&
-                    editorDraft.companyPictureMediaId ? (
+                    editorDraft.companyPictureFilepath ? (
                     <span role="status" className="text-foreground/55 text-xs">
                       {ABOUT_US_LABELS.loadingPhoto}
                     </span>
@@ -376,7 +467,8 @@ function AboutUsPage() {
                     <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
                       <ImageIcon aria-hidden="true" className="size-5" />
                       <span>
-                        {mediaQuery.isError && editorDraft.companyPictureMediaId
+                        {mediaQuery.isError &&
+                        editorDraft.companyPictureFilepath
                           ? ABOUT_US_LABELS.photoUnavailable
                           : ABOUT_US_LABELS.noPhoto}
                       </span>
@@ -389,7 +481,7 @@ function AboutUsPage() {
                     variant="outline"
                     onClick={() => setPhotoPickerOpen(true)}
                   >
-                    {editorDraft.companyPictureMediaId
+                    {editorDraft.companyPictureFilepath
                       ? ABOUT_US_LABELS.changePhoto
                       : ABOUT_US_LABELS.choosePhoto}
                   </Button>
@@ -492,7 +584,9 @@ function AboutUsPage() {
                     clientKey={entry.clientKey}
                     index={index}
                     group="about-us-timeline"
-                    title={entry.period}
+                    title={[entry.period, entry.title]
+                      .filter(Boolean)
+                      .join(' · ')}
                     description={entry.description}
                     canDelete={canDeleteTimeline}
                     onEdit={() => openEditDialog('timeline', entry.clientKey)}
@@ -516,7 +610,7 @@ function AboutUsPage() {
           <MediaPickerDialog
             open
             onOpenChange={setPhotoPickerOpen}
-            selectedMediaId={editorDraft.companyPictureMediaId ?? undefined}
+            selectedMediaId={selectedPhoto?.id}
             onSelect={changeCompanyPhoto}
           />
         )}
@@ -592,6 +686,24 @@ function AboutUsItemDialog({
               }}
             />
           </div>
+          {kind === 'timeline' && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="about-us-item-title">
+                {ABOUT_US_LABELS.timelineTitle}
+              </Label>
+              <Input
+                id="about-us-item-title"
+                value={value.title ?? ''}
+                onChange={(event) => {
+                  const title = event.currentTarget.value
+                  setValue((current) => ({
+                    ...current,
+                    title,
+                  }))
+                }}
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="about-us-item-description">
               {descriptionLabel}
@@ -691,13 +803,14 @@ function mapAboutUsContents(contents: AboutUsContentRecord[]): AboutUsDraft {
     .map<AboutUsTimelineDraft>((content) => ({
       clientKey: `timeline-${content.id}`,
       period: content.data?.period ?? '',
+      title: content.data?.title ?? '',
       description: content.data?.description ?? '',
     }))
 
   return {
     ...emptyAboutUsDraft,
     profileContent: profileContent?.data?.content ?? '',
-    companyPictureMediaId: companyPicture?.media_id ?? null,
+    companyPictureFilepath: companyPicture?.data?.media_filepath ?? null,
     vision: vision?.data?.content ?? '',
     missions,
     timeline,
@@ -718,8 +831,7 @@ function buildAboutUsContentPayload(
       page: 'about-us',
       block_key: 'company-profile',
       block_type: 'company-picture',
-      data: null,
-      media_id: draft.companyPictureMediaId,
+      data: { media_filepath: draft.companyPictureFilepath },
     },
     {
       page: 'about-us',
@@ -750,6 +862,7 @@ function buildAboutUsContentPayload(
       sort_order: index + 1,
       data: {
         period: entry.period,
+        title: entry.title,
         description: entry.description,
       },
     })
