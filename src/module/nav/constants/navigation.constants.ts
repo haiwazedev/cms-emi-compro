@@ -7,6 +7,7 @@ import {
   HouseIcon,
   ImagesIcon,
   KeyRoundIcon,
+  LayoutDashboardIcon,
   MailIcon,
   NewspaperIcon,
   SettingsIcon,
@@ -19,6 +20,7 @@ export const NAVIGATION_LABELS = {
   mainContent: 'Konten utama',
   openNavigation: 'Buka navigasi',
   closeNavigation: 'Tutup navigasi',
+  dashboard: 'Dashboard',
   contentManager: 'CONTENT MANAGER',
   home: 'Beranda',
   aboutUs: 'Tentang Kami',
@@ -56,6 +58,7 @@ type NavigationItem = {
   label: string
   href?: '#'
   to?:
+    | '/dashboard'
     | '/home'
     | '/about-us'
     | '/articles'
@@ -72,11 +75,21 @@ type NavigationItem = {
 }
 
 type NavigationSection = {
-  label: string
+  // Sections without a label render no heading.
+  label?: string
   items: readonly NavigationItem[]
 }
 
 export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
+  {
+    items: [
+      {
+        label: NAVIGATION_LABELS.dashboard,
+        to: '/dashboard',
+        icon: LayoutDashboardIcon,
+      },
+    ],
+  },
   {
     label: NAVIGATION_LABELS.contentManager,
     items: [

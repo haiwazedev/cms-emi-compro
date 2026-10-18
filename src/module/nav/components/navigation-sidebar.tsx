@@ -52,10 +52,15 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
 
       <nav className="flex-1 space-y-6 py-6">
         {NAVIGATION_SECTIONS.map((section) => (
-          <section key={section.label} aria-label={section.label}>
-            <h2 className="mb-2 px-2 text-xs font-semibold tracking-widest text-white/50">
-              {section.label}
-            </h2>
+          <section
+            key={section.label ?? section.items[0]?.label}
+            aria-label={section.label}
+          >
+            {section.label && (
+              <h2 className="mb-2 px-2 text-xs font-semibold tracking-widest text-white/50">
+                {section.label}
+              </h2>
+            )}
             <ul className="space-y-1">
               {section.items
                 .filter((item) => item.to !== '/users' || canManageUsers)
