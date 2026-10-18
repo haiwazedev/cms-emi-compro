@@ -7,6 +7,7 @@ export interface AboutUsMissionDraft {
 export interface AboutUsTimelineDraft {
   clientKey: string
   period: string
+  title: string
   description: string
 }
 

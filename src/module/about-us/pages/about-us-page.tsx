@@ -72,6 +72,8 @@ interface ItemDialogState {
 
 interface ItemDialogValue {
   primary: string
+  // Timeline entries only.
+  title?: string
   description: string
 }
 
@@ -258,6 +260,7 @@ function AboutUsEditor({
                 ? {
                     ...entry,
                     period: value.primary,
+                    title: value.title ?? '',
                     description: value.description,
                   }
                 : entry,
@@ -267,6 +270,7 @@ function AboutUsEditor({
               {
                 clientKey,
                 period: value.primary,
+                title: value.title ?? '',
                 description: value.description,
               },
             ],
@@ -368,6 +372,7 @@ function AboutUsEditor({
         }
       : {
           primary: (dialogEntry as AboutUsTimelineDraft).period,
+          title: (dialogEntry as AboutUsTimelineDraft).title,
           description: dialogEntry.description,
         }
     : undefined
@@ -579,7 +584,9 @@ function AboutUsEditor({
                     clientKey={entry.clientKey}
                     index={index}
                     group="about-us-timeline"
-                    title={entry.period}
+                    title={[entry.period, entry.title]
+                      .filter(Boolean)
+                      .join(' · ')}
                     description={entry.description}
                     canDelete={canDeleteTimeline}
                     onEdit={() => openEditDialog('timeline', entry.clientKey)}
@@ -679,6 +686,24 @@ function AboutUsItemDialog({
               }}
             />
           </div>
+          {kind === 'timeline' && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="about-us-item-title">
+                {ABOUT_US_LABELS.timelineTitle}
+              </Label>
+              <Input
+                id="about-us-item-title"
+                value={value.title ?? ''}
+                onChange={(event) => {
+                  const title = event.currentTarget.value
+                  setValue((current) => ({
+                    ...current,
+                    title,
+                  }))
+                }}
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="about-us-item-description">
               {descriptionLabel}
@@ -778,6 +803,7 @@ function mapAboutUsContents(contents: AboutUsContentRecord[]): AboutUsDraft {
     .map<AboutUsTimelineDraft>((content) => ({
       clientKey: `timeline-${content.id}`,
       period: content.data?.period ?? '',
+      title: content.data?.title ?? '',
       description: content.data?.description ?? '',
     }))
 
@@ -836,6 +862,7 @@ function buildAboutUsContentPayload(
       sort_order: index + 1,
       data: {
         period: entry.period,
+        title: entry.title,
         description: entry.description,
       },
     })

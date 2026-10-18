@@ -43,6 +43,7 @@ export const ABOUT_US_LABELS = {
   editTimeline: (index: number) => `Edit tonggak sejarah ${index}`,
   deleteTimeline: (index: number) => `Hapus tonggak sejarah ${index}`,
   timelinePeriod: 'Periode',
+  timelineTitle: 'Judul',
   timelineDescription: 'Deskripsi',
   keepOneTimeline: 'Minimal satu tonggak sejarah harus dipertahankan.',
   dragMission: (index: number) => `Geser misi ${index}`,

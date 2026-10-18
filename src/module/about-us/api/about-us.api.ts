@@ -44,7 +44,7 @@ export type AboutUsContentWriteItem =
       block_key: 'history_timeline'
       block_type: 'timeline-item'
       sort_order: number
-      data: { period: string; description: string }
+      data: { period: string; title: string; description: string }
     }
 
 interface AboutUsContentResponse {
