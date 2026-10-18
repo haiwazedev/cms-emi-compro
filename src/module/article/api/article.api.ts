@@ -67,7 +67,7 @@ export interface ArticleListParams {
   search?: string
   article_category_id?: number
   status?: ArticleStatus
-  sort_by: 'created_at'
+  sort_by: 'created_at' | 'issue_date'
   sort_order: 'asc' | 'desc'
 }
 
@@ -118,6 +118,21 @@ export async function getArticles(params: ArticleListParams) {
   const { data } = await apiClient.get<ArticleListResponse>('/articles', {
     params,
   })
+
+  return data
+}
+
+export interface ArticleCounts {
+  total: number
+  languages: {
+    id: string
+    flag: string
+    count: Record<'draft' | 'published', number>
+  }[]
+}
+
+export async function getArticleCounts() {
+  const { data } = await apiClient.get<ArticleCounts>('/articles/count')
 
   return data
 }

@@ -50,7 +50,7 @@ Bearer JWTs are no longer accepted. Sign in again to create a session.
 For Fetch examples, define the base URL once:
 
 ```js
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:8000'
 ```
 
 ## Login
@@ -97,12 +97,12 @@ const response = await fetch(`${API_BASE_URL}/auth/login`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 
-const { user } = data;
+const { user } = data
 ```
 
 ### cURL example
@@ -148,12 +148,12 @@ without a role. Use `permissions` to hide actions the user cannot perform.
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/me`, {
   credentials: 'include',
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 
-const { user } = data;
+const { user } = data
 ```
 
 ### cURL example
@@ -183,11 +183,11 @@ with no response body.
 const response = await fetch(`${API_BASE_URL}/auth/logout`, {
   method: 'POST',
   credentials: 'include',
-});
+})
 
 if (!response.ok) {
-  const data = await response.json();
-  throw new Error(data.message);
+  const data = await response.json()
+  throw new Error(data.message)
 }
 ```
 
@@ -379,7 +379,8 @@ save and cannot be sent in requests.
 
 Returns a page of articles with their related category and primary photo media.
 Results are sorted by `created_at` descending by default, with `id` as a stable
-tie-breaker.
+tie-breaker. `sort_by=issue_date` sorts by `issue_date`, then `updated_at`, then
+`id`, all in `sort_order`; articles without an issue date or update come last.
 
 | Query parameter       | Type   | Rules                                                                     |
 | --------------------- | ------ | ------------------------------------------------------------------------- |
@@ -389,7 +390,7 @@ tie-breaker.
 | `article_category_id` | number | Optional positive category ID filter.                                     |
 | `language_id`         | string | Optional; only articles with content in this language, shown in it.       |
 | `status`              | string | Optional; `DRAFT` or `PUBLISHED`; matches a content row with this status. |
-| `sort_by`             | string | Optional; must be `created_at`, default `created_at`.                     |
+| `sort_by`             | string | Optional; `created_at` or `issue_date`, default `created_at`.             |
 | `sort_order`          | string | Optional; `asc` or `desc`, default `desc`.                                |
 
 Provided filters are combined using AND. `search`, `language_id`, and `status`
@@ -442,6 +443,26 @@ language's content status, or `null` when the article has no content in it.
     "totalItems": 1,
     "totalPages": 1
   }
+}
+```
+
+### Count articles
+
+`GET /articles/count`
+
+Requires an authenticated session. Returns the number of articles and, for
+every active language (ordered like `GET /languages`), how many of its contents
+are `DRAFT` or `PUBLISHED`. An article without content in a language does not
+count toward that language; active languages without content return `0`.
+`total` counts every article.
+
+```json
+{
+  "total": 1,
+  "languages": [
+    { "id": "id", "flag": "🇮🇩", "count": { "draft": 0, "published": 1 } },
+    { "id": "en", "flag": "🇬🇧", "count": { "draft": 1, "published": 0 } }
+  ]
 }
 ```
 
@@ -560,10 +581,10 @@ const response = await fetch(`${API_BASE_URL}/articles`, {
     issue_date: '2026-10-10',
     primary_photo: 18,
   }),
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 ```
 
 ## Divisions and Services
@@ -924,23 +945,23 @@ A member response includes every available translation:
 Example browser upload:
 
 ```js
-const formData = new FormData();
-formData.append('name', 'Ari Putra');
-formData.append('company_name', 'PLN Energi Primer Indonesia');
-formData.append('language_id', 'en');
-formData.append('role', 'President Director');
-formData.append('board_member_type_id', '3');
-formData.append('description', 'Leads the company.');
-formData.append('photo', imageFile);
+const formData = new FormData()
+formData.append('name', 'Ari Putra')
+formData.append('company_name', 'PLN Energi Primer Indonesia')
+formData.append('language_id', 'en')
+formData.append('role', 'President Director')
+formData.append('board_member_type_id', '3')
+formData.append('description', 'Leads the company.')
+formData.append('photo', imageFile)
 
 const response = await fetch(`${API_BASE_URL}/board_members`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -992,18 +1013,18 @@ A successful upload returns `201 Created`:
 Example browser request:
 
 ```js
-const formData = new FormData();
-formData.append('type', 'PICTURE');
-formData.append('file', imageFile);
+const formData = new FormData()
+formData.append('type', 'PICTURE')
+formData.append('file', imageFile)
 
 const response = await fetch(`${API_BASE_URL}/media`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1146,20 +1167,20 @@ sets `updated_at` and `updated_by` to the current time and authenticated user's
 name.
 
 ```js
-const formData = new FormData();
-formData.append('document_commitment_category_id', '2');
-formData.append('title', 'Board decision 2026-10');
-formData.append('status', 'PUBLISHED');
-formData.append('file', pdfFile);
+const formData = new FormData()
+formData.append('document_commitment_category_id', '2')
+formData.append('title', 'Board decision 2026-10')
+formData.append('status', 'PUBLISHED')
+formData.append('file', pdfFile)
 
 const response = await fetch(`${API_BASE_URL}/document_commitments`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 ```
 
 `GET /document_commitments` accepts these optional query parameters:
@@ -1338,8 +1359,8 @@ const response = await fetch(`${API_BASE_URL}/faqs/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ faq_ids: [3, 1, 2, 4] }),
-});
-const { faqs } = await response.json();
+})
+const { faqs } = await response.json()
 ```
 
 ## Clients
@@ -1391,18 +1412,18 @@ Upload logos as transparent PNG or WEBP files.
 Example browser upload:
 
 ```js
-const formData = new FormData();
-formData.append('name', 'Accenture');
-formData.append('logo', logoFile);
+const formData = new FormData()
+formData.append('name', 'Accenture')
+formData.append('logo', logoFile)
 
 const response = await fetch(`${API_BASE_URL}/clients`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1450,8 +1471,8 @@ const response = await fetch(`${API_BASE_URL}/clients/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ client_ids: [3, 1, 2, 4] }),
-});
-const { clients } = await response.json();
+})
+const { clients } = await response.json()
 ```
 
 ## Inboxes
@@ -1546,8 +1567,8 @@ parameters return `400 Bad Request`; a missing inbox returns `404 Not Found`.
 ```ts
 const response = await fetch(`${API_BASE_URL}/inboxes?page=1&search=budi`, {
   credentials: 'include',
-});
-const { inboxes, pagination } = await response.json();
+})
+const { inboxes, pagination } = await response.json()
 ```
 
 ## Site Settings
@@ -1635,7 +1656,7 @@ language has no rows.
 Example browser request:
 
 ```js
-const formData = new FormData();
+const formData = new FormData()
 formData.append(
   'data',
   JSON.stringify({
@@ -1667,18 +1688,18 @@ formData.append(
       },
     ],
   }),
-);
-formData.append('pln_logo', plnLogoFile);
-formData.append('social_icons', youtubeIconFile);
+)
+formData.append('pln_logo', plnLogoFile)
+formData.append('social_icons', youtubeIconFile)
 
 const response = await fetch(`${API_BASE_URL}/site_settings`, {
   method: 'PUT',
   credentials: 'include',
   body: formData,
-});
+})
 
-const data = await response.json();
-if (!response.ok) throw new Error(data.message);
+const data = await response.json()
+if (!response.ok) throw new Error(data.message)
 ```
 
 The response shape is:
@@ -1701,6 +1722,7 @@ The response shape is:
     "operational_day": "Senin - Jumat",
     "operational_start_time": "08:00",
     "operational_end_time": "17:00",
+    "landing_site_url": "https://www.example.com",
     "social_medias": [
       {
         "id": 2,
@@ -1726,6 +1748,10 @@ The response shape is:
   }
 }
 ```
+
+`landing_site_url` is read-only here: it is set directly in the
+`site_settings` table (key `landing_site_url`) and is `null` when that row is
+missing for the language. The CMS reads it from `language_id=id`.
 
 Invalid fields, files, or `icon_index` references return
 `400 Bad Request`; an unknown social media `id` returns
@@ -1876,6 +1902,42 @@ successful login and is `null` until the first one.
   }
 }
 ```
+
+## Activity Logs
+
+`GET /activity-logs` requires login and returns
+`{ "activityLogs": [...], "pagination": ... }` with `200 OK`, newest first
+(`created_at` descending, then ID).
+
+| Query parameter | Type   | Rules                                               |
+| --------------- | ------ | --------------------------------------------------- |
+| `page`          | number | Optional, 1-based; default `1`.                     |
+| `limit`         | number | Optional; default `20`, minimum `1`, maximum `100`. |
+
+```json
+{
+  "activityLogs": [
+    {
+      "id": 1,
+      "name": "Neni A.",
+      "action_type": "menambahkan artikel",
+      "action_result": "Kompas.com x PLN EMI",
+      "created_at": "2026-10-18T08:50:01.237Z"
+    }
+  ],
+  "pagination": { "page": 1, "limit": 20, "totalItems": 1, "totalPages": 1 }
+}
+```
+
+`name` is the user's name at the time of the action; it is stored on the
+entry, so entries remain after the user is deleted. Entries are written by the server after each
+successful content create, update, delete, or reorder (articles, article
+categories, roles, role permissions, users, board members and types, clients, divisions, services, documents
+and their categories, FAQs, media, site contents, and site settings).
+`action_type` is a verb plus the resource, such as `menambahkan artikel`,
+`memperbarui layanan`, `menghapus dokumen`, or `memperbarui urutan`.
+`action_result` is the item's name or title in the default language. Inbox and
+auth actions are not logged.
 
 ## Public Static Assets
 
