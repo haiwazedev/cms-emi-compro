@@ -1,3 +1,4 @@
+import { DashboardViewSiteButton } from '@/module/dashboard/components/dashboard-view-site-button'
 import { DashboardRecentActivity } from '@/module/dashboard/components/dashboard-recent-activity'
 import { DashboardLatestArticles } from '@/module/dashboard/components/dashboard-latest-articles'
 import { DashboardArticleStatCard } from '@/module/dashboard/components/dashboard-article-stat-card'
@@ -9,14 +10,12 @@ import {
 import {
   DASHBOARD_LABELS,
   DASHBOARD_QUICK_LINKS,
-  DASHBOARD_SITE_URL,
   DASHBOARD_USER_NAME,
 } from '@/module/dashboard/constants/dashboard.constants'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Link } from '@tanstack/react-router'
 import {
-  ExternalLinkIcon,
   FileTextIcon,
   HouseIcon,
   MailIcon,
@@ -50,12 +49,7 @@ function DashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
-          <Button asChild variant="outline">
-            <a href={DASHBOARD_SITE_URL} target="_blank" rel="noreferrer">
-              <ExternalLinkIcon aria-hidden="true" className="size-4" />
-              {DASHBOARD_LABELS.viewSite}
-            </a>
-          </Button>
+          <DashboardViewSiteButton />
           <Button asChild>
             <Link to="/articles/create">
               <PlusIcon aria-hidden="true" className="size-4" />

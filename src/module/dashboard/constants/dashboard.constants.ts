@@ -31,8 +31,6 @@ export const DASHBOARD_LABELS = {
 // shortcut: static data until dashboard API exists, replace per feature.
 export const DASHBOARD_USER_NAME = 'Neni'
 
-export const DASHBOARD_SITE_URL = import.meta.env.VITE_LANDING_SITE_URL
-
 export const DASHBOARD_QUICK_LINKS = [
   { key: 'article', label: 'Tulis artikel baru', to: '/articles/create' },
   { key: 'document', label: 'Unggah dokumen', to: '/document_commitments' },

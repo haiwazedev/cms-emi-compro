@@ -10,15 +10,11 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 ARG VITE_API_BASE_URL
-ARG VITE_LANDING_SITE_URL
-RUN for name in VITE_API_BASE_URL VITE_LANDING_SITE_URL; do \
-      if [ -z "$(printenv $name)" ]; then \
-        echo "$name build argument is required" >&2; \
-        exit 1; \
-      fi; \
-    done
+RUN if [ -z "$VITE_API_BASE_URL" ]; then \
+      echo "VITE_API_BASE_URL build argument is required" >&2; \
+      exit 1; \
+    fi
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-ENV VITE_LANDING_SITE_URL=${VITE_LANDING_SITE_URL}
 
 RUN pnpm build
 
