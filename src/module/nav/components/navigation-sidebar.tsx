@@ -35,7 +35,7 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
     <aside
       aria-label={NAVIGATION_LABELS.navigation}
       className={cn(
-        'bg-accent flex h-screen w-64 shrink-0 flex-col overflow-y-auto px-4 py-5 text-white',
+        'bg-sidebar flex h-screen w-64 shrink-0 flex-col overflow-y-auto px-4 py-5 text-white',
         className,
       )}
     >
