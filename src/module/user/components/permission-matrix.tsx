@@ -117,11 +117,13 @@ function PermissionMatrix() {
         <Table className="min-w-max">
           <TableHeader className="bg-primary">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="uppercase">{USER_LABELS.role}</TableHead>
+              <TableHead className="text-muted font-bold uppercase">
+                {USER_LABELS.role}
+              </TableHead>
               {permissionsQuery.data.map((permission) => (
                 <TableHead
                   key={permission.id}
-                  className="w-28 whitespace-normal uppercase"
+                  className="text-muted w-28 font-bold whitespace-normal uppercase"
                 >
                   {PERMISSION_LABELS[permission.name] ?? permission.name}
                 </TableHead>
@@ -134,9 +136,7 @@ function PermissionMatrix() {
                 <TableCell className="min-w-64">
                   <p className="text-accent font-medium">{role.name}</p>
                   {role.description && (
-                    <p className="text-foreground/55 text-xs">
-                      {role.description}
-                    </p>
+                    <p className="text-muted text-xs">{role.description}</p>
                   )}
                 </TableCell>
                 {permissionsQuery.data.map((permission) => {

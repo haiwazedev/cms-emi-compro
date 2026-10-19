@@ -3,10 +3,7 @@ import { Button } from '@/shared/components/ui/button'
 
 function ListMessage({ message, role }: { message: string; role?: 'status' }) {
   return (
-    <p
-      role={role}
-      className="text-foreground/60 px-4 py-12 text-center text-sm"
-    >
+    <p role={role} className="text-muted px-4 py-12 text-center text-sm">
       {message}
     </p>
   )

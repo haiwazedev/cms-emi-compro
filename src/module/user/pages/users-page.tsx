@@ -156,7 +156,7 @@ function UsersPage() {
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
             {USER_LABELS.pageTitle}
           </h1>
-          <p className="text-foreground/60 text-sm lg:text-base">
+          <p className="text-muted text-sm lg:text-base">
             {USER_LABELS.description}
           </p>
         </div>
@@ -178,7 +178,7 @@ function UsersPage() {
           <CardTitle id="registered-users-title" className="text-base">
             {USER_LABELS.registeredUsers}
           </CardTitle>
-          <span className="text-foreground/55 text-xs">
+          <span className="text-muted text-xs">
             {USER_LABELS.accountCount(pagination?.totalItems ?? 0)}
           </span>
         </CardHeader>
@@ -231,16 +231,16 @@ function UsersPage() {
               <TableHeader className="bg-primary">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-16" />
-                  <TableHead className="uppercase">
+                  <TableHead className="text-muted font-bold uppercase">
                     {USER_LABELS.nameAndEmail}
                   </TableHead>
-                  <TableHead className="uppercase">
+                  <TableHead className="text-muted font-bold uppercase">
                     {USER_LABELS.role}
                   </TableHead>
-                  <TableHead className="uppercase">
+                  <TableHead className="text-muted font-bold uppercase">
                     {USER_LABELS.status}
                   </TableHead>
-                  <TableHead className="uppercase">
+                  <TableHead className="text-muted font-bold uppercase">
                     {USER_LABELS.lastLogin}
                   </TableHead>
                   <TableHead>
@@ -346,19 +346,17 @@ function UserRow({
       {/* Name & Email */}
       <TableCell className="min-w-64">
         <p className="text-accent font-medium">{user.name}</p>
-        <p className="text-foreground/55 text-xs">{user.email}</p>
+        <p className="text-muted text-xs">{user.email}</p>
       </TableCell>
 
       {/* Role */}
       <TableCell>
         {user.role ? (
-          <span className="bg-primary text-accent rounded-full px-2.5 py-1 text-xs font-semibold">
+          <span className="bg-secondary/10 text-accent rounded-full px-2.5 py-1 text-xs font-semibold">
             {user.role.name}
           </span>
         ) : (
-          <span className="text-foreground/55 text-xs">
-            {USER_LABELS.noRole}
-          </span>
+          <span className="text-muted text-xs">{USER_LABELS.noRole}</span>
         )}
       </TableCell>
 
@@ -452,7 +450,7 @@ function UserSearchInput({ search }: { search?: string }) {
     <div className="relative lg:w-64">
       <SearchIcon
         aria-hidden="true"
-        className="text-foreground/40 absolute top-1/2 left-3 size-4 -translate-y-1/2"
+        className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
         type="search"
@@ -484,7 +482,7 @@ function UserPaginationFooter({
 
   return (
     <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-      <p className="text-foreground/60 text-sm">
+      <p className="text-muted text-sm">
         {USER_LABELS.showingEntries(start, end, totalItems)}
       </p>
       <div className="flex flex-wrap items-center gap-2">
