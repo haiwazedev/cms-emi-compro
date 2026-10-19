@@ -19,6 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import { TableCheckbox } from '@/shared/components/ui/table-checkbox'
+import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
 import { cn } from '@/shared/lib/utils'
 import {
   flexRender,
@@ -29,7 +31,6 @@ import type { ColumnDef } from '@tanstack/react-table'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  FileTextIcon,
   PencilIcon,
   Trash2Icon,
 } from 'lucide-react'
@@ -43,12 +44,31 @@ function createColumns(
 ): ColumnDef<DocumentCommitment>[] {
   return [
     {
+      // shortcut: UI-only selection, no bulk actions yet.
+      id: 'select',
+      header: ({ table }) => (
+        <TableCheckbox
+          aria-label={DOCUMENT_COMMITMENT_LABELS.selectAllDocuments}
+          checked={table.getIsAllRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => (
+        <TableCheckbox
+          aria-label={DOCUMENT_COMMITMENT_LABELS.selectDocument(
+            row.original.title,
+          )}
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ),
+    },
+    {
       id: 'cover',
       header: DOCUMENT_COMMITMENT_LABELS.cover,
       cell: () => (
-        <span className="bg-accent inline-flex h-14 w-10 flex-col items-center justify-center rounded-md text-white">
-          <FileTextIcon aria-hidden="true" className="size-4" />
-          <span className="text-xs font-semibold">PDF</span>
+        <span className="bg-accent inline-flex h-14 w-10 items-end rounded-md p-1 text-xs font-semibold text-white">
+          PDF
         </span>
       ),
     },
@@ -64,7 +84,7 @@ function createColumns(
             href={getDocumentCommitmentAssetUrl(row.original.file_path)}
             target="_blank"
             rel="noreferrer"
-            className="text-secondary text-sm hover:underline"
+            className="text-muted text-sm hover:underline"
           >
             {row.original.filename}
           </a>
@@ -76,7 +96,7 @@ function createColumns(
       id: 'category',
       header: DOCUMENT_COMMITMENT_LABELS.category,
       cell: ({ row }) => (
-        <span className="bg-secondary/10 text-accent inline-flex max-w-40 rounded-full px-3 py-1 text-xs font-medium whitespace-normal">
+        <span className="bg-secondary/10 text-accent inline-flex max-w-40 rounded-full px-3 py-1 text-xs font-semibold whitespace-normal">
           {row.original.document_commitment_category.name}
         </span>
       ),
@@ -102,35 +122,13 @@ function createColumns(
     {
       accessorKey: 'status',
       header: DOCUMENT_COMMITMENT_LABELS.status,
-      cell: ({ row }) => {
-        const isPublished = row.original.status === 'PUBLISHED'
-
-        return (
-          <span
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap',
-              isPublished
-                ? 'bg-success/10 text-success'
-                : 'bg-warning/15 text-warning',
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                'size-1.5 rounded-full',
-                isPublished ? 'bg-success' : 'bg-warning',
-              )}
-            />
-            {isPublished
-              ? DOCUMENT_COMMITMENT_LABELS.published
-              : DOCUMENT_COMMITMENT_LABELS.draft}
-          </span>
-        )
-      },
+      cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
     },
     {
       id: 'actions',
-      header: DOCUMENT_COMMITMENT_LABELS.actions,
+      header: () => (
+        <span className="sr-only">{DOCUMENT_COMMITMENT_LABELS.actions}</span>
+      ),
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
           {canWrite && (
@@ -138,6 +136,7 @@ function createColumns(
               type="button"
               variant="outline"
               size="icon"
+              className="size-8"
               aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${row.original.title}`}
               onClick={() => onEdit(row.original)}
             >
@@ -149,6 +148,7 @@ function createColumns(
               type="button"
               variant="outline"
               size="icon"
+              className="size-8"
               disabled={deletePending}
               aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${row.original.title}`}
               onClick={() => onDelete(row.original)}
@@ -197,6 +197,7 @@ function DocumentCommitmentDataTable({
     data: documents,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (document) => String(document.id),
     manualPagination: true,
     pageCount,
     state: { pagination: { pageIndex, pageSize } },
@@ -215,9 +216,7 @@ function DocumentCommitmentDataTable({
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className={
-                    header.column.id === 'actions' ? 'text-right' : undefined
-                  }
+                  className="text-muted font-bold uppercase"
                 >
                   {header.isPlaceholder
                     ? null
@@ -232,7 +231,10 @@ function DocumentCommitmentDataTable({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              className={cn(row.getIsSelected() && 'bg-secondary/5')}
+            >
               {row.getVisibleCells().map((cell) => (
                 <TableCell
                   key={cell.id}
@@ -249,7 +251,7 @@ function DocumentCommitmentDataTable({
       </Table>
 
       <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-        <p className="text-foreground/60 text-sm">
+        <p className="text-muted text-sm">
           {DOCUMENT_COMMITMENT_LABELS.showingEntries(start, end, totalItems)}
         </p>
         <div className="flex flex-wrap items-center gap-2">

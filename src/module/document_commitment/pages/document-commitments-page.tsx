@@ -191,7 +191,7 @@ function DocumentCommitmentsPage() {
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
             {DOCUMENT_COMMITMENT_LABELS.pageTitle}
           </h1>
-          <p className="text-foreground/60 text-sm lg:text-base">
+          <p className="text-muted text-sm lg:text-base">
             {DOCUMENT_COMMITMENT_LABELS.description}
           </p>
         </div>
@@ -263,7 +263,7 @@ function DocumentCommitmentsPage() {
             </SelectContent>
           </Select>
 
-          <p className="text-foreground/55 text-sm lg:ml-auto lg:whitespace-nowrap">
+          <p className="text-muted text-sm lg:ml-auto lg:whitespace-nowrap">
             {DOCUMENT_COMMITMENT_LABELS.entryCount(pagination?.totalItems ?? 0)}
           </p>
         </div>
@@ -425,7 +425,7 @@ function DocumentSearchInput({ search }: { search?: string }) {
     <div className="relative w-full lg:max-w-xs">
       <SearchIcon
         aria-hidden="true"
-        className="text-foreground/45 absolute top-1/2 left-3 size-4 -translate-y-1/2"
+        className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
         aria-label={DOCUMENT_COMMITMENT_LABELS.searchLabel}
@@ -449,7 +449,7 @@ function DocumentMessage({
   return (
     <p
       role={role}
-      className="text-foreground/60 border-border border-t px-4 py-12 text-center text-sm"
+      className="text-muted border-border border-t px-4 py-12 text-center text-sm"
     >
       {message}
     </p>

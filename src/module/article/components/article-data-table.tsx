@@ -5,7 +5,7 @@ import {
 } from '@/module/article/constants/article.constants'
 import type { ArticleListItem } from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
-import { Checkbox } from '@/shared/components/ui/checkbox'
+import { TableCheckbox } from '@/shared/components/ui/table-checkbox'
 import {
   Table,
   TableBody,
@@ -35,9 +35,7 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import type { ComponentProps } from 'react'
 import {
-  CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ImageIcon,
@@ -321,21 +319,6 @@ function ArticleTablePaginationBar({
         </Select>
       </div>
     </div>
-  )
-}
-
-function TableCheckbox(props: ComponentProps<typeof Checkbox>) {
-  return (
-    <span className="relative flex size-4">
-      <Checkbox
-        {...props}
-        className="peer border-border bg-background checked:border-accent checked:bg-accent appearance-none rounded"
-      />
-      <CheckIcon
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 hidden size-4 p-0.5 text-white peer-checked:block"
-      />
-    </span>
   )
 }
 
