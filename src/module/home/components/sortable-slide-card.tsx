@@ -56,9 +56,6 @@ function SortableSlideCard({
     accept: 'home-carousel',
   })
   const slideNumber = index + 1
-  const summaryTitle =
-    [slide.title1, slide.title2].filter(Boolean).join(' ') ||
-    HOME_LABELS.slide(slideNumber)
 
   return (
     <article
@@ -81,9 +78,15 @@ function SortableSlideCard({
 
         <div className="min-w-0 flex-1">
           <p className="text-accent truncate text-sm font-medium">
-            {summaryTitle}
+            {slide.title1 || slide.title2 ? (
+              <>
+                {slide.title1} <em>{slide.title2}</em>
+              </>
+            ) : (
+              HOME_LABELS.slide(slideNumber)
+            )}
           </p>
-          <p className="text-foreground/55 truncate text-xs">
+          <p className="text-muted truncate text-xs">
             {slide.subtitle || media?.filename || '—'}
           </p>
         </div>
@@ -177,7 +180,12 @@ function SortableSlideCard({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>{HOME_LABELS.backgroundPhoto}</Label>
+            <Label>
+              {HOME_LABELS.backgroundPhoto}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
+            </Label>
             <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
               <div className="bg-primary flex h-24 w-full items-center justify-center overflow-hidden rounded-md lg:w-40">
                 {media ? (
@@ -210,10 +218,10 @@ function SortableSlideCard({
                   {media ? HOME_LABELS.changePhoto : HOME_LABELS.choosePhoto}
                 </Button>
                 {media && (
-                  <p className="text-foreground/55 text-xs">
+                  <p className="text-muted text-xs">
                     {media.filename}
                     {media.metadata
-                      ? ` · ${media.metadata.width} × ${media.metadata.height}`
+                      ? ` · ${media.metadata.width}×${media.metadata.height}`
                       : ''}
                   </p>
                 )}
