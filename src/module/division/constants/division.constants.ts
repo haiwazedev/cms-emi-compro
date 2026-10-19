@@ -12,6 +12,7 @@ export const DIVISION_LABELS = {
   serviceName: 'Nama layanan',
   abbreviation: 'Singkatan',
   serviceCount: 'Jumlah',
+  order: 'Urutan',
   status: 'Status',
   division: 'Divisi',
   actions: 'Aksi',
@@ -72,8 +73,10 @@ export const DIVISION_LABELS = {
   divisionCount: (count: number) =>
     `${count} entri · urutan menentukan tampilan di situs`,
   serviceHint: 'Tampil sebagai tag pada kartu divisi di situs.',
-  serviceInfo:
-    'Setiap layanan tampil sebagai tag pada kartu divisi. Saat diklik pengunjung, deskripsi layanan muncul sebagai pop-up yang dapat digeser antar layanan dalam divisi yang sama.',
+  serviceInfoBefore: 'Setiap layanan tampil sebagai ',
+  serviceInfoTag: 'tag',
+  serviceInfoAfter:
+    ' pada kartu divisi di situs. Saat diklik pengunjung, deskripsi layanan ini muncul sebagai pop-up yang bisa digeser antar layanan dalam divisi yang sama.',
   language: 'Bahasa konten',
   languageLoading: 'Memuat bahasa...',
   languagesFailed: 'Daftar bahasa gagal dimuat.',
