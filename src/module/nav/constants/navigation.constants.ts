@@ -38,6 +38,8 @@ export const NAVIGATION_LABELS = {
   usersAndAccess: 'Pengguna & Akses',
   companyName: 'Energy Management Indonesia',
   companyMark: 'PLN',
+  cmsMark: 'CMS',
+  cmsName: 'PLN EMI',
 } as const
 
 export const NAVIGATION_TOPBAR_LABELS = {

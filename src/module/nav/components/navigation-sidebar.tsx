@@ -40,13 +40,14 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
       )}
     >
       <header className="flex items-center justify-between gap-3 border-b border-white/15 px-1 pb-4">
-        <div className="min-w-0">
-          <p className="text-sm font-bold tracking-widest">
-            {NAVIGATION_LABELS.companyMark}
+        <div className="flex min-w-0 items-center">
+          <img src="/pln-logo.png" alt="" />
+        </div>
+        <div className="shrink-0">
+          <p className="text-xs font-semibold tracking-widest text-white/65">
+            {NAVIGATION_LABELS.cmsMark}
           </p>
-          <p className="text-xs leading-tight text-white/65">
-            {NAVIGATION_LABELS.companyName}
-          </p>
+          <p className="text-sm font-bold">{NAVIGATION_LABELS.cmsName}</p>
         </div>
       </header>
 
