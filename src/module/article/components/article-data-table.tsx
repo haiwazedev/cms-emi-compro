@@ -5,6 +5,7 @@ import {
 } from '@/module/article/constants/article.constants'
 import type { ArticleListItem } from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
+import { Checkbox } from '@/shared/components/ui/checkbox'
 import {
   Table,
   TableBody,
@@ -34,7 +35,9 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
+import type { ComponentProps } from 'react'
 import {
+  CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   ImageIcon,
@@ -47,8 +50,26 @@ function createArticleColumns(
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
   compact: boolean,
 ): ColumnDef<ArticleListItem>[] {
-  const hiddenColumns = compact ? ['category', 'languages'] : ['status']
+  const hiddenColumns = compact ? ['select', 'category', 'languages'] : []
   const columns: ColumnDef<ArticleListItem>[] = [
+    {
+      // shortcut: UI-only selection, no bulk actions yet.
+      id: 'select',
+      header: ({ table }) => (
+        <TableCheckbox
+          aria-label={ARTICLE_LABELS.selectAllArticles}
+          checked={table.getIsAllRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => (
+        <TableCheckbox
+          aria-label={ARTICLE_LABELS.selectArticle(row.original.title ?? '')}
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ),
+    },
     {
       id: 'photo',
       header: ARTICLE_LABELS.photo,
@@ -68,8 +89,8 @@ function createArticleColumns(
             </span>
           ) : (
             row.original.slug && (
-              <span className="text-foreground/55 text-sm">
-                /articles/{row.original.slug}
+              <span className="text-muted text-sm">
+                /berita/{row.original.slug}
               </span>
             )
           )}
@@ -81,7 +102,7 @@ function createArticleColumns(
       id: 'category',
       header: ARTICLE_LABELS.category,
       cell: ({ row }) => (
-        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap">
+        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap">
           {row.original.article_category.name}
         </span>
       ),
@@ -96,16 +117,16 @@ function createArticleColumns(
       ),
     },
     {
+      id: 'status',
+      header: ARTICLE_LABELS.status,
+      cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
+    },
+    {
       id: 'languages',
       header: ARTICLE_LABELS.languages,
       cell: ({ row }) => (
         <ArticleLanguagePills languages={row.original.languages} />
       ),
-    },
-    {
-      id: 'status',
-      header: ARTICLE_LABELS.status,
-      cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
     },
     {
       id: 'actions',
@@ -117,6 +138,7 @@ function createArticleColumns(
               asChild
               variant="outline"
               size="icon"
+              className="size-8"
               aria-label={
                 ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')
               }
@@ -134,6 +156,7 @@ function createArticleColumns(
               type="button"
               variant="outline"
               size="icon"
+              className="size-8"
               aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
               onClick={() => onDeleteArticle(row.original)}
             >
@@ -182,6 +205,7 @@ function ArticleDataTable({
     data: articles,
     columns: articleColumns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (article) => String(article.id),
     manualPagination: true,
   })
 
@@ -249,7 +273,7 @@ function ArticleTablePaginationBar({
 
   return (
     <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-      <p className="text-foreground/60 text-sm">
+      <p className="text-muted text-sm">
         {ARTICLE_LABELS.showingEntries(start, end, totalItems)}
       </p>
 
@@ -297,6 +321,21 @@ function ArticleTablePaginationBar({
         </Select>
       </div>
     </div>
+  )
+}
+
+function TableCheckbox(props: ComponentProps<typeof Checkbox>) {
+  return (
+    <span className="relative flex size-4">
+      <Checkbox
+        {...props}
+        className="peer border-border bg-background checked:border-accent checked:bg-accent appearance-none rounded"
+      />
+      <CheckIcon
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 hidden size-4 p-0.5 text-white peer-checked:block"
+      />
+    </span>
   )
 }
 
