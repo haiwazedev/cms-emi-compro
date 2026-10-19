@@ -7,6 +7,7 @@
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-sky-deep: var(--sky-deep);
+  --color-muted: var(--muted);
   --color-sidebar: var(--sidebar);
   --color-border: var(--border);
   --color-success: var(--success);
@@ -22,6 +23,7 @@
   --accent: #27496b;
   --sidebar: #16324c;
   --sky-deep: #8fb5d6;
+  --muted: #5e7d99;
   --border: #000000;
   --danger: #d9534f;
   --success: #5cb85c;

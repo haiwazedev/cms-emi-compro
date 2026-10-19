@@ -95,7 +95,7 @@ function DashboardPage() {
           {/* Quick access */}
           <Card>
             <CardContent className="flex flex-col gap-3 space-y-0">
-              <h2 className="text-foreground/60 text-xs font-semibold tracking-wider uppercase">
+              <h2 className="text-muted text-xs font-semibold tracking-wider uppercase">
                 {DASHBOARD_LABELS.quickAccess}
               </h2>
               {DASHBOARD_QUICK_LINKS.map((link) => {

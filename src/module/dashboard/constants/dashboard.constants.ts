@@ -15,7 +15,7 @@ export const DASHBOARD_LABELS = {
   quickAccess: 'Akses Cepat',
   articles: 'Artikel',
   languageCount: (languageId: string, published: number, draft: number) =>
-    `${languageId.toUpperCase()} - ${published} terbit | ${draft} draft`,
+    `${languageId.toUpperCase()} - ${published} terbit · ${draft} draf`,
   loadingArticleCounts: 'Memuat jumlah artikel…',
   articleCountsFailed: 'Gagal memuat jumlah artikel',
   documents: 'Dokumen',
