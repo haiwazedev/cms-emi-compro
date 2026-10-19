@@ -6,6 +6,7 @@ import type {
   ArticleWriteFields,
 } from '@/module/article/api/article.api'
 import { createArticle, updateArticle } from '@/module/article/api/article.api'
+import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
 import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
@@ -576,18 +577,14 @@ function ArticleForm({
                 </h2>
                 <div className="border-border flex items-center justify-between border-b pb-3 text-sm">
                   <span className="text-muted">Status</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      currentStatus === 'PUBLISHED' &&
-                        'border-success/20 bg-success/10',
-                      currentStatus === 'DRAFT' &&
-                        'border-warning/20 bg-warning/10',
-                      TRANSLATION_STATUS_TONES[currentStatus],
-                    )}
-                  >
-                    {TRANSLATION_STATUS_LABELS[currentStatus]}
-                  </Badge>
+                  {currentStatus === 'PUBLISHED' ||
+                  currentStatus === 'DRAFT' ? (
+                    <ArticleStatusPill status={currentStatus} />
+                  ) : (
+                    <span className={TRANSLATION_STATUS_TONES[currentStatus]}>
+                      {TRANSLATION_STATUS_LABELS[currentStatus]}
+                    </span>
+                  )}
                 </div>
                 {article && (
                   <div className="flex flex-col gap-3 text-sm">
