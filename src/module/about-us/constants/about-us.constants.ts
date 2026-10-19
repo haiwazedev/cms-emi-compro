@@ -1,5 +1,4 @@
 export const ABOUT_US_LABELS = {
-  language: 'Bahasa',
   languagesFailed: 'Daftar bahasa gagal dimuat.',
   noLanguages: 'Belum ada bahasa aktif.',
   discardChangesConfirm:
@@ -55,4 +54,18 @@ export const ABOUT_US_LABELS = {
   itemDialogDescription: 'Lengkapi informasi pada item ini.',
   saveItem: 'Simpan',
   cancel: 'Batal',
+  status: 'Status',
+  updated: 'Diperbarui',
+  updatedBy: 'Oleh',
+  translation: 'Terjemahan',
+  published: 'Terbit',
+  missing: 'Belum ada',
+  unsaved: 'Belum disimpan',
+  addTranslation: (language: string) => `Tambah versi ${language}`,
+  openTranslation: (language: string) => `Buka versi ${language}`,
+  defaultLanguageRequired:
+    'Versi Bahasa Indonesia wajib dibuat sebelum menambahkan bahasa lain.',
+  boardMembers: 'Pengurus',
+  boardMembersNote: 'Dewan Komisaris & Direksi dikelola pada koleksi terpisah.',
+  manageBoardMembers: 'Kelola Pengurus',
 } as const
