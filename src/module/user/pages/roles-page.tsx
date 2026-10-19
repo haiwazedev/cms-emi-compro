@@ -115,7 +115,7 @@ function RolesPage() {
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {ROLE_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {ROLE_LABELS.description}
             </p>
           </div>
@@ -132,7 +132,7 @@ function RolesPage() {
 
       <section
         aria-label={ROLE_LABELS.pageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {rolesQuery.isPending ? (
           <ListMessage role="status" message={USER_LABELS.loading} />
@@ -145,7 +145,7 @@ function RolesPage() {
         ) : rolesQuery.data.length === 0 ? (
           <ListMessage message={ROLE_LABELS.noRoles} />
         ) : (
-          <ul className="divide-border/10 divide-y">
+          <ul className="divide-border divide-y">
             {rolesQuery.data.map((role) => {
               const isOwnRole = currentUser?.role?.id === role.id
 
@@ -163,11 +163,11 @@ function RolesPage() {
                         {role.name}
                       </span>
                       {role.description && (
-                        <span className="text-foreground/60 text-sm">
+                        <span className="text-muted text-sm">
                           {role.description}
                         </span>
                       )}
-                      <span className="text-foreground/45 text-xs">
+                      <span className="text-muted text-xs">
                         {ROLE_LABELS.userCount(role.user_count)}
                       </span>
                     </div>

@@ -79,7 +79,10 @@ function FaqFormCard({
         <div className="flex flex-col gap-4 p-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="faq-question">
-              {FAQ_LABELS.question} <span className="text-danger">*</span>
+              {FAQ_LABELS.question}{' '}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
             </Label>
             <Input
               id="faq-question"
@@ -89,16 +92,19 @@ function FaqFormCard({
               value={question}
               onChange={(event) => setQuestion(event.currentTarget.value)}
             />
-            <p className="text-foreground/55 text-xs">
+            <p className="text-muted text-xs">
               {question.length + ' / 200 karakter'}
             </p>
           </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="faq-answer">
-              {FAQ_LABELS.answer} <span className="text-danger">*</span>
+              {FAQ_LABELS.answer}{' '}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
             </Label>
-            <div className="border-border/20 rounded-lg border">
+            <div className="border-border rounded-lg border">
               <ArticleRichTextEditor
                 id="faq-answer"
                 content={answer}
@@ -126,9 +132,7 @@ function FaqFormCard({
               </SelectContent>
             </Select>
             {!canPublish && (
-              <p className="text-foreground/60 text-xs">
-                {PERMISSION_HINTS.draftOnly}
-              </p>
+              <p className="text-muted text-xs">{PERMISSION_HINTS.draftOnly}</p>
             )}
           </div>
 
@@ -139,7 +143,7 @@ function FaqFormCard({
           )}
         </div>
 
-        <div className="bg-primary border-border/15 flex justify-end gap-2 border-t px-5 py-4">
+        <div className="bg-primary border-border flex justify-end gap-2 border-t px-5 py-4">
           <Button
             type="button"
             variant="outline"

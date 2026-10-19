@@ -37,7 +37,7 @@ function InboxMessageDetail({
 
   return (
     <article className="flex flex-col gap-5 p-4 lg:p-8">
-      <header className="border-border/15 flex flex-col gap-2 border-b pb-4">
+      <header className="border-border flex flex-col gap-2 border-b pb-4">
         <div className="text-foreground/60 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <MetaItem icon={UserIcon} className="text-accent font-medium">
             {message.name}

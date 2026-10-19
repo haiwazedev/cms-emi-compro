@@ -134,7 +134,7 @@ function BoardMemberFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>
             {isEditing
               ? BOARD_MEMBER_LABELS.editMember

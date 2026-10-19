@@ -73,7 +73,7 @@ function ArticleRichTextEditor({
       {!readOnly && (
         <div
           aria-label={ARTICLE_LABELS.bodyField}
-          className="bg-primary border-border/15 flex flex-wrap items-center gap-1 border-b p-2"
+          className="bg-primary border-border flex flex-wrap items-center gap-1 border-b p-2"
         >
           <ToolbarButton
             label="Tebal"

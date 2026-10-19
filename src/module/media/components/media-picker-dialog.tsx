@@ -178,7 +178,7 @@ function MediaPickerDialog({
         className="max-w-5xl"
         closeLabel={MEDIA_PICKER_LABELS.close}
       >
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>{MEDIA_PICKER_LABELS.title}</DialogTitle>
           <DialogDescription>
             {selectionMode === 'multiple'
@@ -187,7 +187,7 @@ function MediaPickerDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="border-border/15 flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
+        <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
           <label className="relative flex-1">
             <span className="sr-only">{MEDIA_PICKER_LABELS.searchLabel}</span>
             <SearchIcon
@@ -335,7 +335,7 @@ function MediaPickerCard({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'border-border/15 bg-background hover:border-accent focus-visible:ring-accent/50 flex min-w-0 flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
+        'border-border bg-background hover:border-accent focus-visible:ring-accent/50 flex min-w-0 flex-col overflow-hidden rounded-xl border text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
         selected && 'border-accent ring-accent/20 ring-2',
       )}
     >

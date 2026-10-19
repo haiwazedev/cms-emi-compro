@@ -61,7 +61,7 @@ import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { InfoIcon, LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type DivisionDialogState = { division?: Division }
@@ -358,7 +358,7 @@ function DivisionsContent({
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {DIVISION_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {DIVISION_LABELS.description}
             </p>
           </div>
@@ -415,7 +415,7 @@ function DivisionsContent({
             <CardTitle id="division-list-title">
               {DIVISION_LABELS.divisions}
             </CardTitle>
-            <span className="text-foreground/55 text-xs">
+            <span className="text-muted text-xs">
               {divisionsQuery.isSuccess
                 ? DIVISION_LABELS.divisionCount(divisions.length)
                 : DIVISION_LABELS.loadingDivisions}
@@ -437,13 +437,23 @@ function DivisionsContent({
                 <TableHeader className="bg-primary">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-12 px-2" />
-                    <TableHead>{DIVISION_LABELS.icon}</TableHead>
-                    <TableHead>{DIVISION_LABELS.divisionName}</TableHead>
-                    <TableHead>{DIVISION_LABELS.abbreviation}</TableHead>
-                    <TableHead>{DIVISION_LABELS.serviceCount}</TableHead>
-                    <TableHead>{DIVISION_LABELS.status}</TableHead>
-                    <TableHead className="text-right">
-                      {DIVISION_LABELS.actions}
+                    <TableHead className="text-muted font-bold uppercase">
+                      {DIVISION_LABELS.icon}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {DIVISION_LABELS.divisionName}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {DIVISION_LABELS.abbreviation}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {DIVISION_LABELS.serviceCount}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {DIVISION_LABELS.status}
+                    </TableHead>
+                    <TableHead>
+                      <span className="sr-only">{DIVISION_LABELS.actions}</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -522,10 +532,19 @@ function DivisionsContent({
                   <TableHeader className="bg-primary">
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="w-12 px-2" />
-                      <TableHead>{DIVISION_LABELS.serviceName}</TableHead>
-                      <TableHead>{DIVISION_LABELS.division}</TableHead>
-                      <TableHead className="text-right">
-                        {DIVISION_LABELS.actions}
+                      <TableHead className="text-muted font-bold uppercase">
+                        {DIVISION_LABELS.serviceName}
+                      </TableHead>
+                      <TableHead className="text-muted font-bold uppercase">
+                        {DIVISION_LABELS.division}
+                      </TableHead>
+                      <TableHead className="text-muted font-bold uppercase">
+                        {DIVISION_LABELS.order}
+                      </TableHead>
+                      <TableHead>
+                        <span className="sr-only">
+                          {DIVISION_LABELS.actions}
+                        </span>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -555,10 +574,18 @@ function DivisionsContent({
                   </TableBody>
                 </Table>
               </div>
-              <div className="border-border/15 p-4">
-                <p className="bg-primary text-foreground/65 rounded-lg px-4 py-3 text-sm">
-                  {DIVISION_LABELS.serviceInfo}
-                </p>
+              <div className="border-border p-4">
+                <div className="bg-secondary/10 text-accent border-secondary/20 flex items-start gap-2 rounded-lg border p-3 text-xs">
+                  <InfoIcon
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0"
+                  />
+                  <p>
+                    {DIVISION_LABELS.serviceInfoBefore}
+                    <strong>{DIVISION_LABELS.serviceInfoTag}</strong>
+                    {DIVISION_LABELS.serviceInfoAfter}
+                  </p>
+                </div>
               </div>
             </>
           )}
@@ -618,7 +645,7 @@ function DivisionsContent({
             className="max-w-xl"
             closeLabel={DIVISION_LABELS.closeDeleteDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>
                 {deleteTarget?.kind === 'division'
                   ? DIVISION_LABELS.deleteDivisionTitle
@@ -688,10 +715,7 @@ function SectionMessage({
 }) {
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
-      <p
-        role={onRetry ? 'alert' : 'status'}
-        className="text-foreground/55 text-sm"
-      >
+      <p role={onRetry ? 'alert' : 'status'} className="text-muted text-sm">
         {message}
       </p>
       {onRetry && (

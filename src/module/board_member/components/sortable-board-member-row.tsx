@@ -84,18 +84,18 @@ function SortableBoardMemberRow({
       <TableCell className="min-w-64">
         <div className="flex flex-col items-start gap-1 text-left">
           <span className="text-accent font-semibold">{member.name}</span>
-          <span className="text-foreground/55 text-sm">
+          <span className="text-muted text-sm">
             {content?.role ?? BOARD_MEMBER_LABELS.missingTranslation}
           </span>
         </div>
       </TableCell>
       <TableCell className="min-w-32">
-        <span className="bg-secondary/10 text-accent inline-flex max-w-32 rounded-full px-3 py-1 text-xs font-medium whitespace-normal">
+        <span className="bg-secondary/10 text-accent inline-flex max-w-32 rounded-full px-3 py-1 text-xs font-semibold whitespace-normal">
           {content?.board_member_type.type ??
             BOARD_MEMBER_LABELS.missingTranslation}
         </span>
       </TableCell>
-      <TableCell>{member.sort_order}</TableCell>
+      <TableCell className="text-foreground/70">{member.sort_order}</TableCell>
       <TableCell>
         <span
           className={cn(

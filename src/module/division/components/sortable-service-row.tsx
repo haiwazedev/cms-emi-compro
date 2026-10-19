@@ -58,16 +58,17 @@ function SortableServiceRow({
       <TableCell className="min-w-64">
         <div className="flex flex-col gap-1">
           <span className="text-accent font-semibold">{name}</span>
-          <span className="text-foreground/55 text-sm">
+          <span className="text-muted text-sm">
             {DIVISION_LABELS.serviceHint}
           </span>
         </div>
       </TableCell>
       <TableCell>
-        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap">
+        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap">
           {divisionAbbreviation}
         </span>
       </TableCell>
+      <TableCell className="text-foreground/70">{index + 1}</TableCell>
       <TableCell className="min-w-24 text-right">
         <div className="flex items-center justify-end gap-1">
           {canWrite && (

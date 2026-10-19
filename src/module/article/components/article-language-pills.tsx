@@ -53,6 +53,17 @@ function ArticleLanguageLegend() {
   )
 }
 
+function ArticleStatusPill({ status }: { status: ArticleStatus | null }) {
+  if (!status) return '-'
+
+  return (
+    <LanguagePill status={status} className="inline-flex items-center gap-1.5">
+      <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+      {LANGUAGE_PILLS[status].label}
+    </LanguagePill>
+  )
+}
+
 // One pill per language, colored by that language's content status.
 function ArticleLanguagePills({
   languages,
@@ -84,4 +95,4 @@ function ArticleLanguagePills({
   )
 }
 
-export { ArticleLanguageLegend, ArticleLanguagePills }
+export { ArticleLanguageLegend, ArticleLanguagePills, ArticleStatusPill }

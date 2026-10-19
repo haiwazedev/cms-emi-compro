@@ -131,7 +131,7 @@ function FaqsPage() {
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {FAQ_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {FAQ_LABELS.description}
             </p>
           </div>
@@ -170,11 +170,17 @@ function FaqsPage() {
                 <TableHeader className="bg-primary">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-12 px-2" />
-                    <TableHead>{FAQ_LABELS.order}</TableHead>
-                    <TableHead>{FAQ_LABELS.question}</TableHead>
-                    <TableHead>{FAQ_LABELS.status}</TableHead>
-                    <TableHead className="text-right">
-                      {FAQ_LABELS.actions}
+                    <TableHead className="text-muted font-bold uppercase">
+                      {FAQ_LABELS.order}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {FAQ_LABELS.question}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {FAQ_LABELS.status}
+                    </TableHead>
+                    <TableHead>
+                      <span className="sr-only">{FAQ_LABELS.actions}</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -235,7 +241,7 @@ function FaqsPage() {
             className="max-w-xl"
             closeLabel={FAQ_LABELS.closeDeleteDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>{FAQ_LABELS.deleteTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 py-6">
@@ -295,10 +301,7 @@ function SectionMessage({
 }) {
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
-      <p
-        role={onRetry ? 'alert' : 'status'}
-        className="text-foreground/55 text-sm"
-      >
+      <p role={onRetry ? 'alert' : 'status'} className="text-muted text-sm">
         {message}
       </p>
       {onRetry && (

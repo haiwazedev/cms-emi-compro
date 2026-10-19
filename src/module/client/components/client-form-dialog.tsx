@@ -93,7 +93,7 @@ function ClientFormDialog({
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>
             {client ? CLIENT_LABELS.editTitle : CLIENT_LABELS.createTitle}
           </DialogTitle>
@@ -134,7 +134,7 @@ function ClientFormDialog({
                 onDragLeave={() => setDragging(false)}
                 onDrop={handleDrop}
                 className={cn(
-                  'border-border/40 has-focus-visible:border-secondary flex cursor-pointer flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center',
+                  'border-border has-focus-visible:border-secondary flex cursor-pointer flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center',
                   dragging && 'border-secondary bg-secondary/5',
                   pending && 'pointer-events-none opacity-50',
                 )}

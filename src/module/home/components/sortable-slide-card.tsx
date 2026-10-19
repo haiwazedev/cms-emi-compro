@@ -8,6 +8,8 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { useSortable } from '@dnd-kit/react/sortable'
 import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   GripVerticalIcon,
@@ -56,14 +58,11 @@ function SortableSlideCard({
     accept: 'home-carousel',
   })
   const slideNumber = index + 1
-  const summaryTitle =
-    [slide.title1, slide.title2].filter(Boolean).join(' ') ||
-    HOME_LABELS.slide(slideNumber)
 
   return (
     <article
       ref={sortableRef}
-      className="border-border/20 bg-background overflow-hidden rounded-lg border"
+      className="border-border bg-background overflow-hidden rounded-lg border"
     >
       <div className="flex min-h-14 items-center gap-3 px-3 py-2">
         <button
@@ -81,9 +80,15 @@ function SortableSlideCard({
 
         <div className="min-w-0 flex-1">
           <p className="text-accent truncate text-sm font-medium">
-            {summaryTitle}
+            {slide.title1 || slide.title2 ? (
+              <>
+                {slide.title1} <em>{slide.title2}</em>
+              </>
+            ) : (
+              HOME_LABELS.slide(slideNumber)
+            )}
           </p>
-          <p className="text-foreground/55 truncate text-xs">
+          <p className="text-muted truncate text-xs">
             {slide.subtitle || media?.filename || '—'}
           </p>
         </div>
@@ -98,7 +103,7 @@ function SortableSlideCard({
             disabled={index === 0}
             onClick={() => onMove(index, index - 1)}
           >
-            <ChevronUpIcon aria-hidden="true" className="size-4" />
+            <ArrowUpIcon aria-hidden="true" className="size-4" />
           </Button>
           <Button
             type="button"
@@ -109,7 +114,7 @@ function SortableSlideCard({
             disabled={index === total - 1}
             onClick={() => onMove(index, index + 1)}
           >
-            <ChevronDownIcon aria-hidden="true" className="size-4" />
+            <ArrowDownIcon aria-hidden="true" className="size-4" />
           </Button>
           <Button
             type="button"
@@ -146,7 +151,7 @@ function SortableSlideCard({
       </div>
 
       {expanded && (
-        <div className="border-border/15 flex flex-col gap-4 border-t p-4">
+        <div className="border-border flex flex-col gap-4 border-t p-4">
           <div className="flex flex-col gap-3 lg:flex-row">
             <TextField
               id={`${slide.clientKey}-title-1`}
@@ -177,7 +182,12 @@ function SortableSlideCard({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label>{HOME_LABELS.backgroundPhoto}</Label>
+            <Label>
+              {HOME_LABELS.backgroundPhoto}
+              <span aria-hidden="true" className="text-danger">
+                *
+              </span>
+            </Label>
             <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
               <div className="bg-primary flex h-24 w-full items-center justify-center overflow-hidden rounded-md lg:w-40">
                 {media ? (
@@ -210,10 +220,10 @@ function SortableSlideCard({
                   {media ? HOME_LABELS.changePhoto : HOME_LABELS.choosePhoto}
                 </Button>
                 {media && (
-                  <p className="text-foreground/55 text-xs">
+                  <p className="text-muted text-xs">
                     {media.filename}
                     {media.metadata
-                      ? ` · ${media.metadata.width} × ${media.metadata.height}`
+                      ? ` · ${media.metadata.width}×${media.metadata.height}`
                       : ''}
                   </p>
                 )}

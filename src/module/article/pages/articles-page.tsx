@@ -124,7 +124,7 @@ function ArticlesPage() {
           </h1>
 
           {/* Sub-title */}
-          <p className="text-foreground/60 text-sm lg:text-base">
+          <p className="text-muted text-sm lg:text-base">
             {ARTICLE_LABELS.description}
           </p>
         </div>
@@ -151,7 +151,7 @@ function ArticlesPage() {
 
       <section
         aria-label={ARTICLE_LABELS.pageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {/* Filters */}
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
@@ -229,7 +229,7 @@ function ArticlesPage() {
             </SelectContent>
           </Select>
 
-          <p className="text-foreground/55 text-sm lg:ml-auto lg:whitespace-nowrap">
+          <p className="text-muted text-sm lg:ml-auto lg:whitespace-nowrap">
             {ARTICLE_LABELS.entryCount(pagination?.totalItems ?? 0)}
           </p>
         </div>
@@ -317,7 +317,7 @@ function ArticleSearchInput({ search }: { search?: string }) {
     <div className="relative w-full lg:max-w-xs">
       <SearchIcon
         aria-hidden="true"
-        className="text-foreground/45 absolute top-1/2 left-3 size-4 -translate-y-1/2"
+        className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
         aria-label={ARTICLE_LABELS.searchLabel}
@@ -325,7 +325,7 @@ function ArticleSearchInput({ search }: { search?: string }) {
         placeholder={ARTICLE_LABELS.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        className="bg-primary border-border/15 pl-10 text-sm"
+        className="bg-primary border-border pl-10 text-sm"
       />
     </div>
   )
@@ -341,7 +341,7 @@ function ArticleMessage({
   return (
     <p
       role={role}
-      className="text-foreground/60 border-border/10 border-t px-4 py-12 text-center text-sm"
+      className="text-muted border-border border-t px-4 py-12 text-center text-sm"
     >
       {message}
     </p>

@@ -64,7 +64,7 @@ function UserFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>
             {user ? USER_LABELS.editUserTitle : USER_LABELS.addUser}
           </DialogTitle>

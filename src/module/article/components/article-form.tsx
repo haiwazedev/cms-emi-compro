@@ -6,12 +6,14 @@ import type {
   ArticleWriteFields,
 } from '@/module/article/api/article.api'
 import { createArticle, updateArticle } from '@/module/article/api/article.api'
+import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
 import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import type { Language } from '@/module/language/api/language.api'
 import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import { formatRelativeTime } from '@/module/user/constants/user.constants'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import {
@@ -53,7 +55,7 @@ import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeftIcon,
   CalendarDaysIcon,
-  EyeIcon,
+  CheckIcon,
   ImageIcon,
   LoaderCircleIcon,
   PlusIcon,
@@ -304,7 +306,7 @@ function ArticleForm({
         }}
         className="bg-primary flex min-h-full flex-col gap-5 p-4 lg:p-8"
       >
-        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex flex-col gap-2">
             <Button
               asChild
@@ -323,8 +325,8 @@ function ArticleForm({
                   : ARTICLE_LABELS.createPageTitle}
               </h1>
               {article?.updated_at && (
-                <p className="text-foreground/55 text-sm">
-                  Terakhir disimpan {formatMetaDate(article.updated_at)}
+                <p className="text-muted text-sm">
+                  Terakhir disimpan {formatRelativeTime(article.updated_at)}
                   {article.updated_by ? ' oleh ' + article.updated_by : ''}
                 </p>
               )}
@@ -336,11 +338,10 @@ function ArticleForm({
               variant="outline"
               onClick={() => setPreviewOpen(true)}
             >
-              <EyeIcon aria-hidden="true" className="size-4" />
               {ARTICLE_LABELS.preview}
             </Button>
             {!canPublish && canWrite && (
-              <p className="text-foreground/60 w-full text-xs lg:w-auto">
+              <p className="text-muted w-full text-xs lg:w-auto">
                 {PERMISSION_HINTS.draftOnly}
               </p>
             )}
@@ -372,7 +373,9 @@ function ArticleForm({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                ) : null}
+                ) : (
+                  <CheckIcon aria-hidden="true" className="size-4" />
+                )}
                 {ARTICLE_LABELS.publishArticle}
               </Button>
             )}
@@ -383,8 +386,12 @@ function ArticleForm({
           <div className="flex min-w-0 flex-1 flex-col gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>{ARTICLE_LABELS.mainContent}</CardTitle>
-                <Badge variant="secondary">{currentLanguage.language}</Badge>
+                <CardTitle className="text-base font-bold">
+                  {ARTICLE_LABELS.mainContent}
+                </CardTitle>
+                <Badge className="bg-secondary/10 text-accent border-transparent px-3 py-1 font-semibold">
+                  {currentLanguage.language}
+                </Badge>
               </CardHeader>
               {/* Remount per language so the editor loads that language's content. */}
               <CardContent>
@@ -393,7 +400,15 @@ function ArticleForm({
                   label={ARTICLE_LABELS.titleField}
                   required
                   error={errors.title?.message}
-                  hint={titleValue.length + ' / 120 karakter'}
+                  hint={
+                    <span
+                      className={
+                        titleValue.length >= 120 ? 'text-danger' : undefined
+                      }
+                    >
+                      {ARTICLE_LABELS.titleHint(titleValue.length)}
+                    </span>
+                  }
                 >
                   <Input
                     id="article-title"
@@ -414,7 +429,14 @@ function ArticleForm({
                   label={ARTICLE_LABELS.slugField}
                   required
                   error={errors.slug?.message}
-                  hint="Dibuat otomatis dari judul dan dapat diedit."
+                  hint={
+                    <>
+                      {ARTICLE_LABELS.slugHint}
+                      <strong className="font-semibold">
+                        {slugValue || 'slug'}
+                      </strong>
+                    </>
+                  }
                 >
                   <Input
                     id="article-slug"
@@ -454,7 +476,7 @@ function ArticleForm({
                   error={errors.content?.message}
                 >
                   <div
-                    className="border-border/20 overflow-hidden rounded-lg border"
+                    className="border-border overflow-hidden rounded-lg border"
                     aria-invalid={Boolean(errors.content)}
                   >
                     <ArticleRichTextEditor
@@ -484,8 +506,10 @@ function ArticleForm({
 
             <Card>
               <CardHeader>
-                <CardTitle>{ARTICLE_LABELS.contactSection}</CardTitle>
-                <span className="text-foreground/50 text-sm">Komponen</span>
+                <CardTitle className="text-base font-bold">
+                  {ARTICLE_LABELS.contactSection}
+                </CardTitle>
+                <span className="text-muted text-sm">Komponen</span>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-5 lg:flex-row">
@@ -548,33 +572,25 @@ function ArticleForm({
           <aside className="flex w-full flex-col gap-6 lg:w-80 lg:shrink-0">
             <Card>
               <CardContent>
-                <h2 className="text-foreground/60 text-xs font-semibold tracking-wide uppercase">
+                <h2 className="text-muted text-xs font-semibold tracking-wide uppercase">
                   {ARTICLE_LABELS.publicationStatus}
                 </h2>
-                <div className="border-border/10 flex items-center justify-between border-b pb-3 text-sm">
-                  <span className="text-foreground/60">Status</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      currentStatus === 'PUBLISHED' &&
-                        'border-success/20 bg-success/10',
-                      currentStatus === 'DRAFT' &&
-                        'border-warning/20 bg-warning/10',
-                      TRANSLATION_STATUS_TONES[currentStatus],
-                    )}
-                  >
-                    {TRANSLATION_STATUS_LABELS[currentStatus]}
-                  </Badge>
+                <div className="border-border flex items-center justify-between border-b pb-3 text-sm">
+                  <span className="text-muted">Status</span>
+                  {currentStatus === 'PUBLISHED' ||
+                  currentStatus === 'DRAFT' ? (
+                    <ArticleStatusPill status={currentStatus} />
+                  ) : (
+                    <span className={TRANSLATION_STATUS_TONES[currentStatus]}>
+                      {TRANSLATION_STATUS_LABELS[currentStatus]}
+                    </span>
+                  )}
                 </div>
                 {article && (
                   <div className="flex flex-col gap-3 text-sm">
                     <MetaRow
                       label="Dibuat"
-                      value={formatMetaDate(article.created_at)}
-                    />
-                    <MetaRow
-                      label="Penulis"
-                      value={article.updated_by ?? article.created_by}
+                      value={formatMetaDate(article.created_at, false)}
                     />
                     {article.updated_at && (
                       <MetaRow
@@ -582,6 +598,10 @@ function ArticleForm({
                         value={formatMetaDate(article.updated_at)}
                       />
                     )}
+                    <MetaRow
+                      label="Penulis"
+                      value={article.updated_by ?? article.created_by}
+                    />
                   </div>
                 )}
               </CardContent>
@@ -589,9 +609,12 @@ function ArticleForm({
 
             <Card>
               <CardHeader className="px-4 py-3">
-                <CardTitle className="text-xs tracking-wide uppercase">
+                <CardTitle className="text-muted text-xs tracking-wide uppercase">
                   {ARTICLE_LABELS.primaryPhoto}
-                  <span className="text-danger"> *</span>
+                  <span aria-hidden="true" className="text-danger">
+                    {' '}
+                    *
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 p-4">
@@ -635,7 +658,7 @@ function ArticleForm({
                   </Button>
                 </FormField>
                 {selectedPhoto && (
-                  <div className="text-foreground/55 flex min-w-0 items-center gap-1 text-xs">
+                  <div className="text-muted flex min-w-0 items-center gap-1 text-xs">
                     <span className="min-w-0 flex-1 truncate">
                       {selectedPhoto.filename}
                     </span>
@@ -643,7 +666,7 @@ function ArticleForm({
                       <>
                         <span aria-hidden="true">·</span>
                         <span className="shrink-0">
-                          {`${selectedPhoto.metadata.width} × ${selectedPhoto.metadata.height}`}
+                          {`${selectedPhoto.metadata.width}×${selectedPhoto.metadata.height}`}
                         </span>
                       </>
                     )}
@@ -658,7 +681,7 @@ function ArticleForm({
 
             <Card>
               <CardHeader className="px-4 py-3">
-                <CardTitle className="text-xs tracking-wide uppercase">
+                <CardTitle className="text-muted text-xs tracking-wide uppercase">
                   {ARTICLE_LABELS.articleGrouping}
                 </CardTitle>
               </CardHeader>
@@ -755,9 +778,7 @@ function ArticleForm({
                             className="h-10 w-full justify-between font-normal"
                           >
                             <span
-                              className={
-                                field.value ? undefined : 'text-foreground/55'
-                              }
+                              className={field.value ? undefined : 'text-muted'}
                             >
                               {formatIssueDate(field.value) ??
                                 ARTICLE_LABELS.chooseIssueDate}
@@ -778,7 +799,7 @@ function ArticleForm({
                               setDatePickerOpen(false)
                             }}
                           />
-                          <div className="border-border/15 flex justify-end border-t p-2">
+                          <div className="border-border flex justify-end border-t p-2">
                             <Button
                               type="button"
                               variant="ghost"
@@ -803,7 +824,7 @@ function ArticleForm({
 
             <Card>
               <CardHeader className="px-4 py-3">
-                <CardTitle className="text-xs tracking-wide uppercase">
+                <CardTitle className="text-muted text-xs tracking-wide uppercase">
                   {ARTICLE_LABELS.translation}
                 </CardTitle>
               </CardHeader>
@@ -863,14 +884,19 @@ function FormField({
   label: string
   required?: boolean
   error?: string
-  hint?: string
+  hint?: ReactNode
   children: ReactNode
 }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <Label htmlFor={id} className="text-accent">
         {label}
-        {required && <span className="text-danger"> *</span>}
+        {required && (
+          <span aria-hidden="true" className="text-danger">
+            {' '}
+            *
+          </span>
+        )}
       </Label>
       {children}
       {error && (
@@ -878,7 +904,7 @@ function FormField({
           {error}
         </p>
       )}
-      {!error && hint && <p className="text-foreground/55 text-xs">{hint}</p>}
+      {!error && hint && <p className="text-muted text-xs">{hint}</p>}
     </div>
   )
 }
@@ -893,7 +919,7 @@ const TRANSLATION_STATUS_LABELS: Record<TranslationStatus, string> = {
 const TRANSLATION_STATUS_TONES: Record<TranslationStatus, string> = {
   PUBLISHED: 'text-success',
   DRAFT: 'text-warning',
-  UNSAVED: 'text-foreground/55',
+  UNSAVED: 'text-muted',
   MISSING: 'text-foreground/40',
 }
 
@@ -918,7 +944,7 @@ function TranslationRow({
   )
 
   return (
-    <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
+    <div className="border-border flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
       {status === 'MISSING' ? (
         <>
           <span className={TRANSLATION_STATUS_TONES.MISSING}>{name}</span>
@@ -942,9 +968,7 @@ function TranslationRow({
           className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
         >
           <span
-            className={
-              current ? 'text-accent font-semibold' : 'text-foreground/60'
-            }
+            className={current ? 'text-accent font-semibold' : 'text-muted'}
           >
             {name}
           </span>
@@ -988,8 +1012,8 @@ function isSlugEdited({ title, slug }: ArticleFormValues) {
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
-      <span className="text-foreground/60">{label}</span>
+    <div className="border-border flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
+      <span className="text-muted">{label}</span>
       <span className="text-accent text-right font-medium">{value}</span>
     </div>
   )
@@ -1043,13 +1067,13 @@ function toNullableText(value: string) {
   return value.trim() || null
 }
 
-function formatMetaDate(value: string) {
+function formatMetaDate(value: string, withTime = true) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
   return new Intl.DateTimeFormat('id-ID', {
     dateStyle: 'medium',
-    timeStyle: 'short',
+    ...(withTime ? { timeStyle: 'short' } : {}),
   }).format(date)
 }
 

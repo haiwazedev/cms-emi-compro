@@ -70,7 +70,7 @@ function ArticleDeleteDialog({
         className="max-w-xl"
         closeLabel={ARTICLE_LABELS.closeDeleteDialog}
       >
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>{ARTICLE_LABELS.deleteArticleTitle}</DialogTitle>
         </DialogHeader>
 

@@ -5,6 +5,7 @@ import {
 } from '@/module/article/constants/article.constants'
 import type { ArticleListItem } from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
+import { TableCheckbox } from '@/shared/components/ui/table-checkbox'
 import {
   Table,
   TableBody,
@@ -20,8 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { ArticleLanguagePills } from '@/module/article/components/article-language-pills'
+import {
+  ArticleLanguagePills,
+  ArticleStatusPill,
+} from '@/module/article/components/article-language-pills'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import { cn } from '@/shared/lib/utils'
 import { Link } from '@tanstack/react-router'
 import {
   flexRender,
@@ -41,8 +46,28 @@ import {
 function createArticleColumns(
   onDeleteArticle: (article: ArticleListItem) => void,
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
+  compact: boolean,
 ): ColumnDef<ArticleListItem>[] {
-  return [
+  const hiddenColumns = compact ? ['select', 'category', 'languages'] : []
+  const columns: ColumnDef<ArticleListItem>[] = [
+    {
+      // shortcut: UI-only selection, no bulk actions yet.
+      id: 'select',
+      header: ({ table }) => (
+        <TableCheckbox
+          aria-label={ARTICLE_LABELS.selectAllArticles}
+          checked={table.getIsAllRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => (
+        <TableCheckbox
+          aria-label={ARTICLE_LABELS.selectArticle(row.original.title ?? '')}
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ),
+    },
     {
       id: 'photo',
       header: ARTICLE_LABELS.photo,
@@ -56,10 +81,16 @@ function createArticleColumns(
           <span className="text-accent font-semibold">
             {row.original.title ?? '-'}
           </span>
-          {row.original.slug && (
-            <span className="text-foreground/55 text-sm">
-              /articles/{row.original.slug}
+          {compact ? (
+            <span className="text-muted text-sm">
+              {row.original.article_category.name}
             </span>
+          ) : (
+            row.original.slug && (
+              <span className="text-muted text-sm">
+                /berita/{row.original.slug}
+              </span>
+            )
           )}
         </div>
       ),
@@ -69,7 +100,7 @@ function createArticleColumns(
       id: 'category',
       header: ARTICLE_LABELS.category,
       cell: ({ row }) => (
-        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap">
+        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap">
           {row.original.article_category.name}
         </span>
       ),
@@ -84,6 +115,11 @@ function createArticleColumns(
       ),
     },
     {
+      id: 'status',
+      header: ARTICLE_LABELS.status,
+      cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
+    },
+    {
       id: 'languages',
       header: ARTICLE_LABELS.languages,
       cell: ({ row }) => (
@@ -92,7 +128,7 @@ function createArticleColumns(
     },
     {
       id: 'actions',
-      header: ARTICLE_LABELS.actions,
+      header: () => <span className="sr-only">{ARTICLE_LABELS.actions}</span>,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
           {canWrite && (
@@ -100,6 +136,7 @@ function createArticleColumns(
               asChild
               variant="outline"
               size="icon"
+              className="size-8"
               aria-label={
                 ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')
               }
@@ -117,6 +154,7 @@ function createArticleColumns(
               type="button"
               variant="outline"
               size="icon"
+              className="size-8"
               aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
               onClick={() => onDeleteArticle(row.original)}
             >
@@ -127,6 +165,8 @@ function createArticleColumns(
       ),
     },
   ]
+
+  return columns.filter((column) => !hiddenColumns.includes(column.id ?? ''))
 }
 
 interface ArticleTablePagination {
@@ -142,23 +182,28 @@ interface ArticleDataTableProps {
   articles: ArticleListItem[]
   onDeleteArticle: (article: ArticleListItem) => void
   pagination?: ArticleTablePagination
+  // Dashboard layout: category under the title, status instead of category/languages.
+  compact?: boolean
 }
 
 function ArticleDataTable({
   articles,
   onDeleteArticle,
   pagination,
+  compact = false,
 }: ArticleDataTableProps) {
   const { canWrite, canDelete } = usePermissions()
   const articleColumns = useMemo(
-    () => createArticleColumns(onDeleteArticle, { canWrite, canDelete }),
-    [canDelete, canWrite, onDeleteArticle],
+    () =>
+      createArticleColumns(onDeleteArticle, { canWrite, canDelete }, compact),
+    [canDelete, canWrite, compact, onDeleteArticle],
   )
 
   const table = useReactTable({
     data: articles,
     columns: articleColumns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (article) => String(article.id),
     manualPagination: true,
   })
 
@@ -167,13 +212,17 @@ function ArticleDataTable({
       <Table className="min-w-max">
         <TableHeader className="bg-primary">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+            <TableRow
+              key={headerGroup.id}
+              className="border-b-0 hover:bg-transparent"
+            >
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className={
-                    header.column.id === 'actions' ? 'text-right' : undefined
-                  }
+                  className={cn(
+                    'text-muted font-bold uppercase',
+                    header.column.id === 'actions' && 'text-right',
+                  )}
                 >
                   {header.isPlaceholder
                     ? null
@@ -221,8 +270,8 @@ function ArticleTablePaginationBar({
   const end = Math.min((pageIndex + 1) * pageSize, totalItems)
 
   return (
-    <div className="border-border/10 flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
-      <p className="text-foreground/60 text-sm">
+    <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <p className="text-muted text-sm">
         {ARTICLE_LABELS.showingEntries(start, end, totalItems)}
       </p>
 

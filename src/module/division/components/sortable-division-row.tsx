@@ -6,7 +6,7 @@ import type {
 import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
-import { cn } from '@/shared/lib/utils'
+import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
 import { useSortable } from '@dnd-kit/react/sortable'
 import { GripVerticalIcon, PencilIcon, Trash2Icon, ZapIcon } from 'lucide-react'
 
@@ -85,7 +85,7 @@ function SortableDivisionRow({
           onClick={onSelect}
         >
           <span className="text-accent font-semibold">{name}</span>
-          <span className="text-foreground/55 text-sm">
+          <span className="text-muted text-sm">
             {content?.abbr
               ? `/layanan#${content.abbr.toLowerCase()}`
               : DIVISION_LABELS.missingTranslation}
@@ -93,13 +93,13 @@ function SortableDivisionRow({
         </button>
       </TableCell>
       <TableCell>
-        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap">
+        <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap">
           {abbreviation}
         </span>
       </TableCell>
       <TableCell className="whitespace-nowrap">
         {serviceCount === undefined ? (
-          <span className="text-foreground/55">—</span>
+          <span className="text-muted">—</span>
         ) : (
           <>
             <span className="text-accent font-semibold">{serviceCount}</span>{' '}
@@ -108,25 +108,7 @@ function SortableDivisionRow({
         )}
       </TableCell>
       <TableCell>
-        <span
-          className={cn(
-            'inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium whitespace-nowrap',
-            division.status === 'PUBLISHED'
-              ? 'bg-success/10 text-success'
-              : 'bg-warning/15 text-warning',
-          )}
-        >
-          <span
-            aria-hidden="true"
-            className={cn(
-              'size-1.5 rounded-full',
-              division.status === 'PUBLISHED' ? 'bg-success' : 'bg-warning',
-            )}
-          />
-          {division.status === 'PUBLISHED'
-            ? DIVISION_LABELS.published
-            : DIVISION_LABELS.draft}
-        </span>
+        <ArticleStatusPill status={division.status} />
       </TableCell>
       <TableCell className="min-w-24 text-right">
         <div className="flex items-center justify-end gap-1">

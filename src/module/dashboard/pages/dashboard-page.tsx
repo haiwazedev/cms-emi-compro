@@ -36,6 +36,13 @@ const QUICK_LINK_ICONS: Record<
   inbox: MailIcon,
 }
 
+// WIB (GMT+7), e.g. "09.14".
+const wibTimeFormat = new Intl.DateTimeFormat('id-ID', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Asia/Jakarta',
+})
+
 function DashboardPage() {
   const { canWrite } = usePermissions()
   // The authenticated route loads the user before this page renders.
@@ -50,7 +57,7 @@ function DashboardPage() {
             {DASHBOARD_LABELS.greeting(firstName)}
           </h1>
           <p className="text-foreground/60 text-sm lg:text-base">
-            {DASHBOARD_LABELS.description}
+            {DASHBOARD_LABELS.description(wibTimeFormat.format(new Date()))}
           </p>
         </div>
 
@@ -88,7 +95,7 @@ function DashboardPage() {
           {/* Quick access */}
           <Card>
             <CardContent className="flex flex-col gap-3 space-y-0">
-              <h2 className="text-foreground/60 text-xs font-semibold tracking-wider uppercase">
+              <h2 className="text-muted text-xs font-semibold tracking-wider uppercase">
                 {DASHBOARD_LABELS.quickAccess}
               </h2>
               {DASHBOARD_QUICK_LINKS.map((link) => {

@@ -15,10 +15,13 @@ import type {
   AboutUsMissionDraft,
   AboutUsTimelineDraft,
 } from '@/module/about-us/types/about-us.types'
+import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import type { Language } from '@/module/language/api/language.api'
-import { LanguageSelect } from '@/module/language/components/language-select'
-import { findDefaultLanguage } from '@/module/language/constants/language.constants'
+import {
+  DEFAULT_LANGUAGE_ID,
+  findDefaultLanguage,
+} from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
@@ -41,14 +44,33 @@ import {
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { formatRelativeTime } from '@/module/user/constants/user.constants'
 import { toast } from '@/shared/lib/toast'
+import { cn } from '@/shared/lib/utils'
 import { DragDropProvider } from '@dnd-kit/react'
 import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useBlocker, useNavigate, useSearch } from '@tanstack/react-router'
-import { CheckIcon, ImageIcon, LoaderCircleIcon } from 'lucide-react'
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import {
+  Link,
+  useBlocker,
+  useNavigate,
+  useSearch,
+} from '@tanstack/react-router'
+import {
+  ArrowRightIcon,
+  CheckIcon,
+  ImageIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 
 const pictureMediaParams = {
   type: 'PICTURE',
@@ -133,11 +155,15 @@ function AboutUsEditor({
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const aboutUsQuery = useQuery(aboutUsContentQueryOptions(languageId))
+  const translationQueries = useQueries({
+    queries: languages.map((item) => aboutUsContentQueryOptions(item.id)),
+  })
   const mediaQuery = useQuery(mediaQueryOptions(pictureMediaParams))
   const [draft, setDraft] = useState<AboutUsDraft | null>(null)
   const [savedDraft, setSavedDraft] = useState<AboutUsDraft | null>(null)
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
   const [itemDialog, setItemDialog] = useState<ItemDialogState | null>(null)
+  const [addedLanguageIds, setAddedLanguageIds] = useState<string[]>([])
 
   const apiDraft = useMemo(
     () => (aboutUsQuery.data ? mapAboutUsContents(aboutUsQuery.data) : null),
@@ -173,6 +199,31 @@ function AboutUsEditor({
     }
 
     onLanguageChange(id)
+  }
+
+  function hasContent(id: string) {
+    const index = languages.findIndex((item) => item.id === id)
+    return Boolean(translationQueries[index]?.data?.length)
+  }
+
+  // Other languages need a saved Bahasa Indonesia version first.
+  function addLanguage(id: string) {
+    if (!hasContent(DEFAULT_LANGUAGE_ID)) {
+      toast.add({
+        title: 'Gagal',
+        description: ABOUT_US_LABELS.defaultLanguageRequired,
+        type: 'error',
+      })
+      return
+    }
+
+    setAddedLanguageIds((ids) => [...ids, id])
+  }
+
+  function translationStatus(id: string): TranslationStatus {
+    if (hasContent(id)) return 'PUBLISHED'
+    if (id === languageId || addedLanguageIds.includes(id)) return 'UNSAVED'
+    return 'MISSING'
   }
 
   const saveMutation = useMutation({
@@ -378,6 +429,12 @@ function AboutUsEditor({
           description: dialogEntry.description,
         }
     : undefined
+  // ISO timestamps sort as strings; newest first.
+  const latestItem = [...aboutUsQuery.data].sort((first, second) =>
+    (second.updated_at ?? second.created_at).localeCompare(
+      first.updated_at ?? first.created_at,
+    ),
+  )[0]
 
   return (
     <DragDropProvider onDragEnd={handleDragEnd}>
@@ -387,7 +444,7 @@ function AboutUsEditor({
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {ABOUT_US_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {ABOUT_US_LABELS.description}
             </p>
           </div>
@@ -403,6 +460,7 @@ function AboutUsEditor({
             {canWrite && (
               <Button
                 type="button"
+                className="bg-success hover:bg-success/90"
                 disabled={!isDirty || saveMutation.isPending}
                 onClick={saveDraft}
               >
@@ -422,138 +480,197 @@ function AboutUsEditor({
           </div>
         </header>
 
-        {/* Controlled by the URL: a cancelled discard keeps the current language. */}
-        <LanguageSelect
-          label={ABOUT_US_LABELS.language}
-          languages={languages}
-          value={languageId}
-          onChange={requestLanguage}
-        />
-        {/* Read-only without write permission. */}
-        <fieldset disabled={!canWrite} className="contents">
-          <Card aria-labelledby="about-us-profile-title">
-            <CardHeader>
-              <CardTitle id="about-us-profile-title" className="text-base">
-                {ABOUT_US_LABELS.companyProfile}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="about-us-profile-content">
-                  {ABOUT_US_LABELS.profileContent}
-                  <span className="text-danger"> *</span>
-                </Label>
-                <div className="border-border/20 overflow-hidden rounded-lg border">
-                  <ArticleRichTextEditor
-                    id="about-us-profile-content"
-                    ariaLabel={ABOUT_US_LABELS.profileContent}
-                    content={editorDraft.profileContent}
-                    onChange={changeProfileContent}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+          {/* Read-only without write permission. */}
+          <fieldset
+            disabled={!canWrite}
+            className="flex min-w-0 flex-1 flex-col gap-4 lg:gap-6"
+          >
+            <Card aria-labelledby="about-us-profile-title">
+              <CardHeader>
+                <CardTitle
+                  id="about-us-profile-title"
+                  className="text-base font-bold"
+                >
+                  {ABOUT_US_LABELS.companyProfile}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="about-us-profile-content">
+                    {ABOUT_US_LABELS.profileContent}
+                    <span aria-hidden="true" className="text-danger">
+                      *
+                    </span>
+                  </Label>
+                  <div className="border-border overflow-hidden rounded-lg border">
+                    <ArticleRichTextEditor
+                      id="about-us-profile-content"
+                      ariaLabel={ABOUT_US_LABELS.profileContent}
+                      content={editorDraft.profileContent}
+                      onChange={changeProfileContent}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label>{ABOUT_US_LABELS.companyPhoto}</Label>
+                  <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
+                    <div className="bg-primary flex h-36 w-full items-center justify-center overflow-hidden rounded-md lg:h-32 lg:w-52">
+                      {selectedPhoto ? (
+                        <img
+                          src={getMediaAssetUrl(selectedPhoto.path)}
+                          alt={selectedPhoto.filename}
+                          className="size-full object-cover"
+                        />
+                      ) : mediaQuery.isPending &&
+                        editorDraft.companyPictureFilepath ? (
+                        <span
+                          role="status"
+                          className="text-foreground/55 text-xs"
+                        >
+                          {ABOUT_US_LABELS.loadingPhoto}
+                        </span>
+                      ) : (
+                        <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
+                          <ImageIcon aria-hidden="true" className="size-5" />
+                          <span>
+                            {mediaQuery.isError &&
+                            editorDraft.companyPictureFilepath
+                              ? ABOUT_US_LABELS.photoUnavailable
+                              : ABOUT_US_LABELS.noPhoto}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-start gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setPhotoPickerOpen(true)}
+                      >
+                        {editorDraft.companyPictureFilepath
+                          ? ABOUT_US_LABELS.changePhoto
+                          : ABOUT_US_LABELS.choosePhoto}
+                      </Button>
+                      {selectedPhoto && (
+                        <p className="text-muted text-xs">
+                          {selectedPhoto.filename}
+                          {selectedPhoto.metadata
+                            ? ` · ${selectedPhoto.metadata.width}×${selectedPhoto.metadata.height}`
+                            : ''}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card aria-labelledby="about-us-vision-mission-title">
+              <CardHeader>
+                <CardTitle
+                  id="about-us-vision-mission-title"
+                  className="text-base font-bold"
+                >
+                  {ABOUT_US_LABELS.visionMission}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="about-us-vision">
+                    {ABOUT_US_LABELS.vision}
+                    <span aria-hidden="true" className="text-danger">
+                      *
+                    </span>
+                  </Label>
+                  <Textarea
+                    id="about-us-vision"
+                    value={editorDraft.vision}
+                    onChange={(event) =>
+                      changeVision(event.currentTarget.value)
+                    }
+                    className="min-h-16"
                   />
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <Label>{ABOUT_US_LABELS.companyPhoto}</Label>
-                <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
-                  <div className="bg-primary flex h-36 w-full items-center justify-center overflow-hidden rounded-md lg:h-32 lg:w-52">
-                    {selectedPhoto ? (
-                      <img
-                        src={getMediaAssetUrl(selectedPhoto.path)}
-                        alt={selectedPhoto.filename}
-                        className="size-full object-cover"
-                      />
-                    ) : mediaQuery.isPending &&
-                      editorDraft.companyPictureFilepath ? (
-                      <span
-                        role="status"
-                        className="text-foreground/55 text-xs"
-                      >
-                        {ABOUT_US_LABELS.loadingPhoto}
-                      </span>
-                    ) : (
-                      <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
-                        <ImageIcon aria-hidden="true" className="size-5" />
-                        <span>
-                          {mediaQuery.isError &&
-                          editorDraft.companyPictureFilepath
-                            ? ABOUT_US_LABELS.photoUnavailable
-                            : ABOUT_US_LABELS.noPhoto}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-start gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setPhotoPickerOpen(true)}
+                <div className="flex flex-col gap-2">
+                  <Label>{ABOUT_US_LABELS.missions}</Label>
+                  {editorDraft.missions.length === 0 ? (
+                    <p
+                      role="status"
+                      className="text-foreground/55 py-6 text-center text-sm"
                     >
-                      {editorDraft.companyPictureFilepath
-                        ? ABOUT_US_LABELS.changePhoto
-                        : ABOUT_US_LABELS.choosePhoto}
-                    </Button>
-                    {selectedPhoto && (
-                      <p className="text-foreground/55 text-xs">
-                        {selectedPhoto.filename}
-                        {selectedPhoto.metadata
-                          ? ` · ${selectedPhoto.metadata.width} × ${selectedPhoto.metadata.height}`
-                          : ''}
-                      </p>
-                    )}
-                  </div>
+                      {ABOUT_US_LABELS.emptyMissions}
+                    </p>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {editorDraft.missions.map((mission, index) => (
+                        <SortableAboutUsItem
+                          key={mission.clientKey}
+                          clientKey={mission.clientKey}
+                          index={index}
+                          group="about-us-missions"
+                          title={mission.title}
+                          description={mission.description}
+                          canDelete={canDeleteMission}
+                          onEdit={() =>
+                            openEditDialog('mission', mission.clientKey)
+                          }
+                          onDelete={() => deleteMission(mission.clientKey)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
+                    onClick={() => openAddDialog('mission')}
+                  >
+                    {ABOUT_US_LABELS.addMission}
+                  </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card aria-labelledby="about-us-vision-mission-title">
-            <CardHeader>
-              <CardTitle
-                id="about-us-vision-mission-title"
-                className="text-base"
-              >
-                {ABOUT_US_LABELS.visionMission}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="about-us-vision">
-                  {ABOUT_US_LABELS.vision}
-                  <span className="text-danger"> *</span>
-                </Label>
-                <Textarea
-                  id="about-us-vision"
-                  value={editorDraft.vision}
-                  onChange={(event) => changeVision(event.currentTarget.value)}
-                  className="min-h-16"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label>{ABOUT_US_LABELS.missions}</Label>
-                {editorDraft.missions.length === 0 ? (
+            <Card aria-labelledby="about-us-timeline-title">
+              <CardHeader>
+                <CardTitle
+                  id="about-us-timeline-title"
+                  className="text-base font-bold"
+                >
+                  {ABOUT_US_LABELS.timeline}
+                </CardTitle>
+                <span className="text-muted text-xs">
+                  {ABOUT_US_LABELS.timelineCount(editorDraft.timeline.length)}
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {editorDraft.timeline.length === 0 ? (
                   <p
                     role="status"
                     className="text-foreground/55 py-6 text-center text-sm"
                   >
-                    {ABOUT_US_LABELS.emptyMissions}
+                    {ABOUT_US_LABELS.emptyTimeline}
                   </p>
                 ) : (
                   <div className="flex flex-col gap-2">
-                    {editorDraft.missions.map((mission, index) => (
+                    {editorDraft.timeline.map((entry, index) => (
                       <SortableAboutUsItem
-                        key={mission.clientKey}
-                        clientKey={mission.clientKey}
+                        key={entry.clientKey}
+                        clientKey={entry.clientKey}
                         index={index}
-                        group="about-us-missions"
-                        title={mission.title}
-                        description={mission.description}
-                        canDelete={canDeleteMission}
+                        group="about-us-timeline"
+                        title={[entry.period, entry.title]
+                          .filter(Boolean)
+                          .join(' · ')}
+                        description={entry.description}
+                        canDelete={canDeleteTimeline}
                         onEdit={() =>
-                          openEditDialog('mission', mission.clientKey)
+                          openEditDialog('timeline', entry.clientKey)
                         }
-                        onDelete={() => deleteMission(mission.clientKey)}
+                        onDelete={() => deleteTimeline(entry.clientKey)}
                       />
                     ))}
                   </div>
@@ -562,82 +679,82 @@ function AboutUsEditor({
                   type="button"
                   variant="outline"
                   className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-                  onClick={() => openAddDialog('mission')}
+                  onClick={() => openAddDialog('timeline')}
                 >
-                  {ABOUT_US_LABELS.addMission}
+                  {ABOUT_US_LABELS.addTimeline}
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card aria-labelledby="about-us-timeline-title">
-            <CardHeader>
-              <CardTitle id="about-us-timeline-title" className="text-base">
-                {ABOUT_US_LABELS.timeline}
-              </CardTitle>
-              <span className="text-foreground/55 text-xs">
-                {ABOUT_US_LABELS.timelineCount(editorDraft.timeline.length)}
-              </span>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {editorDraft.timeline.length === 0 ? (
-                <p
-                  role="status"
-                  className="text-foreground/55 py-6 text-center text-sm"
-                >
-                  {ABOUT_US_LABELS.emptyTimeline}
-                </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {editorDraft.timeline.map((entry, index) => (
-                    <SortableAboutUsItem
-                      key={entry.clientKey}
-                      clientKey={entry.clientKey}
-                      index={index}
-                      group="about-us-timeline"
-                      title={[entry.period, entry.title]
-                        .filter(Boolean)
-                        .join(' · ')}
-                      description={entry.description}
-                      canDelete={canDeleteTimeline}
-                      onEdit={() => openEditDialog('timeline', entry.clientKey)}
-                      onDelete={() => deleteTimeline(entry.clientKey)}
-                    />
-                  ))}
-                </div>
+            {photoPickerOpen && (
+              <MediaPickerDialog
+                open
+                onOpenChange={setPhotoPickerOpen}
+                selectedMediaId={selectedPhoto?.id}
+                onSelect={changeCompanyPhoto}
+              />
+            )}
+
+            {itemDialog && (
+              <AboutUsItemDialog
+                key={`${itemDialog.kind}-${itemDialog.clientKey ?? 'new'}`}
+                kind={itemDialog.kind}
+                initialValue={dialogInitialValue}
+                onOpenChange={(open) => {
+                  if (!open) setItemDialog(null)
+                }}
+                onSave={saveItem}
+              />
+            )}
+          </fieldset>
+
+          <aside className="flex w-full flex-col gap-4 lg:w-80 lg:shrink-0 lg:gap-6">
+            <SidebarCard title={ABOUT_US_LABELS.status}>
+              <MetaRow label={ABOUT_US_LABELS.status}>
+                {latestItem ? (
+                  <ArticleStatusPill status="PUBLISHED" />
+                ) : (
+                  <span className="text-muted">{ABOUT_US_LABELS.missing}</span>
+                )}
+              </MetaRow>
+              {latestItem && (
+                <>
+                  <MetaRow label={ABOUT_US_LABELS.updated}>
+                    {formatRelativeTime(
+                      latestItem.updated_at ?? latestItem.created_at,
+                    )}
+                  </MetaRow>
+                  <MetaRow label={ABOUT_US_LABELS.updatedBy}>
+                    {latestItem.updated_by ?? latestItem.created_by}
+                  </MetaRow>
+                </>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
-                onClick={() => openAddDialog('timeline')}
-              >
-                {ABOUT_US_LABELS.addTimeline}
+            </SidebarCard>
+
+            <SidebarCard title={ABOUT_US_LABELS.translation}>
+              {languages.map((item) => (
+                <TranslationRow
+                  key={item.id}
+                  language={item}
+                  status={translationStatus(item.id)}
+                  current={item.id === languageId}
+                  onOpen={() => requestLanguage(item.id)}
+                  onAdd={() => addLanguage(item.id)}
+                />
+              ))}
+            </SidebarCard>
+
+            <SidebarCard title={ABOUT_US_LABELS.boardMembers}>
+              <p className="text-muted">{ABOUT_US_LABELS.boardMembersNote}</p>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/board_members">
+                  {ABOUT_US_LABELS.manageBoardMembers}
+                  <ArrowRightIcon aria-hidden="true" className="size-4" />
+                </Link>
               </Button>
-            </CardContent>
-          </Card>
-
-          {photoPickerOpen && (
-            <MediaPickerDialog
-              open
-              onOpenChange={setPhotoPickerOpen}
-              selectedMediaId={selectedPhoto?.id}
-              onSelect={changeCompanyPhoto}
-            />
-          )}
-
-          {itemDialog && (
-            <AboutUsItemDialog
-              key={`${itemDialog.kind}-${itemDialog.clientKey ?? 'new'}`}
-              kind={itemDialog.kind}
-              initialValue={dialogInitialValue}
-              onOpenChange={(open) => {
-                if (!open) setItemDialog(null)
-              }}
-              onSave={saveItem}
-            />
-          )}
-        </fieldset>
+            </SidebarCard>
+          </aside>
+        </div>
       </div>
     </DragDropProvider>
   )
@@ -747,6 +864,106 @@ function AboutUsItemDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function SidebarCard({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-3 space-y-0 text-sm">
+        <h2 className="text-muted text-xs font-semibold tracking-wide uppercase">
+          {title}
+        </h2>
+        {children}
+      </CardContent>
+    </Card>
+  )
+}
+
+type TranslationStatus = 'PUBLISHED' | 'UNSAVED' | 'MISSING'
+
+const TRANSLATION_STATUS_LABELS: Record<TranslationStatus, string> = {
+  PUBLISHED: ABOUT_US_LABELS.published,
+  UNSAVED: ABOUT_US_LABELS.unsaved,
+  MISSING: ABOUT_US_LABELS.missing,
+}
+
+const TRANSLATION_STATUS_TONES: Record<TranslationStatus, string> = {
+  PUBLISHED: 'text-success',
+  UNSAVED: 'text-muted',
+  MISSING: 'text-foreground/40',
+}
+
+function TranslationRow({
+  language,
+  status,
+  current,
+  onOpen,
+  onAdd,
+}: {
+  language: Language
+  status: TranslationStatus
+  current: boolean
+  onOpen: () => void
+  onAdd: () => void
+}) {
+  const name = (
+    <span className="flex items-center gap-2">
+      <span aria-hidden="true">{language.flag}</span>
+      {language.language}
+    </span>
+  )
+
+  return (
+    <div className="border-border flex items-center justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
+      {status === 'MISSING' ? (
+        <>
+          <span className={TRANSLATION_STATUS_TONES.MISSING}>{name}</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={ABOUT_US_LABELS.addTranslation(language.language)}
+            onClick={onAdd}
+            className="size-6"
+          >
+            <PlusIcon aria-hidden="true" className="size-3.5" />
+          </Button>
+        </>
+      ) : (
+        <button
+          type="button"
+          aria-current={current || undefined}
+          aria-label={ABOUT_US_LABELS.openTranslation(language.language)}
+          onClick={onOpen}
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+        >
+          <span
+            className={current ? 'text-accent font-semibold' : 'text-muted'}
+          >
+            {name}
+          </span>
+          <span className={cn('font-medium', TRANSLATION_STATUS_TONES[status])}>
+            {TRANSLATION_STATUS_LABELS[status]}
+          </span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+function MetaRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="border-border flex items-center justify-between gap-3 border-b pb-3 last:border-0 last:pb-0">
+      <span className="text-muted">{label}</span>
+      <span className="text-accent text-right font-medium">{children}</span>
+    </div>
   )
 }
 

@@ -96,7 +96,7 @@ function ServiceDialogMessage({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>
             {service
               ? DIVISION_LABELS.editService
@@ -191,7 +191,7 @@ function ServiceFormFields({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>
               {isEditing
                 ? DIVISION_LABELS.editService

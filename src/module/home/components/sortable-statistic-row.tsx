@@ -5,8 +5,8 @@ import { Input } from '@/shared/components/ui/input'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
 import { useSortable } from '@dnd-kit/react/sortable'
 import {
-  ChevronDownIcon,
-  ChevronUpIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
   CopyIcon,
   GripVerticalIcon,
   Trash2Icon,
@@ -100,7 +100,7 @@ function SortableStatisticRow({
             disabled={index === 0}
             onClick={() => onMove(index, index - 1)}
           >
-            <ChevronUpIcon aria-hidden="true" className="size-4" />
+            <ArrowUpIcon aria-hidden="true" className="size-4" />
           </Button>
           <Button
             type="button"
@@ -111,7 +111,7 @@ function SortableStatisticRow({
             disabled={index === total - 1}
             onClick={() => onMove(index, index + 1)}
           >
-            <ChevronDownIcon aria-hidden="true" className="size-4" />
+            <ArrowDownIcon aria-hidden="true" className="size-4" />
           </Button>
           <Button
             type="button"

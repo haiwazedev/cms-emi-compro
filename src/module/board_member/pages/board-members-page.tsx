@@ -311,7 +311,7 @@ function BoardMembersContent({
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {BOARD_MEMBER_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {BOARD_MEMBER_LABELS.description}
             </p>
           </div>
@@ -342,9 +342,9 @@ function BoardMembersContent({
 
         <section
           aria-label={BOARD_MEMBER_LABELS.pageTitle}
-          className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+          className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
         >
-          <div className="border-border/15 flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
+          <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
             <BoardMemberSearchInput search={search} />
             <Select
               value={board_member_type_id?.toString() ?? 'ALL'}
@@ -368,7 +368,7 @@ function BoardMembersContent({
                 ))}
               </SelectContent>
             </Select>
-            <span className="text-foreground/55 text-xs lg:ml-auto">
+            <span className="text-muted text-xs lg:ml-auto">
               {membersQuery.isSuccess
                 ? BOARD_MEMBER_LABELS.entryCount(members.length)
                 : BOARD_MEMBER_LABELS.loadingMembers}
@@ -437,13 +437,25 @@ function BoardMembersContent({
                 <TableHeader className="bg-primary">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-12 px-2" />
-                    <TableHead>{BOARD_MEMBER_LABELS.photo}</TableHead>
-                    <TableHead>{BOARD_MEMBER_LABELS.nameAndRole}</TableHead>
-                    <TableHead>{BOARD_MEMBER_LABELS.type}</TableHead>
-                    <TableHead>{BOARD_MEMBER_LABELS.order}</TableHead>
-                    <TableHead>{BOARD_MEMBER_LABELS.officialPhoto}</TableHead>
-                    <TableHead className="text-right">
-                      {BOARD_MEMBER_LABELS.actions}
+                    <TableHead className="text-muted font-bold uppercase">
+                      {BOARD_MEMBER_LABELS.photo}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {BOARD_MEMBER_LABELS.nameAndRole}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {BOARD_MEMBER_LABELS.type}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {BOARD_MEMBER_LABELS.order}
+                    </TableHead>
+                    <TableHead className="text-muted font-bold uppercase">
+                      {BOARD_MEMBER_LABELS.officialPhoto}
+                    </TableHead>
+                    <TableHead>
+                      <span className="sr-only">
+                        {BOARD_MEMBER_LABELS.actions}
+                      </span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -468,7 +480,7 @@ function BoardMembersContent({
           )}
         </section>
 
-        <p className="text-foreground/55 text-xs italic">
+        <p className="text-muted text-xs italic">
           {BOARD_MEMBER_LABELS.orderHint}
         </p>
 
@@ -501,7 +513,7 @@ function BoardMembersContent({
             className="max-w-xl"
             closeLabel={BOARD_MEMBER_LABELS.closeDeleteMemberDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>{BOARD_MEMBER_LABELS.deleteMemberTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-5 px-5 py-6">
@@ -574,7 +586,7 @@ function BoardMemberSearchInput({ search }: { search?: string }) {
     <div className="relative w-full lg:max-w-xs">
       <SearchIcon
         aria-hidden="true"
-        className="text-foreground/45 absolute top-1/2 left-3 size-4 -translate-y-1/2"
+        className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
         aria-label={BOARD_MEMBER_LABELS.searchLabel}
@@ -582,7 +594,7 @@ function BoardMemberSearchInput({ search }: { search?: string }) {
         placeholder={BOARD_MEMBER_LABELS.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
-        className="bg-primary border-border/15 pl-10 text-sm"
+        className="bg-primary border-border pl-10 text-sm"
       />
     </div>
   )
@@ -596,10 +608,7 @@ function BoardMemberMessage({
   role?: 'status'
 }) {
   return (
-    <p
-      role={role}
-      className="text-foreground/60 px-4 py-12 text-center text-sm"
-    >
+    <p role={role} className="text-muted px-4 py-12 text-center text-sm">
       {message}
     </p>
   )

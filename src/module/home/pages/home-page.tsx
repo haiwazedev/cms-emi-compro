@@ -376,7 +376,7 @@ function HomeEditor({
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {HOME_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {HOME_LABELS.description}
             </p>
           </div>
@@ -392,6 +392,7 @@ function HomeEditor({
             {canWrite && (
               <Button
                 type="button"
+                className="bg-success hover:bg-success/90"
                 disabled={!isDirty || saveMutation.isPending}
                 onClick={saveDraft}
               >
@@ -422,10 +423,13 @@ function HomeEditor({
         <fieldset disabled={!canWrite} className="contents">
           <Card aria-labelledby="home-carousel-title">
             <CardHeader>
-              <CardTitle id="home-carousel-title" className="text-base">
+              <CardTitle
+                id="home-carousel-title"
+                className="text-base font-bold"
+              >
                 {HOME_LABELS.carousel}
               </CardTitle>
-              <span className="text-foreground/55 text-xs">
+              <span className="text-muted text-xs">
                 {HOME_LABELS.slideCount(editorDraft.slides.length)}
               </span>
             </CardHeader>
@@ -483,10 +487,13 @@ function HomeEditor({
 
           <Card aria-labelledby="home-statistics-title">
             <CardHeader>
-              <CardTitle id="home-statistics-title" className="text-base">
+              <CardTitle
+                id="home-statistics-title"
+                className="text-base font-bold"
+              >
                 {HOME_LABELS.statistics}
               </CardTitle>
-              <span className="text-foreground/55 text-xs">
+              <span className="text-muted text-xs">
                 {HOME_LABELS.statisticCount(editorDraft.statistics.length)}
               </span>
             </CardHeader>
@@ -499,32 +506,42 @@ function HomeEditor({
                   {HOME_LABELS.emptyStatistics}
                 </p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="w-12 px-2" />
-                      <TableHead>{HOME_LABELS.statisticLabel}</TableHead>
-                      <TableHead>{HOME_LABELS.statisticNumber}</TableHead>
-                      <TableHead>{HOME_LABELS.statisticDescription}</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {editorDraft.statistics.map((statistic, index) => (
-                      <SortableStatisticRow
-                        key={statistic.clientKey}
-                        statistic={statistic}
-                        index={index}
-                        total={editorDraft.statistics.length}
-                        canDelete={canDeleteStatistic}
-                        onChange={changeStatistic}
-                        onMove={moveStatistics}
-                        onDuplicate={duplicateStatistic}
-                        onDelete={deleteStatistic}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="border-border overflow-hidden rounded-lg border">
+                  <Table>
+                    <TableHeader className="bg-primary">
+                      <TableRow className="border-b-0 hover:bg-transparent">
+                        <TableHead className="w-12 px-2" />
+                        <StatisticHead>
+                          {HOME_LABELS.statisticLabel}
+                        </StatisticHead>
+                        <StatisticHead>
+                          {HOME_LABELS.statisticNumber}
+                        </StatisticHead>
+                        <StatisticHead>
+                          {HOME_LABELS.statisticDescription}
+                        </StatisticHead>
+                        <TableHead>
+                          <span className="sr-only">Aksi</span>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {editorDraft.statistics.map((statistic, index) => (
+                        <SortableStatisticRow
+                          key={statistic.clientKey}
+                          statistic={statistic}
+                          index={index}
+                          total={editorDraft.statistics.length}
+                          canDelete={canDeleteStatistic}
+                          onChange={changeStatistic}
+                          onMove={moveStatistics}
+                          onDuplicate={duplicateStatistic}
+                          onDelete={deleteStatistic}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
               <Button
                 type="button"
@@ -539,7 +556,7 @@ function HomeEditor({
 
           <Card aria-labelledby="home-teaser-title">
             <CardHeader>
-              <CardTitle id="home-teaser-title" className="text-base">
+              <CardTitle id="home-teaser-title" className="text-base font-bold">
                 {HOME_LABELS.teaser}
               </CardTitle>
             </CardHeader>
@@ -618,6 +635,12 @@ function HomeTextField({
         onChange={(event) => onChange(event.currentTarget.value)}
       />
     </div>
+  )
+}
+
+function StatisticHead({ children }: { children: string }) {
+  return (
+    <TableHead className="text-muted font-bold uppercase">{children}</TableHead>
   )
 }
 
