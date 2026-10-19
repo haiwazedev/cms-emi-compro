@@ -8,6 +8,8 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { useSortable } from '@dnd-kit/react/sortable'
 import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   GripVerticalIcon,
@@ -101,7 +103,7 @@ function SortableSlideCard({
             disabled={index === 0}
             onClick={() => onMove(index, index - 1)}
           >
-            <ChevronUpIcon aria-hidden="true" className="size-4" />
+            <ArrowUpIcon aria-hidden="true" className="size-4" />
           </Button>
           <Button
             type="button"
@@ -112,7 +114,7 @@ function SortableSlideCard({
             disabled={index === total - 1}
             onClick={() => onMove(index, index + 1)}
           >
-            <ChevronDownIcon aria-hidden="true" className="size-4" />
+            <ArrowDownIcon aria-hidden="true" className="size-4" />
           </Button>
           <Button
             type="button"
