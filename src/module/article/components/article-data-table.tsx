@@ -20,8 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { ArticleLanguagePills } from '@/module/article/components/article-language-pills'
+import {
+  ArticleLanguagePills,
+  ArticleStatusPill,
+} from '@/module/article/components/article-language-pills'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import { cn } from '@/shared/lib/utils'
 import { Link } from '@tanstack/react-router'
 import {
   flexRender,
@@ -41,8 +45,10 @@ import {
 function createArticleColumns(
   onDeleteArticle: (article: ArticleListItem) => void,
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
+  compact: boolean,
 ): ColumnDef<ArticleListItem>[] {
-  return [
+  const hiddenColumns = compact ? ['category', 'languages'] : ['status']
+  const columns: ColumnDef<ArticleListItem>[] = [
     {
       id: 'photo',
       header: ARTICLE_LABELS.photo,
@@ -56,10 +62,16 @@ function createArticleColumns(
           <span className="text-accent font-semibold">
             {row.original.title ?? '-'}
           </span>
-          {row.original.slug && (
-            <span className="text-foreground/55 text-sm">
-              /articles/{row.original.slug}
+          {compact ? (
+            <span className="text-muted text-sm">
+              {row.original.article_category.name}
             </span>
+          ) : (
+            row.original.slug && (
+              <span className="text-foreground/55 text-sm">
+                /articles/{row.original.slug}
+              </span>
+            )
           )}
         </div>
       ),
@@ -91,8 +103,13 @@ function createArticleColumns(
       ),
     },
     {
+      id: 'status',
+      header: ARTICLE_LABELS.status,
+      cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
+    },
+    {
       id: 'actions',
-      header: ARTICLE_LABELS.actions,
+      header: () => <span className="sr-only">{ARTICLE_LABELS.actions}</span>,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
           {canWrite && (
@@ -127,6 +144,8 @@ function createArticleColumns(
       ),
     },
   ]
+
+  return columns.filter((column) => !hiddenColumns.includes(column.id ?? ''))
 }
 
 interface ArticleTablePagination {
@@ -142,17 +161,21 @@ interface ArticleDataTableProps {
   articles: ArticleListItem[]
   onDeleteArticle: (article: ArticleListItem) => void
   pagination?: ArticleTablePagination
+  // Dashboard layout: category under the title, status instead of category/languages.
+  compact?: boolean
 }
 
 function ArticleDataTable({
   articles,
   onDeleteArticle,
   pagination,
+  compact = false,
 }: ArticleDataTableProps) {
   const { canWrite, canDelete } = usePermissions()
   const articleColumns = useMemo(
-    () => createArticleColumns(onDeleteArticle, { canWrite, canDelete }),
-    [canDelete, canWrite, onDeleteArticle],
+    () =>
+      createArticleColumns(onDeleteArticle, { canWrite, canDelete }, compact),
+    [canDelete, canWrite, compact, onDeleteArticle],
   )
 
   const table = useReactTable({
@@ -167,13 +190,17 @@ function ArticleDataTable({
       <Table className="min-w-max">
         <TableHeader className="bg-primary">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+            <TableRow
+              key={headerGroup.id}
+              className="border-b-0 hover:bg-transparent"
+            >
               {headerGroup.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className={
-                    header.column.id === 'actions' ? 'text-right' : undefined
-                  }
+                  className={cn(
+                    'text-muted font-bold uppercase',
+                    header.column.id === 'actions' && 'text-right',
+                  )}
                 >
                   {header.isPlaceholder
                     ? null
@@ -221,7 +248,7 @@ function ArticleTablePaginationBar({
   const end = Math.min((pageIndex + 1) * pageSize, totalItems)
 
   return (
-    <div className="border-border/10 flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-foreground/60 text-sm">
         {ARTICLE_LABELS.showingEntries(start, end, totalItems)}
       </p>

@@ -27,7 +27,9 @@ function DashboardLatestArticles() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{DASHBOARD_LABELS.latestArticles}</CardTitle>
+        <CardTitle className="font-bold">
+          {DASHBOARD_LABELS.latestArticles}
+        </CardTitle>
         <Button asChild variant="outline" size="sm">
           <Link to="/articles">
             {DASHBOARD_LABELS.viewAll}
@@ -58,6 +60,7 @@ function DashboardLatestArticles() {
         <LatestArticlesMessage message={ARTICLE_LABELS.noArticles} />
       ) : (
         <ArticleDataTable
+          compact
           articles={articles}
           onDeleteArticle={setArticleToDelete}
         />
@@ -81,7 +84,7 @@ function LatestArticlesMessage({
   return (
     <p
       role={role}
-      className="text-foreground/60 border-border/10 border-t px-4 py-12 text-center text-sm"
+      className="text-foreground/60 border-border border-t px-4 py-12 text-center text-sm"
     >
       {message}
     </p>
