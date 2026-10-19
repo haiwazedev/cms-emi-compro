@@ -36,6 +36,13 @@ const QUICK_LINK_ICONS: Record<
   inbox: MailIcon,
 }
 
+// WIB (GMT+7), e.g. "09.14".
+const wibTimeFormat = new Intl.DateTimeFormat('id-ID', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Asia/Jakarta',
+})
+
 function DashboardPage() {
   const { canWrite } = usePermissions()
   // The authenticated route loads the user before this page renders.
@@ -50,7 +57,7 @@ function DashboardPage() {
             {DASHBOARD_LABELS.greeting(firstName)}
           </h1>
           <p className="text-foreground/60 text-sm lg:text-base">
-            {DASHBOARD_LABELS.description}
+            {DASHBOARD_LABELS.description(wibTimeFormat.format(new Date()))}
           </p>
         </div>
 

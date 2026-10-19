@@ -2,8 +2,8 @@ export const DASHBOARD_LABELS = {
   pageTitle: 'Dashboard',
   documentTitle: 'Dashboard | PLN EMI Admin',
   greeting: (name: string) => `Selamat datang, ${name} 👋`,
-  description:
-    'Ringkasan konten situs PT Energy Management Indonesia (Persero) — diperbarui hari ini, 09.14 WIB.',
+  description: (time: string) =>
+    `Ringkasan konten situs PT Energy Management Indonesia (Persero) — diperbarui hari ini, ${time} WIB.`,
   viewSite: 'Lihat Situs',
   newArticle: 'Artikel Baru',
   latestArticles: 'Artikel Terbaru',
