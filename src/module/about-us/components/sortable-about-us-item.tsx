@@ -65,9 +65,7 @@ function SortableAboutUsItem({
         <p className="text-accent truncate text-sm font-medium">
           {title || fallbackTitle}
         </p>
-        <p className="text-foreground/55 truncate text-xs">
-          {description || '—'}
-        </p>
+        <p className="text-muted truncate text-xs">{description || '—'}</p>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">

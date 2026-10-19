@@ -387,7 +387,7 @@ function AboutUsEditor({
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
               {ABOUT_US_LABELS.pageTitle}
             </h1>
-            <p className="text-foreground/60 text-sm lg:text-base">
+            <p className="text-muted text-sm lg:text-base">
               {ABOUT_US_LABELS.description}
             </p>
           </div>
@@ -403,6 +403,7 @@ function AboutUsEditor({
             {canWrite && (
               <Button
                 type="button"
+                className="bg-success hover:bg-success/90"
                 disabled={!isDirty || saveMutation.isPending}
                 onClick={saveDraft}
               >
@@ -433,7 +434,10 @@ function AboutUsEditor({
         <fieldset disabled={!canWrite} className="contents">
           <Card aria-labelledby="about-us-profile-title">
             <CardHeader>
-              <CardTitle id="about-us-profile-title" className="text-base">
+              <CardTitle
+                id="about-us-profile-title"
+                className="text-base font-bold"
+              >
                 {ABOUT_US_LABELS.companyProfile}
               </CardTitle>
             </CardHeader>
@@ -441,7 +445,9 @@ function AboutUsEditor({
               <div className="flex flex-col gap-2">
                 <Label htmlFor="about-us-profile-content">
                   {ABOUT_US_LABELS.profileContent}
-                  <span className="text-danger"> *</span>
+                  <span aria-hidden="true" className="text-danger">
+                    *
+                  </span>
                 </Label>
                 <div className="border-border overflow-hidden rounded-lg border">
                   <ArticleRichTextEditor
@@ -494,10 +500,10 @@ function AboutUsEditor({
                         : ABOUT_US_LABELS.choosePhoto}
                     </Button>
                     {selectedPhoto && (
-                      <p className="text-foreground/55 text-xs">
+                      <p className="text-muted text-xs">
                         {selectedPhoto.filename}
                         {selectedPhoto.metadata
-                          ? ` · ${selectedPhoto.metadata.width} × ${selectedPhoto.metadata.height}`
+                          ? ` · ${selectedPhoto.metadata.width}×${selectedPhoto.metadata.height}`
                           : ''}
                       </p>
                     )}
@@ -511,7 +517,7 @@ function AboutUsEditor({
             <CardHeader>
               <CardTitle
                 id="about-us-vision-mission-title"
-                className="text-base"
+                className="text-base font-bold"
               >
                 {ABOUT_US_LABELS.visionMission}
               </CardTitle>
@@ -520,7 +526,9 @@ function AboutUsEditor({
               <div className="flex flex-col gap-2">
                 <Label htmlFor="about-us-vision">
                   {ABOUT_US_LABELS.vision}
-                  <span className="text-danger"> *</span>
+                  <span aria-hidden="true" className="text-danger">
+                    *
+                  </span>
                 </Label>
                 <Textarea
                   id="about-us-vision"
@@ -572,10 +580,13 @@ function AboutUsEditor({
 
           <Card aria-labelledby="about-us-timeline-title">
             <CardHeader>
-              <CardTitle id="about-us-timeline-title" className="text-base">
+              <CardTitle
+                id="about-us-timeline-title"
+                className="text-base font-bold"
+              >
                 {ABOUT_US_LABELS.timeline}
               </CardTitle>
-              <span className="text-foreground/55 text-xs">
+              <span className="text-muted text-xs">
                 {ABOUT_US_LABELS.timelineCount(editorDraft.timeline.length)}
               </span>
             </CardHeader>
