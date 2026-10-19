@@ -44,7 +44,7 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
           <img src="/pln-logo.png" alt="" />
         </div>
         <div className="shrink-0">
-          <p className="text-xs font-semibold tracking-widest text-white/65">
+          <p className="text-sky-deep text-xs font-semibold tracking-widest">
             {NAVIGATION_LABELS.cmsMark}
           </p>
           <p className="text-sm font-bold">{NAVIGATION_LABELS.cmsName}</p>
