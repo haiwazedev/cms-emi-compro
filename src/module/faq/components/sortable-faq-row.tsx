@@ -55,7 +55,7 @@ function SortableFaqRow({
       </TableCell>
 
       {/* Index */}
-      <TableCell className="w-20">{index + 1}</TableCell>
+      <TableCell className="text-foreground/70 w-20">{index + 1}</TableCell>
 
       {/* Question */}
       <TableCell className="min-w-64">

@@ -97,10 +97,7 @@ function EditorMessage({
 }) {
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
-      <p
-        role={onRetry ? 'alert' : 'status'}
-        className="text-foreground/55 text-sm"
-      >
+      <p role={onRetry ? 'alert' : 'status'} className="text-muted text-sm">
         {message}
       </p>
       {onRetry && (
