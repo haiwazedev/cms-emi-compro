@@ -388,7 +388,9 @@ function ArticleForm({
                 <CardTitle className="text-base font-bold">
                   {ARTICLE_LABELS.mainContent}
                 </CardTitle>
-                <Badge variant="secondary">{currentLanguage.language}</Badge>
+                <Badge className="bg-secondary/10 text-accent border-transparent px-3 py-1 font-semibold">
+                  {currentLanguage.language}
+                </Badge>
               </CardHeader>
               {/* Remount per language so the editor loads that language's content. */}
               <CardContent>
