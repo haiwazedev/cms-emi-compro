@@ -443,7 +443,7 @@ function AboutUsEditor({
                   {ABOUT_US_LABELS.profileContent}
                   <span className="text-danger"> *</span>
                 </Label>
-                <div className="border-border/20 overflow-hidden rounded-lg border">
+                <div className="border-border overflow-hidden rounded-lg border">
                   <ArticleRichTextEditor
                     id="about-us-profile-content"
                     ariaLabel={ABOUT_US_LABELS.profileContent}

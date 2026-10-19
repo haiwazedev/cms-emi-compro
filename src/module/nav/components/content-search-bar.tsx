@@ -12,7 +12,7 @@ function ContentSearchBar() {
       <Input
         aria-label={NAVIGATION_TOPBAR_LABELS.searchLabel}
         placeholder={NAVIGATION_TOPBAR_LABELS.searchPlaceholder}
-        className="border-border/20 bg-primary h-10 rounded-full pl-10 text-sm"
+        className="border-border bg-primary h-10 rounded-full pl-10 text-sm"
       />
     </div>
   )

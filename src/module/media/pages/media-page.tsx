@@ -231,9 +231,9 @@ function MediaPage() {
 
       <section
         aria-label={MEDIA_LABELS.pageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
-        <div className="border-border/15 flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
+        <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
           <MediaSearchInput
             key={search ?? ''}
             search={search}
@@ -350,7 +350,7 @@ function MediaPage() {
           </div>
         )}
 
-        <footer className="border-border/15 text-foreground/55 border-t px-4 py-3 text-sm">
+        <footer className="border-border text-foreground/55 border-t px-4 py-3 text-sm">
           {MEDIA_LABELS.summary(
             visibleMedia.length,
             formatTotalSize(totalSize),
@@ -368,7 +368,7 @@ function MediaPage() {
           className="max-w-xl"
           closeLabel={MEDIA_LABELS.closeDeleteDialog}
         >
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>{MEDIA_LABELS.deleteTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 px-5 py-6">

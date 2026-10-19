@@ -5,7 +5,7 @@ function LanguageSelector() {
     <div
       role="group"
       aria-label={NAVIGATION_TOPBAR_LABELS.languageSelector}
-      className="border-border/20 flex shrink-0 items-center overflow-hidden rounded-full border text-xs font-semibold"
+      className="border-border flex shrink-0 items-center overflow-hidden rounded-full border text-xs font-semibold"
     >
       {NAVIGATION_TOPBAR_LABELS.languages.map((language) => {
         const isActive = language === NAVIGATION_TOPBAR_LABELS.activeLanguage

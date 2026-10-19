@@ -6,9 +6,9 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
+  --color-sidebar: var(--sidebar);
   --color-sky-deep: var(--sky-deep);
   --color-muted: var(--muted);
-  --color-sidebar: var(--sidebar);
   --color-border: var(--border);
   --color-success: var(--success);
   --color-danger: var(--danger);
@@ -24,7 +24,7 @@
   --sidebar: #16324c;
   --sky-deep: #8fb5d6;
   --muted: #5e7d99;
-  --border: #000000;
+  --border: #d5e1ea;
   --danger: #d9534f;
   --success: #5cb85c;
   --warning: #f0ad4e;

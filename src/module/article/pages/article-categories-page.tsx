@@ -146,7 +146,7 @@ function ArticleCategoriesPage() {
 
       <section
         aria-label={ARTICLE_LABELS.categoryPageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {categoriesQuery.isPending ? (
           <CategoryMessage
@@ -171,7 +171,7 @@ function ArticleCategoriesPage() {
         ) : categoriesQuery.data.length === 0 ? (
           <CategoryMessage message={ARTICLE_LABELS.noCategories} />
         ) : (
-          <ul className="divide-border/10 divide-y">
+          <ul className="divide-border divide-y">
             {categoriesQuery.data.map((category) => (
               <li
                 key={category.id}
@@ -242,7 +242,7 @@ function ArticleCategoriesPage() {
           className="max-w-xl"
           closeLabel={ARTICLE_LABELS.closeDeleteCategoryDialog}
         >
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>{ARTICLE_LABELS.deleteCategoryTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5 px-5 py-6">

@@ -42,7 +42,7 @@ function SortableAboutUsItem({
   return (
     <article
       ref={sortableRef}
-      className="border-border/20 bg-background flex min-h-14 items-center gap-3 rounded-lg border px-3 py-2"
+      className="border-border bg-background flex min-h-14 items-center gap-3 rounded-lg border px-3 py-2"
     >
       <button
         ref={dragHandleRef}

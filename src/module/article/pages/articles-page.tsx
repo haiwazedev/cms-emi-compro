@@ -151,7 +151,7 @@ function ArticlesPage() {
 
       <section
         aria-label={ARTICLE_LABELS.pageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {/* Filters */}
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
@@ -325,7 +325,7 @@ function ArticleSearchInput({ search }: { search?: string }) {
         placeholder={ARTICLE_LABELS.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        className="bg-primary border-border/15 pl-10 text-sm"
+        className="bg-primary border-border pl-10 text-sm"
       />
     </div>
   )
@@ -341,7 +341,7 @@ function ArticleMessage({
   return (
     <p
       role={role}
-      className="text-foreground/60 border-border/10 border-t px-4 py-12 text-center text-sm"
+      className="text-foreground/60 border-border border-t px-4 py-12 text-center text-sm"
     >
       {message}
     </p>

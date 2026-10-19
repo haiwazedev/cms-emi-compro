@@ -98,7 +98,7 @@ function FaqFormCard({
             <Label htmlFor="faq-answer">
               {FAQ_LABELS.answer} <span className="text-danger">*</span>
             </Label>
-            <div className="border-border/20 rounded-lg border">
+            <div className="border-border rounded-lg border">
               <ArticleRichTextEditor
                 id="faq-answer"
                 content={answer}
@@ -139,7 +139,7 @@ function FaqFormCard({
           )}
         </div>
 
-        <div className="bg-primary border-border/15 flex justify-end gap-2 border-t px-5 py-4">
+        <div className="bg-primary border-border flex justify-end gap-2 border-t px-5 py-4">
           <Button
             type="button"
             variant="outline"

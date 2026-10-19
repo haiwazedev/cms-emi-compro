@@ -146,7 +146,7 @@ function DocumentCommitmentCategoriesPage() {
 
       <section
         aria-label={DOCUMENT_COMMITMENT_LABELS.categoryPageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {categoriesQuery.isPending ? (
           <CategoryMessage
@@ -171,7 +171,7 @@ function DocumentCommitmentCategoriesPage() {
         ) : categoriesQuery.data?.length === 0 ? (
           <CategoryMessage message={DOCUMENT_COMMITMENT_LABELS.noCategories} />
         ) : (
-          <ul className="divide-border/10 divide-y">
+          <ul className="divide-border divide-y">
             {categoriesQuery.data?.map((category) => (
               <li
                 key={category.id}
@@ -239,7 +239,7 @@ function DocumentCommitmentCategoriesPage() {
           className="max-w-xl"
           closeLabel={DOCUMENT_COMMITMENT_LABELS.closeDeleteCategoryDialog}
         >
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>
               {DOCUMENT_COMMITMENT_LABELS.deleteCategoryTitle}
             </DialogTitle>

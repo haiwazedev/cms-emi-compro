@@ -454,7 +454,7 @@ function ArticleForm({
                   error={errors.content?.message}
                 >
                   <div
-                    className="border-border/20 overflow-hidden rounded-lg border"
+                    className="border-border overflow-hidden rounded-lg border"
                     aria-invalid={Boolean(errors.content)}
                   >
                     <ArticleRichTextEditor
@@ -551,7 +551,7 @@ function ArticleForm({
                 <h2 className="text-foreground/60 text-xs font-semibold tracking-wide uppercase">
                   {ARTICLE_LABELS.publicationStatus}
                 </h2>
-                <div className="border-border/10 flex items-center justify-between border-b pb-3 text-sm">
+                <div className="border-border flex items-center justify-between border-b pb-3 text-sm">
                   <span className="text-foreground/60">Status</span>
                   <Badge
                     variant="outline"
@@ -778,7 +778,7 @@ function ArticleForm({
                               setDatePickerOpen(false)
                             }}
                           />
-                          <div className="border-border/15 flex justify-end border-t p-2">
+                          <div className="border-border flex justify-end border-t p-2">
                             <Button
                               type="button"
                               variant="ghost"
@@ -918,7 +918,7 @@ function TranslationRow({
   )
 
   return (
-    <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
+    <div className="border-border flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
       {status === 'MISSING' ? (
         <>
           <span className={TRANSLATION_STATUS_TONES.MISSING}>{name}</span>
@@ -988,7 +988,7 @@ function isSlugEdited({ title, slug }: ArticleFormValues) {
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-border/10 flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
+    <div className="border-border flex items-center justify-between gap-3 border-b pb-2 last:border-0 last:pb-0">
       <span className="text-foreground/60">{label}</span>
       <span className="text-accent text-right font-medium">{value}</span>
     </div>

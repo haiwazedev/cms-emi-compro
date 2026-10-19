@@ -163,7 +163,7 @@ function InboxPage() {
         className="flex flex-col lg:min-h-0 lg:flex-1"
       >
         {/* Search and Filters */}
-        <div className="border-border/15 flex flex-col gap-2 border-b p-4 lg:flex-row">
+        <div className="border-border flex flex-col gap-2 border-b p-4 lg:flex-row">
           <div className="relative lg:w-64">
             <SearchIcon
               aria-hidden="true"
@@ -201,7 +201,7 @@ function InboxPage() {
         {/* Main Content */}
         <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row">
           {/* Inbox List */}
-          <div className="border-border/15 border-b lg:w-96 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
+          <div className="border-border border-b lg:w-96 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
             {inboxesQuery.isPending ? (
               <EmptyMessage message={INBOX_LABELS.loading} />
             ) : inboxesQuery.isError ? (
@@ -258,7 +258,7 @@ function InboxPage() {
           className="max-w-xl"
           closeLabel={INBOX_LABELS.closeDeleteDialog}
         >
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>{INBOX_LABELS.deleteTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 px-5 py-6">

@@ -67,7 +67,7 @@ function ArticlePreviewDialog({
             <h1 className="text-accent mt-4 text-3xl leading-tight font-bold tracking-tight lg:text-5xl">
               {title || 'Judul artikel'}
             </h1>
-            <div className="text-foreground/60 border-border/15 mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-b pb-5 text-xs">
+            <div className="text-foreground/60 border-border mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-b pb-5 text-xs">
               {formattedDate && (
                 <PreviewMeta icon={CalendarDaysIcon}>
                   {formattedDate}

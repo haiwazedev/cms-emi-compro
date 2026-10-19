@@ -63,7 +63,7 @@ function SortableSlideCard({
   return (
     <article
       ref={sortableRef}
-      className="border-border/20 bg-background overflow-hidden rounded-lg border"
+      className="border-border bg-background overflow-hidden rounded-lg border"
     >
       <div className="flex min-h-14 items-center gap-3 px-3 py-2">
         <button
@@ -146,7 +146,7 @@ function SortableSlideCard({
       </div>
 
       {expanded && (
-        <div className="border-border/15 flex flex-col gap-4 border-t p-4">
+        <div className="border-border flex flex-col gap-4 border-t p-4">
           <div className="flex flex-col gap-3 lg:flex-row">
             <TextField
               id={`${slide.clientKey}-title-1`}

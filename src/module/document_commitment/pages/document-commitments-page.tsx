@@ -212,7 +212,7 @@ function DocumentCommitmentsPage() {
 
       <section
         aria-label={DOCUMENT_COMMITMENT_LABELS.pageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
           <DocumentSearchInput key={search ?? ''} search={search} />
@@ -352,7 +352,7 @@ function DocumentCommitmentsPage() {
           className="max-w-xl"
           closeLabel={DOCUMENT_COMMITMENT_LABELS.closeDeleteDialog}
         >
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>
               {DOCUMENT_COMMITMENT_LABELS.deleteDocumentTitle}
             </DialogTitle>
@@ -433,7 +433,7 @@ function DocumentSearchInput({ search }: { search?: string }) {
         placeholder={DOCUMENT_COMMITMENT_LABELS.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        className="bg-primary border-border/15 pl-10 text-sm"
+        className="bg-primary border-border pl-10 text-sm"
       />
     </div>
   )
@@ -449,7 +449,7 @@ function DocumentMessage({
   return (
     <p
       role={role}
-      className="text-foreground/60 border-border/10 border-t px-4 py-12 text-center text-sm"
+      className="text-foreground/60 border-border border-t px-4 py-12 text-center text-sm"
     >
       {message}
     </p>

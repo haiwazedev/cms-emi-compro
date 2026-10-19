@@ -235,7 +235,7 @@ function FaqsPage() {
             className="max-w-xl"
             closeLabel={FAQ_LABELS.closeDeleteDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>{FAQ_LABELS.deleteTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 py-6">

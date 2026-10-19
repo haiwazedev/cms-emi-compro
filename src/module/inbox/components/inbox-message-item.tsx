@@ -34,7 +34,7 @@ function InboxMessageItem({
         aria-current={selected}
         onClick={onSelect}
         className={cn(
-          'border-border/10 hover:bg-primary flex w-full gap-3 border-b border-l-4 border-l-transparent p-4 text-left',
+          'border-border hover:bg-primary flex w-full gap-3 border-b border-l-4 border-l-transparent p-4 text-left',
           selected && 'bg-primary border-l-accent',
         )}
       >

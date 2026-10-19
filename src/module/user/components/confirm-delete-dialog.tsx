@@ -39,7 +39,7 @@ function ConfirmDeleteDialog({
       }}
     >
       <DialogContent className="max-w-xl" closeLabel={closeLabel}>
-        <DialogHeader className="border-border/15 border-b">
+        <DialogHeader className="border-border border-b">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-5 px-5 py-6">

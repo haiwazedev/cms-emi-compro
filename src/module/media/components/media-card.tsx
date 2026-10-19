@@ -23,7 +23,7 @@ function MediaCard({
   return (
     <article
       className={cn(
-        'border-border/15 bg-background overflow-hidden rounded-xl border transition-colors',
+        'border-border bg-background overflow-hidden rounded-xl border transition-colors',
         selected && 'border-accent ring-accent/20 ring-2',
         view === 'list' && 'flex items-center gap-3 p-3',
       )}

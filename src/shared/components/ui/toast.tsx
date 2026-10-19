@@ -22,7 +22,7 @@ function ToastList() {
             'bg-background text-foreground focus-visible:ring-accent/50 pointer-events-auto flex items-start gap-3 rounded-lg border p-4 shadow-lg transition-all duration-200 ease-out outline-none focus-visible:ring-2 data-[ending-style]:-translate-y-2 data-[ending-style]:opacity-0 data-[starting-style]:-translate-y-2 data-[starting-style]:opacity-0',
             isSuccess && 'border-success/40',
             isError && 'border-danger/40',
-            !isSuccess && !isError && 'border-border/20',
+            !isSuccess && !isError && 'border-border',
           )}
         >
           {isSuccess && (

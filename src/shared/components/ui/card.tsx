@@ -6,7 +6,7 @@ function Card({ className, ...props }: ComponentProps<'section'>) {
     <section
       data-slot="card"
       className={cn(
-        'bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm',
+        'bg-background border-border overflow-hidden rounded-xl border shadow-sm',
         className,
       )}
       {...props}
@@ -19,7 +19,7 @@ function CardHeader({ className, ...props }: ComponentProps<'div'>) {
     <div
       data-slot="card-header"
       className={cn(
-        'border-border/15 flex items-center justify-between gap-4 border-b px-5 py-4',
+        'border-border flex items-center justify-between gap-4 border-b px-5 py-4',
         className,
       )}
       {...props}

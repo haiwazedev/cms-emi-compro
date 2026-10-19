@@ -132,7 +132,7 @@ function RolesPage() {
 
       <section
         aria-label={ROLE_LABELS.pageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {rolesQuery.isPending ? (
           <ListMessage role="status" message={USER_LABELS.loading} />
@@ -145,7 +145,7 @@ function RolesPage() {
         ) : rolesQuery.data.length === 0 ? (
           <ListMessage message={ROLE_LABELS.noRoles} />
         ) : (
-          <ul className="divide-border/10 divide-y">
+          <ul className="divide-border divide-y">
             {rolesQuery.data.map((role) => {
               const isOwnRole = currentUser?.role?.id === role.id
 

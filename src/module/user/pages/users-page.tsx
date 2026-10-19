@@ -184,7 +184,7 @@ function UsersPage() {
         </CardHeader>
 
         {/* Search and Filters */}
-        <div className="border-border/15 flex flex-col gap-2 border-b p-4 lg:flex-row">
+        <div className="border-border flex flex-col gap-2 border-b p-4 lg:flex-row">
           <UserSearchInput search={search} />
           <Select
             value={role_id ? String(role_id) : ALL_ROLES}
@@ -483,7 +483,7 @@ function UserPaginationFooter({
   const end = Math.min(page * limit, totalItems)
 
   return (
-    <div className="border-border/10 flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-foreground/60 text-sm">
         {USER_LABELS.showingEntries(start, end, totalItems)}
       </p>

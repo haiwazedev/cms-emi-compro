@@ -555,7 +555,7 @@ function DivisionsContent({
                   </TableBody>
                 </Table>
               </div>
-              <div className="border-border/15 p-4">
+              <div className="border-border p-4">
                 <p className="bg-primary text-foreground/65 rounded-lg px-4 py-3 text-sm">
                   {DIVISION_LABELS.serviceInfo}
                 </p>
@@ -618,7 +618,7 @@ function DivisionsContent({
             className="max-w-xl"
             closeLabel={DIVISION_LABELS.closeDeleteDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>
                 {deleteTarget?.kind === 'division'
                   ? DIVISION_LABELS.deleteDivisionTitle

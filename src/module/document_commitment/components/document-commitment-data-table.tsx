@@ -248,7 +248,7 @@ function DocumentCommitmentDataTable({
         </TableBody>
       </Table>
 
-      <div className="border-border/10 flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
         <p className="text-foreground/60 text-sm">
           {DOCUMENT_COMMITMENT_LABELS.showingEntries(start, end, totalItems)}
         </p>

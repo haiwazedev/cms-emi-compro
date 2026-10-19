@@ -197,7 +197,7 @@ function ClientsPage() {
             className="max-w-xl"
             closeLabel={CLIENT_LABELS.closeDeleteDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>{CLIENT_LABELS.deleteTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 py-6">

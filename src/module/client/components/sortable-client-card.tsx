@@ -32,7 +32,7 @@ function SortableClientCard({
   return (
     <article
       ref={sortableRef}
-      className="border-border/15 bg-background flex flex-col overflow-hidden rounded-lg border"
+      className="border-border bg-background flex flex-col overflow-hidden rounded-lg border"
     >
       <div className="bg-primary relative flex h-28 items-center justify-center p-4">
         <img

@@ -342,9 +342,9 @@ function BoardMembersContent({
 
         <section
           aria-label={BOARD_MEMBER_LABELS.pageTitle}
-          className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+          className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
         >
-          <div className="border-border/15 flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
+          <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
             <BoardMemberSearchInput search={search} />
             <Select
               value={board_member_type_id?.toString() ?? 'ALL'}
@@ -501,7 +501,7 @@ function BoardMembersContent({
             className="max-w-xl"
             closeLabel={BOARD_MEMBER_LABELS.closeDeleteMemberDialog}
           >
-            <DialogHeader className="border-border/15 border-b">
+            <DialogHeader className="border-border border-b">
               <DialogTitle>{BOARD_MEMBER_LABELS.deleteMemberTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-5 px-5 py-6">
@@ -582,7 +582,7 @@ function BoardMemberSearchInput({ search }: { search?: string }) {
         placeholder={BOARD_MEMBER_LABELS.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
-        className="bg-primary border-border/15 pl-10 text-sm"
+        className="bg-primary border-border pl-10 text-sm"
       />
     </div>
   )

@@ -220,7 +220,7 @@ function BoardMemberTypesContent({
 
       <section
         aria-label={BOARD_MEMBER_LABELS.typesPageTitle}
-        className="bg-background border-border/15 overflow-hidden rounded-xl border shadow-sm"
+        className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {typesQuery.isPending ? (
           <TypeMessage
@@ -245,7 +245,7 @@ function BoardMemberTypesContent({
         ) : localizedTypes.length === 0 ? (
           <TypeMessage message={BOARD_MEMBER_LABELS.noTypesList} />
         ) : (
-          <ul className="divide-border/10 divide-y">
+          <ul className="divide-border divide-y">
             {localizedTypes.map((memberType) => (
               <li
                 key={memberType.id}
@@ -317,7 +317,7 @@ function BoardMemberTypesContent({
           className="max-w-xl"
           closeLabel={BOARD_MEMBER_LABELS.closeDeleteTypeDialog}
         >
-          <DialogHeader className="border-border/15 border-b">
+          <DialogHeader className="border-border border-b">
             <DialogTitle>{BOARD_MEMBER_LABELS.deleteTypeTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5 px-5 py-6">
