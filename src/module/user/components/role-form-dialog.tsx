@@ -1,9 +1,6 @@
 import type { Role, RoleFields } from '@/module/user/api/user.api'
-import {
-  ROLE_LABELS,
-  USER_LABELS,
-} from '@/module/user/constants/user.constants'
-import { roleFormSchema } from '@/module/user/schemas/user-form.schema'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
+import { createRoleFormSchema } from '@/module/user/schemas/user-form.schema'
 import type { RoleFormValues } from '@/module/user/schemas/user-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -39,12 +36,13 @@ function RoleFormDialog({
   serverError,
   onSubmit,
 }: RoleFormDialogProps) {
+  const { t } = useI18n()
   const {
     formState: { errors },
     handleSubmit,
     register,
   } = useForm<RoleFormValues>({
-    resolver: zodResolver(roleFormSchema),
+    resolver: zodResolver(createRoleFormSchema(t)),
     defaultValues: {
       name: role?.name ?? '',
       description: role?.description ?? '',
@@ -57,9 +55,9 @@ function RoleFormDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {role ? ROLE_LABELS.editRoleTitle : ROLE_LABELS.addRole}
+            {role ? t.role.editRoleTitle : t.role.addRole}
           </DialogTitle>
-          <DialogDescription>{ROLE_LABELS.formDescription}</DialogDescription>
+          <DialogDescription>{t.role.formDescription}</DialogDescription>
         </DialogHeader>
 
         <form
@@ -74,7 +72,7 @@ function RoleFormDialog({
           <div className="flex flex-col gap-4 px-5 py-5">
             {/* Title */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="role-title">{ROLE_LABELS.title}</Label>
+              <Label htmlFor="role-title">{t.role.title}</Label>
               <Input
                 id="role-title"
                 autoFocus
@@ -92,9 +90,7 @@ function RoleFormDialog({
 
             {/* Description */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="role-description">
-                {ROLE_LABELS.roleDescription}
-              </Label>
+              <Label htmlFor="role-description">{t.role.roleDescription}</Label>
               <Textarea
                 id="role-description"
                 maxLength={500}
@@ -117,7 +113,7 @@ function RoleFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {USER_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -126,10 +122,10 @@ function RoleFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {USER_LABELS.saving}
+                  {t.user.saving}
                 </>
               ) : (
-                USER_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>

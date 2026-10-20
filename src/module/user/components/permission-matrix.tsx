@@ -1,10 +1,7 @@
 import { updateRolePermission } from '@/module/user/api/user.api'
 import type { RolePermission } from '@/module/user/api/user.api'
 import { ListError, ListMessage } from '@/module/user/components/list-state'
-import {
-  PERMISSION_LABELS,
-  USER_LABELS,
-} from '@/module/user/constants/user.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   permissionsQueryOptions,
   rolePermissionsQueryOptions,
@@ -29,6 +26,7 @@ const pairKey = (roleId: number, permissionId: number) =>
   `${roleId}:${permissionId}`
 
 function PermissionMatrix() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const rolesQuery = useQuery(rolesQueryOptions())
   const permissionsQuery = useQuery(permissionsQueryOptions())
@@ -64,11 +62,9 @@ function PermissionMatrix() {
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error
-            ? error.message
-            : USER_LABELS.permissionSaveFailed,
+          error instanceof Error ? error.message : t.user.permissionSaveFailed,
         type: 'error',
       })
     },
@@ -93,14 +89,14 @@ function PermissionMatrix() {
     <Card aria-labelledby="roles-title">
       <CardHeader>
         <CardTitle id="roles-title" className="text-base">
-          {USER_LABELS.rolesAndPermissions}
+          {t.user.rolesAndPermissions}
         </CardTitle>
       </CardHeader>
 
       {failedQuery ? (
         <ListError
           error={failedQuery.error}
-          fallback={USER_LABELS.permissionsFailed}
+          fallback={t.user.permissionsFailed}
           onRetry={() =>
             queries.forEach((query) => {
               if (query.isError) void query.refetch()
@@ -110,22 +106,22 @@ function PermissionMatrix() {
       ) : !rolesQuery.data ||
         !permissionsQuery.data ||
         !rolePermissionsQuery.data ? (
-        <ListMessage role="status" message={USER_LABELS.loading} />
+        <ListMessage role="status" message={t.user.loading} />
       ) : rolesQuery.data.length === 0 ? (
-        <ListMessage message={USER_LABELS.noRoles} />
+        <ListMessage message={t.user.noRoles} />
       ) : (
         <Table className="min-w-max">
           <TableHeader className="bg-primary">
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-muted font-bold uppercase">
-                {USER_LABELS.role}
+                {t.user.role}
               </TableHead>
               {permissionsQuery.data.map((permission) => (
                 <TableHead
                   key={permission.id}
                   className="text-muted w-28 font-bold whitespace-normal uppercase"
                 >
-                  {PERMISSION_LABELS[permission.name] ?? permission.name}
+                  {t.user.permissions[permission.name] ?? permission.name}
                 </TableHead>
               ))}
             </TableRow>
@@ -147,9 +143,10 @@ function PermissionMatrix() {
                       <Switch
                         checked={allowed.get(key) ?? false}
                         disabled={!allowed.has(key) || pendingKeys.has(key)}
-                        aria-label={USER_LABELS.permissionToggle(
+                        aria-label={t.user.permissionToggle(
                           role.name,
-                          PERMISSION_LABELS[permission.name] ?? permission.name,
+                          t.user.permissions[permission.name] ??
+                            permission.name,
                         )}
                         onCheckedChange={(isAllowed) =>
                           toggleMutation.mutate({

@@ -7,7 +7,6 @@ import { ListError, ListMessage } from '@/module/user/components/list-state'
 import { PermissionMatrix } from '@/module/user/components/permission-matrix'
 import { UserFormDialog } from '@/module/user/components/user-form-dialog'
 import {
-  USER_LABELS,
   formatDateTime,
   formatRelativeTime,
 } from '@/module/user/constants/user.constants'
@@ -54,6 +53,7 @@ import { useEffect, useState } from 'react'
 const ALL_ROLES = 'ALL'
 
 function UsersPage() {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/users' })
   const queryClient = useQueryClient()
   const { page, limit, search, role_id } = useSearch({
@@ -94,16 +94,16 @@ function UsersPage() {
         queryClient.invalidateQueries({ queryKey: authQueryKey }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: USER_LABELS.userSaved,
+        title: t.common.success,
+        description: t.user.userSaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : USER_LABELS.userSaveFailed,
+          error instanceof Error ? error.message : t.user.userSaveFailed,
         type: 'error',
       })
     },
@@ -123,16 +123,16 @@ function UsersPage() {
         queryClient.invalidateQueries({ queryKey: userQueryKeys.roles() }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: USER_LABELS.userDeleted,
+        title: t.common.success,
+        description: t.user.userDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : USER_LABELS.userDeleteFailed,
+          error instanceof Error ? error.message : t.user.userDeleteFailed,
         type: 'error',
       })
     },
@@ -155,20 +155,20 @@ function UsersPage() {
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {USER_LABELS.pageTitle}
+            {t.user.pageTitle}
           </h1>
           <p className="text-muted text-sm lg:text-base">
-            {USER_LABELS.description}
+            {t.user.description}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline">
-            <Link to="/roles">{USER_LABELS.manageRoles}</Link>
+            <Link to="/roles">{t.user.manageRoles}</Link>
           </Button>
           <Button type="button" onClick={() => openForm()}>
             <PlusIcon aria-hidden="true" className="size-4" />
-            {USER_LABELS.addUser}
+            {t.user.addUser}
           </Button>
         </div>
       </header>
@@ -177,10 +177,10 @@ function UsersPage() {
       <Card aria-labelledby="registered-users-title">
         <CardHeader>
           <CardTitle id="registered-users-title" className="text-base">
-            {USER_LABELS.registeredUsers}
+            {t.user.registeredUsers}
           </CardTitle>
           <span className="text-muted text-xs">
-            {USER_LABELS.accountCount(pagination?.totalItems ?? 0)}
+            {t.user.accountCount(pagination?.totalItems ?? 0)}
           </span>
         </CardHeader>
 
@@ -200,13 +200,13 @@ function UsersPage() {
             }
           >
             <SelectTrigger
-              aria-label={USER_LABELS.roleFilterLabel}
+              aria-label={t.user.roleFilterLabel}
               className="lg:w-52"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_ROLES}>{USER_LABELS.allRoles}</SelectItem>
+              <SelectItem value={ALL_ROLES}>{t.user.allRoles}</SelectItem>
               {roles.map((role) => (
                 <SelectItem key={role.id} value={String(role.id)}>
                   {role.name}
@@ -217,15 +217,15 @@ function UsersPage() {
         </div>
 
         {usersQuery.isPending ? (
-          <ListMessage role="status" message={USER_LABELS.loading} />
+          <ListMessage role="status" message={t.user.loading} />
         ) : usersQuery.isError ? (
           <ListError
             error={usersQuery.error}
-            fallback={USER_LABELS.usersFailed}
+            fallback={t.user.usersFailed}
             onRetry={() => void usersQuery.refetch()}
           />
         ) : users.length === 0 ? (
-          <ListMessage message={USER_LABELS.noUsers} />
+          <ListMessage message={t.user.noUsers} />
         ) : (
           <>
             <Table className="min-w-max">
@@ -233,19 +233,19 @@ function UsersPage() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-16" />
                   <TableHead className="text-muted font-bold uppercase">
-                    {USER_LABELS.nameAndEmail}
+                    {t.user.nameAndEmail}
                   </TableHead>
                   <TableHead className="text-muted font-bold uppercase">
-                    {USER_LABELS.role}
+                    {t.user.role}
                   </TableHead>
                   <TableHead className="text-muted font-bold uppercase">
-                    {USER_LABELS.status}
+                    {t.user.status}
                   </TableHead>
                   <TableHead className="text-muted font-bold uppercase">
-                    {USER_LABELS.lastLogin}
+                    {t.user.lastLogin}
                   </TableHead>
                   <TableHead>
-                    <span className="sr-only">{USER_LABELS.actions}</span>
+                    <span className="sr-only">{t.user.actions}</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -301,14 +301,14 @@ function UsersPage() {
 
       <ConfirmDeleteDialog
         open={userToDelete !== null}
-        title={USER_LABELS.deleteUserTitle}
+        title={t.user.deleteUserTitle}
         itemName={userToDelete?.name}
         description={
           userToDelete
-            ? USER_LABELS.deleteUserDescription(userToDelete.name)
+            ? t.user.deleteUserDescription(userToDelete.name)
             : undefined
         }
-        closeLabel={USER_LABELS.closeDeleteUserDialog}
+        closeLabel={t.user.closeDeleteUserDialog}
         pending={deleteMutation.isPending}
         onCancel={() => setUserToDelete(null)}
         onConfirm={() => {
@@ -332,7 +332,7 @@ function UserRow({
   onEdit: () => void
   onDelete: () => void
 }) {
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
   return (
     <TableRow>
       {/* Avatar */}
@@ -358,7 +358,7 @@ function UserRow({
             {user.role.name}
           </span>
         ) : (
-          <span className="text-muted text-xs">{USER_LABELS.noRole}</span>
+          <span className="text-muted text-xs">{t.user.noRole}</span>
         )}
       </TableCell>
 
@@ -376,7 +376,7 @@ function UserRow({
             aria-hidden="true"
             className="size-1.5 rounded-full bg-current"
           />
-          {user.is_active ? USER_LABELS.active : USER_LABELS.inactive}
+          {user.is_active ? t.user.active : t.user.inactive}
         </span>
       </TableCell>
 
@@ -390,7 +390,7 @@ function UserRow({
             {formatRelativeTime(user.last_signed_in, locale)}
           </time>
         ) : (
-          USER_LABELS.neverLoggedIn
+          t.user.neverLoggedIn
         )}
       </TableCell>
 
@@ -402,19 +402,19 @@ function UserRow({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={USER_LABELS.editUser(user.name)}
+            aria-label={t.user.editUser(user.name)}
             onClick={onEdit}
           >
             <PencilIcon aria-hidden="true" className="size-4" />
           </Button>
-          <span title={isSelf ? USER_LABELS.cannotDeleteSelf : undefined}>
+          <span title={isSelf ? t.user.cannotDeleteSelf : undefined}>
             <Button
               type="button"
               variant="outline"
               size="icon"
               className="size-8"
               disabled={isSelf || deletePending}
-              aria-label={USER_LABELS.deleteUser(user.name)}
+              aria-label={t.user.deleteUser(user.name)}
               onClick={onDelete}
             >
               <Trash2Icon aria-hidden="true" className="size-4" />
@@ -427,6 +427,7 @@ function UserRow({
 }
 
 function UserSearchInput({ search }: { search?: string }) {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/users' })
   const [value, setValue] = useState(search ?? '')
 
@@ -456,8 +457,8 @@ function UserSearchInput({ search }: { search?: string }) {
       />
       <Input
         type="search"
-        aria-label={USER_LABELS.searchLabel}
-        placeholder={USER_LABELS.searchPlaceholder}
+        aria-label={t.user.searchLabel}
+        placeholder={t.user.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
         className="pl-9 text-sm"
@@ -479,20 +480,21 @@ function UserPaginationFooter({
   totalPages: number
   onPageChange: (page: number) => void
 }) {
+  const { t } = useI18n()
   const start = totalItems === 0 ? 0 : (page - 1) * limit + 1
   const end = Math.min(page * limit, totalItems)
 
   return (
     <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-muted text-sm">
-        {USER_LABELS.showingEntries(start, end, totalItems)}
+        {t.user.showingEntries(start, end, totalItems)}
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="outline"
           size="icon"
-          aria-label={USER_LABELS.previousPage}
+          aria-label={t.user.previousPage}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
@@ -514,7 +516,7 @@ function UserPaginationFooter({
           type="button"
           variant="outline"
           size="icon"
-          aria-label={USER_LABELS.nextPage}
+          aria-label={t.user.nextPage}
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
