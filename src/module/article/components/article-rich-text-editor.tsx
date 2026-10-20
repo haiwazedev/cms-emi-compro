@@ -1,4 +1,4 @@
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
@@ -30,6 +30,7 @@ function ArticleRichTextEditor({
   id,
   ariaLabel,
 }: ArticleRichTextEditorProps) {
+  const { t } = useI18n()
   const editor = useEditor({
     extensions: [StarterKit.configure({ heading: { levels: [2, 3] } })],
     content,
@@ -72,25 +73,25 @@ function ArticleRichTextEditor({
     <div className="bg-background overflow-hidden rounded-b-lg">
       {!readOnly && (
         <div
-          aria-label={ARTICLE_LABELS.bodyField}
+          aria-label={t.article.bodyField}
           className="bg-primary border-border flex flex-wrap items-center gap-1 border-b p-2"
         >
           <ToolbarButton
-            label="Tebal"
+            label={t.article.editor.bold}
             active={toolbarState?.bold ?? false}
             onClick={() => editor.chain().focus().toggleBold().run()}
           >
             <BoldIcon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Miring"
+            label={t.article.editor.italic}
             active={toolbarState?.italic ?? false}
             onClick={() => editor.chain().focus().toggleItalic().run()}
           >
             <ItalicIcon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Garis bawah"
+            label={t.article.editor.underline}
             active={toolbarState?.underline ?? false}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
           >
@@ -98,7 +99,7 @@ function ArticleRichTextEditor({
           </ToolbarButton>
           <ToolbarDivider />
           <ToolbarButton
-            label="Judul tingkat 2"
+            label={t.article.editor.heading2}
             active={toolbarState?.heading2 ?? false}
             onClick={() =>
               editor.chain().focus().toggleHeading({ level: 2 }).run()
@@ -107,7 +108,7 @@ function ArticleRichTextEditor({
             <span className="text-sm font-semibold">H2</span>
           </ToolbarButton>
           <ToolbarButton
-            label="Judul tingkat 3"
+            label={t.article.editor.heading3}
             active={toolbarState?.heading3 ?? false}
             onClick={() =>
               editor.chain().focus().toggleHeading({ level: 3 }).run()
@@ -117,14 +118,14 @@ function ArticleRichTextEditor({
           </ToolbarButton>
           <ToolbarDivider />
           <ToolbarButton
-            label="Daftar berpoin"
+            label={t.article.editor.bulletList}
             active={toolbarState?.bulletList ?? false}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
             <ListIcon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Daftar bernomor"
+            label={t.article.editor.orderedList}
             active={toolbarState?.orderedList ?? false}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           >
@@ -132,13 +133,13 @@ function ArticleRichTextEditor({
           </ToolbarButton>
           <ToolbarDivider />
           <ToolbarButton
-            label="Tautan"
+            label={t.article.editor.link}
             active={toolbarState?.link ?? false}
             onClick={() => {
               const currentHref = editor.getAttributes('link').href as
                 string | undefined
               const href = window
-                .prompt(ARTICLE_LABELS.editorLinkPrompt, currentHref ?? '')
+                .prompt(t.article.editorLinkPrompt, currentHref ?? '')
                 ?.trim()
 
               if (!href) return
@@ -155,14 +156,14 @@ function ArticleRichTextEditor({
           </ToolbarButton>
           <ToolbarDivider />
           <ToolbarButton
-            label="Urungkan"
+            label={t.article.editor.undo}
             active={false}
             onClick={() => editor.chain().focus().undo().run()}
           >
             <Undo2Icon aria-hidden="true" className="size-4" />
           </ToolbarButton>
           <ToolbarButton
-            label="Ulangi"
+            label={t.article.editor.redo}
             active={false}
             onClick={() => editor.chain().focus().redo().run()}
           >

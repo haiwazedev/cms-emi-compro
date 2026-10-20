@@ -1,6 +1,6 @@
 import type { ArticleListItem } from '@/module/article/api/article.api'
 import { deleteArticle } from '@/module/article/api/article.api'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { articleQueryKeys } from '@/module/article/queries/article.queries'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -26,6 +26,7 @@ function ArticleDeleteDialog({
   onClose,
   onDeleted,
 }: ArticleDeleteDialogProps) {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
@@ -42,18 +43,18 @@ function ArticleDeleteDialog({
         queryClient.invalidateQueries({ queryKey: articleQueryKeys.counts() }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: ARTICLE_LABELS.articleDeleted,
+        title: t.common.success,
+        description: t.article.articleDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : ARTICLE_LABELS.articleDeleteFailed,
+            : t.article.articleDeleteFailed,
         type: 'error',
       })
     },
@@ -68,10 +69,10 @@ function ArticleDeleteDialog({
     >
       <DialogContent
         className="max-w-xl"
-        closeLabel={ARTICLE_LABELS.closeDeleteDialog}
+        closeLabel={t.article.closeDeleteDialog}
       >
         <DialogHeader className="border-border border-b">
-          <DialogTitle>{ARTICLE_LABELS.deleteArticleTitle}</DialogTitle>
+          <DialogTitle>{t.article.deleteArticleTitle}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-5 px-5 py-6">
@@ -84,7 +85,7 @@ function ArticleDeleteDialog({
                 “{article.title ?? '-'}”
               </p>
               <DialogDescription>
-                {ARTICLE_LABELS.deleteArticleDescription}
+                {t.article.deleteArticleDescription}
               </DialogDescription>
             </div>
           )}
@@ -97,7 +98,7 @@ function ArticleDeleteDialog({
             disabled={deleteMutation.isPending}
             onClick={onClose}
           >
-            {ARTICLE_LABELS.cancel}
+            {t.common.cancel}
           </Button>
           <Button
             type="button"
@@ -109,8 +110,8 @@ function ArticleDeleteDialog({
             }}
           >
             {deleteMutation.isPending
-              ? ARTICLE_LABELS.deletingArticle
-              : ARTICLE_LABELS.confirmDeleteArticle}
+              ? t.article.deletingArticle
+              : t.article.confirmDeleteArticle}
           </Button>
         </DialogFooter>
       </DialogContent>

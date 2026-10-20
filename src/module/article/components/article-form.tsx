@@ -1,6 +1,5 @@
-import { useI18n } from '@/shared/lib/i18n/i18n-context'
+import { useI18n, type Locale } from '@/shared/lib/i18n/i18n-context'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
-import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import type {
   Article,
   ArticleStatus,
@@ -10,7 +9,7 @@ import { createArticle, updateArticle } from '@/module/article/api/article.api'
 import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
 import { ArticlePreviewDialog } from '@/module/article/components/article-preview-dialog'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import type { Dictionary } from '@/shared/lib/i18n/id'
 import type { Language } from '@/module/language/api/language.api'
 import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
@@ -22,7 +21,7 @@ import {
   articleQueryKeys,
 } from '@/module/article/queries/article.queries'
 import type { ArticleFormValues } from '@/module/article/schemas/article-form.schema'
-import { articleFormSchema } from '@/module/article/schemas/article-form.schema'
+import { createArticleFormSchema } from '@/module/article/schemas/article-form.schema'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import { Calendar } from '@/shared/components/ui/calendar'
@@ -82,7 +81,7 @@ function ArticleForm({
   languageId,
   onLanguageChange,
 }: ArticleFormProps) {
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
   const isEditing = mode === 'edit'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -109,7 +108,7 @@ function ArticleForm({
     setError,
     setValue,
   } = useForm<ArticleFormValues>({
-    resolver: zodResolver(articleFormSchema),
+    resolver: zodResolver(createArticleFormSchema(t)),
     defaultValues,
   })
 
@@ -128,8 +127,7 @@ function ArticleForm({
   // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
   useBlocker({
     shouldBlockFn: () =>
-      hasUnsavedChanges &&
-      !window.confirm(ARTICLE_LABELS.discardChangesConfirm),
+      hasUnsavedChanges && !window.confirm(t.article.discardChangesConfirm),
     enableBeforeUnload: () => hasUnsavedChanges,
   })
 
@@ -188,8 +186,8 @@ function ArticleForm({
         queryKey: articleQueryKeys.lists(),
       })
       toast.add({
-        title: 'Berhasil',
-        description: ARTICLE_LABELS.articleSaved,
+        title: t.common.success,
+        description: t.article.articleSaved,
         type: 'success',
       })
 
@@ -208,16 +206,14 @@ function ArticleForm({
     },
     onError: (error) => {
       const message =
-        error instanceof Error
-          ? error.message
-          : ARTICLE_LABELS.articleSaveFailed
+        error instanceof Error ? error.message : t.article.articleSaveFailed
 
       if (error instanceof ApiError && error.status === 409) {
         setError('slug', { message })
       }
 
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description: message,
         type: 'error',
       })
@@ -240,10 +236,7 @@ function ArticleForm({
 
   function requestLanguage(id: string) {
     if (id === languageId) return
-    if (
-      hasUnsavedChanges &&
-      !window.confirm(ARTICLE_LABELS.discardChangesConfirm)
-    ) {
+    if (hasUnsavedChanges && !window.confirm(t.article.discardChangesConfirm)) {
       return
     }
 
@@ -254,8 +247,8 @@ function ArticleForm({
   function addLanguage(id: string) {
     if (!findContent(article, DEFAULT_LANGUAGE_ID)) {
       toast.add({
-        title: 'Gagal',
-        description: ARTICLE_LABELS.defaultLanguageRequired,
+        title: t.common.error,
+        description: t.article.defaultLanguageRequired,
         type: 'error',
       })
       return
@@ -276,7 +269,7 @@ function ArticleForm({
       (values) => {
         const primaryPhotoId = selectedPhoto?.id ?? article?.primary_photo
         if (primaryPhotoId == null) {
-          setPhotoError(ARTICLE_LABELS.photoRequired)
+          setPhotoError(t.article.photoRequired)
           return
         }
 
@@ -284,7 +277,7 @@ function ArticleForm({
       },
       () => {
         if ((selectedPhoto?.id ?? article?.primary_photo) == null) {
-          setPhotoError(ARTICLE_LABELS.photoRequired)
+          setPhotoError(t.article.photoRequired)
         }
       },
     )()
@@ -317,20 +310,21 @@ function ArticleForm({
             >
               <Link to="/articles">
                 <ArrowLeftIcon aria-hidden="true" className="size-4" />
-                {ARTICLE_LABELS.backToArticles}
+                {t.article.backToArticles}
               </Link>
             </Button>
             <div className="flex flex-col gap-1">
               <h1 className="text-accent text-2xl font-bold lg:text-3xl">
                 {isEditing
-                  ? ARTICLE_LABELS.editPageTitle
-                  : ARTICLE_LABELS.createPageTitle}
+                  ? t.article.editPageTitle
+                  : t.article.createPageTitle}
               </h1>
               {article?.updated_at && (
                 <p className="text-muted text-sm">
-                  Terakhir disimpan{' '}
-                  {formatRelativeTime(article.updated_at, locale)}
-                  {article.updated_by ? ' oleh ' + article.updated_by : ''}
+                  {t.article.lastSaved(
+                    formatRelativeTime(article.updated_at, locale),
+                    article.updated_by,
+                  )}
                 </p>
               )}
             </div>
@@ -341,11 +335,11 @@ function ArticleForm({
               variant="outline"
               onClick={() => setPreviewOpen(true)}
             >
-              {ARTICLE_LABELS.preview}
+              {t.article.preview}
             </Button>
             {!canPublish && canWrite && (
               <p className="text-muted w-full text-xs lg:w-auto">
-                {PERMISSION_HINTS.draftOnly}
+                {t.auth.draftOnly}
               </p>
             )}
             {canWrite && (
@@ -361,7 +355,7 @@ function ArticleForm({
                     className="size-4 animate-spin"
                   />
                 ) : null}
-                {ARTICLE_LABELS.saveDraft}
+                {t.article.saveDraft}
               </Button>
             )}
             {canPublish && (
@@ -379,7 +373,7 @@ function ArticleForm({
                 ) : (
                   <CheckIcon aria-hidden="true" className="size-4" />
                 )}
-                {ARTICLE_LABELS.publishArticle}
+                {t.article.publishArticle}
               </Button>
             )}
           </div>
@@ -390,7 +384,7 @@ function ArticleForm({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base font-bold">
-                  {ARTICLE_LABELS.mainContent}
+                  {t.article.mainContent}
                 </CardTitle>
                 <Badge className="bg-secondary/10 text-accent border-transparent px-3 py-1 font-semibold">
                   {currentLanguage.language}
@@ -400,7 +394,7 @@ function ArticleForm({
               <CardContent>
                 <FormField
                   id="article-title"
-                  label={ARTICLE_LABELS.titleField}
+                  label={t.article.titleField}
                   required
                   error={errors.title?.message}
                   hint={
@@ -409,7 +403,7 @@ function ArticleForm({
                         titleValue.length >= 120 ? 'text-danger' : undefined
                       }
                     >
-                      {ARTICLE_LABELS.titleHint(titleValue.length)}
+                      {t.article.titleHint(titleValue.length)}
                     </span>
                   }
                 >
@@ -429,12 +423,12 @@ function ArticleForm({
 
                 <FormField
                   id="article-slug"
-                  label={ARTICLE_LABELS.slugField}
+                  label={t.article.slugField}
                   required
                   error={errors.slug?.message}
                   hint={
                     <>
-                      {ARTICLE_LABELS.slugHint}
+                      {t.article.slugHint}
                       <strong className="font-semibold">
                         {slugValue || 'slug'}
                       </strong>
@@ -457,7 +451,7 @@ function ArticleForm({
 
                 <FormField
                   id="article-summary"
-                  label={ARTICLE_LABELS.summaryField}
+                  label={t.article.summaryField}
                   required
                   error={errors.summary?.message}
                   hint="Tampil pada kartu berita di halaman Media & Informasi."
@@ -474,7 +468,7 @@ function ArticleForm({
 
                 <FormField
                   id="article-content"
-                  label={ARTICLE_LABELS.bodyField}
+                  label={t.article.bodyField}
                   required
                   error={errors.content?.message}
                 >
@@ -484,7 +478,7 @@ function ArticleForm({
                   >
                     <ArticleRichTextEditor
                       id="article-content"
-                      ariaLabel={ARTICLE_LABELS.bodyField}
+                      ariaLabel={t.article.bodyField}
                       content={getValues('content')}
                       onChange={handleContentChange}
                     />
@@ -493,7 +487,7 @@ function ArticleForm({
 
                 <FormField
                   id="article-press-release-number"
-                  label={ARTICLE_LABELS.pressReleaseNumberField}
+                  label={t.article.pressReleaseNumberField}
                   error={errors.press_release_number?.message}
                 >
                   {/* Shared across languages, unlike the fields above. */}
@@ -510,7 +504,7 @@ function ArticleForm({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base font-bold">
-                  {ARTICLE_LABELS.contactSection}
+                  {t.article.contactSection}
                 </CardTitle>
                 <span className="text-muted text-sm">Komponen</span>
               </CardHeader>
@@ -518,7 +512,7 @@ function ArticleForm({
                 <div className="flex flex-col gap-5 lg:flex-row">
                   <FormField
                     id="article-contact-name"
-                    label={ARTICLE_LABELS.contactNameField}
+                    label={t.article.contactNameField}
                     error={errors.cp_name?.message}
                   >
                     <Input
@@ -530,7 +524,7 @@ function ArticleForm({
                   </FormField>
                   <FormField
                     id="article-contact-role"
-                    label={ARTICLE_LABELS.contactRoleField}
+                    label={t.article.contactRoleField}
                     error={errors.cp_role?.message}
                   >
                     <Input
@@ -544,7 +538,7 @@ function ArticleForm({
                 <div className="flex flex-col gap-5 lg:flex-row">
                   <FormField
                     id="article-contact-phone"
-                    label={ARTICLE_LABELS.contactPhoneField}
+                    label={t.article.contactPhoneField}
                     error={errors.cp_phone_number?.message}
                   >
                     <Input
@@ -556,7 +550,7 @@ function ArticleForm({
                   </FormField>
                   <FormField
                     id="article-contact-email"
-                    label={ARTICLE_LABELS.contactEmailField}
+                    label={t.article.contactEmailField}
                     error={errors.cp_email?.message}
                   >
                     <Input
@@ -576,7 +570,7 @@ function ArticleForm({
             <Card>
               <CardContent>
                 <h2 className="text-muted text-xs font-semibold tracking-wide uppercase">
-                  {ARTICLE_LABELS.publicationStatus}
+                  {t.article.publicationStatus}
                 </h2>
                 <div className="border-border flex items-center justify-between border-b pb-3 text-sm">
                   <span className="text-muted">Status</span>
@@ -585,24 +579,24 @@ function ArticleForm({
                     <ArticleStatusPill status={currentStatus} />
                   ) : (
                     <span className={TRANSLATION_STATUS_TONES[currentStatus]}>
-                      {TRANSLATION_STATUS_LABELS[currentStatus]}
+                      {t.article[TRANSLATION_STATUS_KEYS[currentStatus]]}
                     </span>
                   )}
                 </div>
                 {article && (
                   <div className="flex flex-col gap-3 text-sm">
                     <MetaRow
-                      label="Dibuat"
-                      value={formatMetaDate(article.created_at, false)}
+                      label={t.article.createdAt}
+                      value={formatMetaDate(article.created_at, locale, false)}
                     />
                     {article.updated_at && (
                       <MetaRow
-                        label="Diperbarui"
-                        value={formatMetaDate(article.updated_at)}
+                        label={t.article.updatedAt}
+                        value={formatMetaDate(article.updated_at, locale)}
                       />
                     )}
                     <MetaRow
-                      label="Penulis"
+                      label={t.article.author}
                       value={article.updated_by ?? article.created_by}
                     />
                   </div>
@@ -613,7 +607,7 @@ function ArticleForm({
             <Card>
               <CardHeader className="px-4 py-3">
                 <CardTitle className="text-muted text-xs tracking-wide uppercase">
-                  {ARTICLE_LABELS.primaryPhoto}
+                  {t.article.primaryPhoto}
                   <span aria-hidden="true" className="text-danger">
                     {' '}
                     *
@@ -636,12 +630,12 @@ function ArticleForm({
                   id="article-primary-photo"
                   label={
                     previewPhotoUrl
-                      ? ARTICLE_LABELS.photoReplace
-                      : ARTICLE_LABELS.photoSelect
+                      ? t.article.photoReplace
+                      : t.article.photoSelect
                   }
                   required
                   error={photoError}
-                  hint={ARTICLE_LABELS.photoHelp}
+                  hint={t.article.photoHelp}
                 >
                   <Button
                     id="article-primary-photo"
@@ -656,8 +650,8 @@ function ArticleForm({
                   >
                     <ImageIcon aria-hidden="true" className="size-4" />
                     {selectedPhoto
-                      ? ARTICLE_LABELS.photoReplace
-                      : ARTICLE_LABELS.photoSelect}
+                      ? t.article.photoReplace
+                      : t.article.photoSelect}
                   </Button>
                 </FormField>
                 {selectedPhoto && (
@@ -685,13 +679,13 @@ function ArticleForm({
             <Card>
               <CardHeader className="px-4 py-3">
                 <CardTitle className="text-muted text-xs tracking-wide uppercase">
-                  {ARTICLE_LABELS.articleGrouping}
+                  {t.article.articleGrouping}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 p-4">
                 <FormField
                   id="article-category"
-                  label={ARTICLE_LABELS.category}
+                  label={t.article.category}
                   required
                   error={errors.article_category_id?.message}
                 >
@@ -719,8 +713,8 @@ function ArticleForm({
                       <SelectValue
                         placeholder={
                           categoriesQuery.isPending
-                            ? 'Memuat kategori...'
-                            : ARTICLE_LABELS.chooseCategory
+                            ? t.article.loadingCategories
+                            : t.article.chooseCategory
                         }
                       />
                     </SelectTrigger>
@@ -738,7 +732,7 @@ function ArticleForm({
                   {categoriesQuery.isError && (
                     <div className="flex flex-col gap-2">
                       <p role="alert" className="text-danger text-sm">
-                        {ARTICLE_LABELS.categoriesFailed}
+                        {t.article.categoriesFailed}
                       </p>
                       <Button
                         type="button"
@@ -746,7 +740,7 @@ function ArticleForm({
                         variant="outline"
                         onClick={() => void categoriesQuery.refetch()}
                       >
-                        {ARTICLE_LABELS.retry}
+                        {t.common.retry}
                       </Button>
                     </div>
                   )}
@@ -754,7 +748,7 @@ function ArticleForm({
 
                 <FormField
                   id="article-issue-date"
-                  label={ARTICLE_LABELS.issueDateField}
+                  label={t.article.issueDateField}
                   error={errors.issue_date?.message}
                 >
                   <Controller
@@ -784,7 +778,7 @@ function ArticleForm({
                               className={field.value ? undefined : 'text-muted'}
                             >
                               {formatIssueDate(field.value) ??
-                                ARTICLE_LABELS.chooseIssueDate}
+                                t.article.chooseIssueDate}
                             </span>
                             <CalendarDaysIcon
                               aria-hidden="true"
@@ -814,7 +808,7 @@ function ArticleForm({
                                 setDatePickerOpen(false)
                               }}
                             >
-                              {ARTICLE_LABELS.clearIssueDate}
+                              {t.article.clearIssueDate}
                             </Button>
                           </div>
                         </PopoverContent>
@@ -828,7 +822,7 @@ function ArticleForm({
             <Card>
               <CardHeader className="px-4 py-3">
                 <CardTitle className="text-muted text-xs tracking-wide uppercase">
-                  {ARTICLE_LABELS.translation}
+                  {t.article.translation}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col gap-3 space-y-0 p-4 text-sm">
@@ -912,12 +906,12 @@ function FormField({
   )
 }
 
-const TRANSLATION_STATUS_LABELS: Record<TranslationStatus, string> = {
-  PUBLISHED: ARTICLE_LABELS.published,
-  DRAFT: ARTICLE_LABELS.draft,
-  UNSAVED: ARTICLE_LABELS.translationUnsaved,
-  MISSING: ARTICLE_LABELS.translationMissing,
-}
+const TRANSLATION_STATUS_KEYS = {
+  PUBLISHED: 'published',
+  DRAFT: 'draft',
+  UNSAVED: 'translationUnsaved',
+  MISSING: 'translationMissing',
+} as const satisfies Record<TranslationStatus, keyof Dictionary['article']>
 
 const TRANSLATION_STATUS_TONES: Record<TranslationStatus, string> = {
   PUBLISHED: 'text-success',
@@ -939,6 +933,7 @@ function TranslationRow({
   onOpen: () => void
   onAdd: () => void
 }) {
+  const { t } = useI18n()
   const name = (
     <span className="flex items-center gap-2">
       <span aria-hidden="true">{language.flag}</span>
@@ -955,7 +950,7 @@ function TranslationRow({
             type="button"
             variant="outline"
             size="icon"
-            aria-label={ARTICLE_LABELS.addTranslation(language.language)}
+            aria-label={t.article.addTranslation(language.language)}
             onClick={onAdd}
             className="size-6"
           >
@@ -966,7 +961,7 @@ function TranslationRow({
         <button
           type="button"
           aria-current={current || undefined}
-          aria-label={ARTICLE_LABELS.openTranslation(language.language)}
+          aria-label={t.article.openTranslation(language.language)}
           onClick={onOpen}
           className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
         >
@@ -976,7 +971,7 @@ function TranslationRow({
             {name}
           </span>
           <span className={cn('font-medium', TRANSLATION_STATUS_TONES[status])}>
-            {TRANSLATION_STATUS_LABELS[status]}
+            {t.article[TRANSLATION_STATUS_KEYS[status]]}
           </span>
         </button>
       )}
@@ -1070,11 +1065,11 @@ function toNullableText(value: string) {
   return value.trim() || null
 }
 
-function formatMetaDate(value: string, withTime = true) {
+function formatMetaDate(value: string, locale: Locale, withTime = true) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
 
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     ...(withTime ? { timeStyle: 'short' } : {}),
   }).format(date)

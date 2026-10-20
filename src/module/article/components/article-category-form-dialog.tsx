@@ -2,9 +2,9 @@ import type {
   ArticleCategory,
   ArticleCategoryWriteFields,
 } from '@/module/article/api/article.api'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { ArticleCategoryFormValues } from '@/module/article/schemas/article-form.schema'
-import { articleCategoryFormSchema } from '@/module/article/schemas/article-form.schema'
+import { createArticleCategoryFormSchema } from '@/module/article/schemas/article-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -39,6 +39,7 @@ function ArticleCategoryFormDialog({
   serverError,
   onSubmit,
 }: ArticleCategoryFormDialogProps) {
+  const { t } = useI18n()
   const {
     control,
     formState: { errors },
@@ -46,7 +47,7 @@ function ArticleCategoryFormDialog({
     register,
     reset,
   } = useForm<ArticleCategoryFormValues>({
-    resolver: zodResolver(articleCategoryFormSchema),
+    resolver: zodResolver(createArticleCategoryFormSchema(t)),
     defaultValues: { name: category?.name ?? '' },
   })
   const name = useWatch({ control, name: 'name' }) ?? ''
@@ -61,12 +62,10 @@ function ArticleCategoryFormDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {category
-              ? ARTICLE_LABELS.editCategory
-              : ARTICLE_LABELS.addCategory}
+            {category ? t.article.editCategory : t.article.addCategory}
           </DialogTitle>
           <DialogDescription>
-            {ARTICLE_LABELS.categoryFormDescription}
+            {t.article.categoryFormDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -78,7 +77,7 @@ function ArticleCategoryFormDialog({
         >
           <div className="flex flex-col gap-2 px-5 py-5">
             <Label htmlFor="article-category-name">
-              {ARTICLE_LABELS.categoryName}
+              {t.article.categoryName}
             </Label>
             <Input
               id="article-category-name"
@@ -93,7 +92,7 @@ function ArticleCategoryFormDialog({
               id="article-category-slug"
               className="text-foreground/60 text-sm break-all"
             >
-              {ARTICLE_LABELS.categorySlugHint(slugify(name))}
+              {t.article.categorySlugHint(slugify(name))}
             </p>
             {nameError && (
               <p role="alert" className="text-danger text-sm">
@@ -109,7 +108,7 @@ function ArticleCategoryFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {ARTICLE_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -118,10 +117,10 @@ function ArticleCategoryFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {ARTICLE_LABELS.saving}
+                  {t.article.saving}
                 </>
               ) : (
-                ARTICLE_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>

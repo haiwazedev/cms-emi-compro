@@ -1,7 +1,6 @@
 import type { ArticleListItem } from '@/module/article/api/article.api'
 import { ArticleDataTable } from '@/module/article/components/article-data-table'
 import { ArticleDeleteDialog } from '@/module/article/components/article-delete-dialog'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { articlesQueryOptions } from '@/module/article/queries/article.queries'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
@@ -42,23 +41,23 @@ function DashboardLatestArticles() {
       {articlesQuery.isPending ? (
         <LatestArticlesMessage
           role="status"
-          message={ARTICLE_LABELS.loadingArticles}
+          message={t.article.loadingArticles}
         />
       ) : articlesQuery.isError ? (
         <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
           <p role="alert" className="text-danger text-sm">
-            {articlesQuery.error.message || ARTICLE_LABELS.articlesFailed}
+            {articlesQuery.error.message || t.article.articlesFailed}
           </p>
           <Button
             type="button"
             variant="outline"
             onClick={() => void articlesQuery.refetch()}
           >
-            {ARTICLE_LABELS.retry}
+            {t.common.retry}
           </Button>
         </div>
       ) : articles.length === 0 ? (
-        <LatestArticlesMessage message={ARTICLE_LABELS.noArticles} />
+        <LatestArticlesMessage message={t.article.noArticles} />
       ) : (
         <ArticleDataTable
           compact

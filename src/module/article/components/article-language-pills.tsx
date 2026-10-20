@@ -1,27 +1,28 @@
 import type { ArticleStatus } from '@/module/article/api/article.api'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import type { Dictionary } from '@/shared/lib/i18n/id'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { cn } from '@/shared/lib/utils'
 import type { ComponentProps } from 'react'
 
 type LanguagePillStatus = ArticleStatus | 'MISSING'
 
-const LANGUAGE_PILLS: Record<
-  LanguagePillStatus,
-  { label: string; className: string }
-> = {
+const LANGUAGE_PILLS = {
   PUBLISHED: {
-    label: ARTICLE_LABELS.published,
+    labelKey: 'published',
     className: 'bg-success/10 text-success',
   },
   DRAFT: {
-    label: ARTICLE_LABELS.draft,
+    labelKey: 'draft',
     className: 'bg-warning/15 text-warning',
   },
   MISSING: {
-    label: ARTICLE_LABELS.translationMissing,
+    labelKey: 'translationMissing',
     className: 'bg-foreground/10 text-foreground/50',
   },
-}
+} as const satisfies Record<
+  LanguagePillStatus,
+  { labelKey: keyof Dictionary['article']; className: string }
+>
 
 function LanguagePill({
   status,
@@ -41,12 +42,13 @@ function LanguagePill({
 }
 
 function ArticleLanguageLegend() {
+  const { t } = useI18n()
   return (
     <div className="text-foreground/55 flex flex-wrap items-center gap-2 px-4 pb-4 text-xs">
-      <span>{ARTICLE_LABELS.languageLegend}</span>
+      <span>{t.article.languageLegend}</span>
       {(Object.keys(LANGUAGE_PILLS) as LanguagePillStatus[]).map((status) => (
         <LanguagePill key={status} status={status}>
-          {LANGUAGE_PILLS[status].label}
+          {t.article[LANGUAGE_PILLS[status].labelKey]}
         </LanguagePill>
       ))}
     </div>
@@ -54,12 +56,13 @@ function ArticleLanguageLegend() {
 }
 
 function ArticleStatusPill({ status }: { status: ArticleStatus | null }) {
+  const { t } = useI18n()
   if (!status) return '-'
 
   return (
     <LanguagePill status={status} className="inline-flex items-center gap-1.5">
       <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-      {LANGUAGE_PILLS[status].label}
+      {t.article[LANGUAGE_PILLS[status].labelKey]}
     </LanguagePill>
   )
 }
@@ -70,14 +73,15 @@ function ArticleLanguagePills({
 }: {
   languages: { language_id: string; status: ArticleStatus | null }[]
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-wrap gap-1">
       {languages.map((language) => {
         const status = language.status ?? 'MISSING'
         const code = language.language_id.toUpperCase()
-        const label = ARTICLE_LABELS.languageStatus(
+        const label = t.article.languageStatus(
           code,
-          LANGUAGE_PILLS[status].label,
+          t.article[LANGUAGE_PILLS[status].labelKey],
         )
 
         return (
