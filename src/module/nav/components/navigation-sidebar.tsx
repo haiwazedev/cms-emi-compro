@@ -10,12 +10,13 @@ import { faqsQueryOptions } from '@/module/faq/queries/faq.queries'
 import { inboxCountsQueryOptions } from '@/module/inbox/queries/inbox.queries'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { Badge } from '@/shared/components/ui/badge'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { cn } from '@/shared/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import type { ComponentProps } from 'react'
 import {
-  NAVIGATION_LABELS,
+  NAVIGATION_BRAND,
   NAVIGATION_SECTIONS,
 } from '../constants/navigation.constants'
 
@@ -30,10 +31,11 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
   const inboxCount = inboxCounts?.unreadCount || inboxCounts?.readCount
   const counts = useNavigationCounts()
   const { canManageUsers } = usePermissions()
+  const { t } = useI18n()
 
   return (
     <aside
-      aria-label={NAVIGATION_LABELS.navigation}
+      aria-label={t.nav.navigation}
       className={cn(
         'bg-sidebar flex h-screen w-64 shrink-0 flex-col overflow-y-auto px-4 py-5 text-white',
         className,
@@ -45,28 +47,28 @@ function NavigationSidebar({ className }: NavigationSidebarProps) {
         </div>
         <div className="shrink-0">
           <p className="text-sky-deep text-xs font-semibold tracking-widest">
-            {NAVIGATION_LABELS.cmsMark}
+            {NAVIGATION_BRAND.cmsMark}
           </p>
-          <p className="text-sm font-bold">{NAVIGATION_LABELS.cmsName}</p>
+          <p className="text-sm font-bold">{NAVIGATION_BRAND.cmsName}</p>
         </div>
       </header>
 
       <nav className="flex-1 space-y-6 py-6">
         {NAVIGATION_SECTIONS.map((section) => (
           <section
-            key={section.label ?? section.items[0]?.label}
-            aria-label={section.label}
+            key={section.labelKey ?? section.items[0]?.labelKey}
+            aria-label={section.labelKey && t.nav[section.labelKey]}
           >
-            {section.label && (
+            {section.labelKey && (
               <h2 className="mb-2 px-2 text-xs font-semibold tracking-widest text-white/50">
-                {section.label}
+                {t.nav[section.labelKey]}
               </h2>
             )}
             <ul className="space-y-1">
               {section.items
                 .filter((item) => item.to !== '/users' || canManageUsers)
                 .map((item) => (
-                  <li key={item.label}>
+                  <li key={item.labelKey}>
                     <NavigationItemLink
                       item={item}
                       count={
@@ -141,6 +143,7 @@ function NavigationItemLink({
   highlighted: boolean
   isCurrent: boolean
 }) {
+  const { t } = useI18n()
   const Icon = item.icon
   const linkClassName = cn(
     'flex min-h-9 items-center gap-3 rounded-md px-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white',
@@ -149,7 +152,7 @@ function NavigationItemLink({
   const content = (
     <>
       <Icon aria-hidden="true" className="size-4 shrink-0" />
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      <span className="min-w-0 flex-1 truncate">{t.nav[item.labelKey]}</span>
       {count && (
         <Badge
           variant="secondary"

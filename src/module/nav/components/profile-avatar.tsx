@@ -9,16 +9,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/shared/components/ui/popover'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { toast } from '@/shared/lib/toast'
 import { getInitials } from '@/shared/lib/utils'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { LoaderCircleIcon, LogOutIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { NAVIGATION_TOPBAR_LABELS } from '../constants/navigation.constants'
 
 function ProfileAvatar() {
   const { data: user } = useQuery(authQueryOptions())
+  const { t } = useI18n()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
@@ -29,19 +30,17 @@ function ProfileAvatar() {
     onSuccess: async () => {
       queryClient.setQueryData(authQueryKey, null)
       toast.add({
-        title: 'Success',
-        description: NAVIGATION_TOPBAR_LABELS.logoutSuccess,
+        title: t.common.success,
+        description: t.nav.logoutSuccess,
         type: 'success',
       })
       await navigate({ to: '/auth/login' })
     },
     onError: (error) => {
       toast.add({
-        title: 'Error',
+        title: t.common.error,
         description:
-          error instanceof Error
-            ? error.message
-            : NAVIGATION_TOPBAR_LABELS.logoutFailed,
+          error instanceof Error ? error.message : t.nav.logoutFailed,
         type: 'error',
       })
     },
@@ -95,7 +94,7 @@ function ProfileAvatar() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={NAVIGATION_TOPBAR_LABELS.profile}
+          aria-label={t.nav.profile}
           className="bg-secondary focus-visible:ring-accent/50 flex size-10 items-center justify-center rounded-full text-xs font-semibold text-white outline-none focus-visible:ring-2"
           onPointerEnter={(event) => openOnMouseEnter(event.pointerType)}
           onPointerLeave={(event) => closeOnMouseLeave(event.pointerType)}
@@ -140,9 +139,7 @@ function ProfileAvatar() {
           ) : (
             <LogOutIcon aria-hidden="true" className="size-4" />
           )}
-          {logoutMutation.isPending
-            ? NAVIGATION_TOPBAR_LABELS.loggingOut
-            : NAVIGATION_TOPBAR_LABELS.logout}
+          {logoutMutation.isPending ? t.nav.loggingOut : t.nav.logout}
         </Button>
       </PopoverContent>
     </Popover>

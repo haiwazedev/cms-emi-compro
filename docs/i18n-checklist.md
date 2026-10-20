@@ -24,7 +24,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
   - Schema becomes a factory `createXSchema(t: Dictionary)`; form type is `z.infer<ReturnType<typeof createXSchema>>`
   - Component: `const { t } = useI18n()` then `zodResolver(createXSchema(t))`
   - Messages move from module constants to `t.<module>.*`
-- [ ] **6. Module: nav**
+- [x] **6. Module: nav** (sidebar, topbar, drawer, profile, search); page title comes from route `staticData.title`, so it moves with step 23
 - [x] **7. Module: auth** (login), done together with step 5; route `pageTitle` stays for step 23
 - [ ] **8. Module: dashboard**
 - [ ] **9. Module: faq**

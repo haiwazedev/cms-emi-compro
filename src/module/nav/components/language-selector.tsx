@@ -1,13 +1,12 @@
 import { LOCALES, useI18n } from '@/shared/lib/i18n/i18n-context'
-import { NAVIGATION_TOPBAR_LABELS } from '../constants/navigation.constants'
 
 function LanguageSelector() {
-  const { locale, setLocale } = useI18n()
+  const { locale, setLocale, t } = useI18n()
 
   return (
     <div
       role="group"
-      aria-label={NAVIGATION_TOPBAR_LABELS.languageSelector}
+      aria-label={t.nav.languageSelector}
       className="border-border flex shrink-0 items-center overflow-hidden rounded-full border text-xs font-semibold"
     >
       {LOCALES.map((option) => {

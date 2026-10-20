@@ -1,3 +1,4 @@
+import type { Dictionary } from '@/shared/lib/i18n/id'
 import type { LucideIcon } from 'lucide-react'
 import {
   Building2Icon,
@@ -15,46 +16,16 @@ import {
   ZapIcon,
 } from 'lucide-react'
 
-export const NAVIGATION_LABELS = {
-  navigation: 'Navigasi utama',
-  mainContent: 'Konten utama',
-  openNavigation: 'Buka navigasi',
-  closeNavigation: 'Tutup navigasi',
-  dashboard: 'Dashboard',
-  contentManager: 'CONTENT MANAGER',
-  home: 'Beranda',
-  aboutUs: 'Tentang Kami',
-  articles: 'Artikel',
-  divisionsAndServices: 'Divisi & Layanan',
-  commitmentDocuments: 'Dokumen Komitmen',
-  management: 'Pengurus',
-  faq: 'FAQ',
-  clients: 'Klien',
-  inbox: 'Pesan Masuk',
-  media: 'MEDIA',
-  mediaLibrary: 'Media Library',
-  settings: 'PENGATURAN',
-  siteSettings: 'Pengaturan Situs',
-  usersAndAccess: 'Pengguna & Akses',
-  companyName: 'Energy Management Indonesia',
-  companyMark: 'PLN',
+// Brand marks are not translated.
+export const NAVIGATION_BRAND = {
   cmsMark: 'CMS',
   cmsName: 'PLN EMI',
 } as const
 
-export const NAVIGATION_TOPBAR_LABELS = {
-  searchPlaceholder: 'Cari konten...',
-  searchLabel: 'Cari konten',
-  languageSelector: 'Pilihan bahasa',
-  profile: 'Profil pengguna',
-  logout: 'Keluar',
-  loggingOut: 'Sedang keluar...',
-  logoutSuccess: 'Berhasil keluar.',
-  logoutFailed: 'Gagal keluar. Silakan coba lagi.',
-} as const
+type NavigationLabelKey = keyof Dictionary['nav']
 
 type NavigationItem = {
-  label: string
+  labelKey: NavigationLabelKey
   href?: '#'
   to?:
     | '/dashboard'
@@ -75,7 +46,7 @@ type NavigationItem = {
 
 type NavigationSection = {
   // Sections without a label render no heading.
-  label?: string
+  labelKey?: NavigationLabelKey
   items: readonly NavigationItem[]
 }
 
@@ -83,82 +54,82 @@ export const NAVIGATION_SECTIONS: readonly NavigationSection[] = [
   {
     items: [
       {
-        label: NAVIGATION_LABELS.dashboard,
+        labelKey: 'dashboard',
         to: '/dashboard',
         icon: LayoutDashboardIcon,
       },
     ],
   },
   {
-    label: NAVIGATION_LABELS.contentManager,
+    labelKey: 'contentManager',
     items: [
       {
-        label: NAVIGATION_LABELS.home,
+        labelKey: 'home',
         to: '/home',
         icon: HouseIcon,
       },
       {
-        label: NAVIGATION_LABELS.aboutUs,
+        labelKey: 'aboutUs',
         to: '/about-us',
         icon: Building2Icon,
       },
       {
-        label: NAVIGATION_LABELS.articles,
+        labelKey: 'articles',
         to: '/articles',
         icon: NewspaperIcon,
       },
       {
-        label: NAVIGATION_LABELS.divisionsAndServices,
+        labelKey: 'divisionsAndServices',
         to: '/divisions',
         icon: ZapIcon,
       },
       {
-        label: NAVIGATION_LABELS.commitmentDocuments,
+        labelKey: 'commitmentDocuments',
         to: '/document_commitments',
         icon: FileTextIcon,
       },
       {
-        label: NAVIGATION_LABELS.management,
+        labelKey: 'management',
         to: '/board_members',
         icon: UsersIcon,
       },
       {
-        label: NAVIGATION_LABELS.faq,
+        labelKey: 'faq',
         to: '/faqs',
         icon: CircleHelpIcon,
       },
       {
-        label: NAVIGATION_LABELS.clients,
+        labelKey: 'clients',
         to: '/clients',
         icon: HandshakeIcon,
       },
       {
-        label: NAVIGATION_LABELS.inbox,
+        labelKey: 'inbox',
         to: '/inbox',
         icon: MailIcon,
       },
     ],
   },
   {
-    label: NAVIGATION_LABELS.media,
+    labelKey: 'media',
     items: [
       {
-        label: NAVIGATION_LABELS.mediaLibrary,
+        labelKey: 'mediaLibrary',
         to: '/media',
         icon: ImagesIcon,
       },
     ],
   },
   {
-    label: NAVIGATION_LABELS.settings,
+    labelKey: 'settings',
     items: [
       {
-        label: NAVIGATION_LABELS.siteSettings,
+        labelKey: 'siteSettings',
         to: '/site_settings',
         icon: SettingsIcon,
       },
       {
-        label: NAVIGATION_LABELS.usersAndAccess,
+        labelKey: 'usersAndAccess',
         to: '/users',
         icon: KeyRoundIcon,
       },
