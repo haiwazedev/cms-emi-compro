@@ -46,8 +46,6 @@ export const NAVIGATION_TOPBAR_LABELS = {
   searchPlaceholder: 'Cari konten...',
   searchLabel: 'Cari konten',
   languageSelector: 'Pilihan bahasa',
-  activeLanguage: 'ID',
-  languages: ['ID', 'EN'],
   profile: 'Profil pengguna',
   logout: 'Keluar',
   loggingOut: 'Sedang keluar...',

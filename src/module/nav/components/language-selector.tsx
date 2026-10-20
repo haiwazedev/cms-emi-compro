@@ -1,27 +1,32 @@
+import { LOCALES, useI18n } from '@/shared/lib/i18n/i18n-context'
 import { NAVIGATION_TOPBAR_LABELS } from '../constants/navigation.constants'
 
 function LanguageSelector() {
+  const { locale, setLocale } = useI18n()
+
   return (
     <div
       role="group"
       aria-label={NAVIGATION_TOPBAR_LABELS.languageSelector}
       className="border-border flex shrink-0 items-center overflow-hidden rounded-full border text-xs font-semibold"
     >
-      {NAVIGATION_TOPBAR_LABELS.languages.map((language) => {
-        const isActive = language === NAVIGATION_TOPBAR_LABELS.activeLanguage
+      {LOCALES.map((option) => {
+        const isActive = option === locale
 
         return (
-          <span
-            key={language}
-            aria-current={isActive ? 'true' : undefined}
+          <button
+            key={option}
+            type="button"
+            aria-pressed={isActive}
+            onClick={() => setLocale(option)}
             className={
               isActive
                 ? 'bg-accent px-3 py-2 text-white'
                 : 'text-accent px-3 py-2'
             }
           >
-            {language}
-          </span>
+            {option.toUpperCase()}
+          </button>
         )
       })}
     </div>

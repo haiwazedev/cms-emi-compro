@@ -6,6 +6,8 @@ const DICTIONARIES = { id, en }
 
 type Locale = keyof typeof DICTIONARIES
 
+const LOCALES = Object.keys(DICTIONARIES) as Locale[]
+
 type I18nContextValue = {
   locale: Locale
   setLocale: (locale: Locale) => void
@@ -20,4 +22,4 @@ function useI18n() {
   return context
 }
 
-export { DICTIONARIES, I18nContext, useI18n, type Locale }
+export { DICTIONARIES, I18nContext, LOCALES, useI18n, type Locale }
