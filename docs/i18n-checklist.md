@@ -37,7 +37,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **16. Module: about-us**
 - [x] **17. Module: media** (incl. media picker dialog)
 - [x] **18. Module: inbox**
-- [ ] **19. Module: site_settings**
+- [x] **19. Module: site_settings**
 - [ ] **20. Module: user** (users & roles)
 - [ ] **21. Module: activity_log**
 - [ ] **22. Module: language**

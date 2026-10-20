@@ -1,3 +1,4 @@
+import type { Dictionary } from '@/shared/lib/i18n/id'
 import { z } from 'zod'
 
 const imageSchema = z.object({
@@ -5,62 +6,81 @@ const imageSchema = z.object({
   file: z.instanceof(File).nullable(),
 })
 
-const optionalEmailSchema = z
-  .email('Format email tidak valid.')
-  .max(254)
-  .or(z.literal(''))
+export function createSiteSettingsFormSchema(t: Dictionary) {
+  const optionalEmailSchema = z
+    .email(t.siteSettings.emailInvalid)
+    .max(254)
+    .or(z.literal(''))
 
-function optionalCoordinateSchema(min: number, max: number, label: string) {
-  return z
-    .string()
-    .trim()
-    .refine(
-      (value) => {
-        if (!value) return true
-
-        const coordinate = Number(value)
-        return (
-          Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
-        )
-      },
-      { message: `${label} harus berada di antara ${min} dan ${max}.` },
-    )
-}
-
-const socialLinkSchema = z.object({
-  id: z.number().optional(),
-  platform: z.string().trim().min(1, 'Platform wajib diisi.').max(50),
-  url: z.string().trim().min(1, 'URL / akun wajib diisi.').max(255),
-  visible: z.boolean(),
-  icon: imageSchema,
-})
-
-export const siteSettingsFormSchema = z
-  .object({
-    companyName: z
+  function optionalCoordinateSchema(min: number, max: number, label: string) {
+    return z
       .string()
       .trim()
-      .min(1, 'Nama perusahaan wajib diisi.')
-      .max(200),
-    shortName: z.string().trim().max(50),
-    danantaraLogo: imageSchema,
-    plnLogo: imageSchema,
-    address: z.string().trim().min(1, 'Alamat wajib diisi.').max(500),
-    locationLat: optionalCoordinateSchema(-90, 90, 'Latitude'),
-    locationLong: optionalCoordinateSchema(-180, 180, 'Longitude'),
-    phone: z.string().trim().max(30),
-    whatsapp: z.string().trim().max(30),
-    mainEmail: optionalEmailSchema,
-    marketingEmail: optionalEmailSchema,
-    operatingDays: z.string().trim().max(100),
-    openTime: z.string(),
-    closeTime: z.string(),
-    socialLinks: z.array(socialLinkSchema),
+      .refine(
+        (value) => {
+          if (!value) return true
+
+          const coordinate = Number(value)
+          return (
+            Number.isFinite(coordinate) &&
+            coordinate >= min &&
+            coordinate <= max
+          )
+        },
+        { message: t.siteSettings.coordinateRange(label, min, max) },
+      )
+  }
+
+  const socialLinkSchema = z.object({
+    id: z.number().optional(),
+    platform: z.string().trim().min(1, t.siteSettings.platformRequired).max(50),
+    url: z.string().trim().min(1, t.siteSettings.urlRequired).max(255),
+    visible: z.boolean(),
+    icon: imageSchema,
   })
-  .refine((values) => Boolean(values.openTime) === Boolean(values.closeTime), {
-    message: 'Isi jam buka dan jam tutup.',
-    path: ['closeTime'],
-  })
+
+  return z
+    .object({
+      companyName: z
+        .string()
+        .trim()
+        .min(1, t.siteSettings.companyNameRequired)
+        .max(200),
+      shortName: z.string().trim().max(50),
+      danantaraLogo: imageSchema,
+      plnLogo: imageSchema,
+      address: z
+        .string()
+        .trim()
+        .min(1, t.siteSettings.addressRequired)
+        .max(500),
+      locationLat: optionalCoordinateSchema(
+        -90,
+        90,
+        t.siteSettings.locationLat,
+      ),
+      locationLong: optionalCoordinateSchema(
+        -180,
+        180,
+        t.siteSettings.locationLong,
+      ),
+      phone: z.string().trim().max(30),
+      whatsapp: z.string().trim().max(30),
+      mainEmail: optionalEmailSchema,
+      marketingEmail: optionalEmailSchema,
+      operatingDays: z.string().trim().max(100),
+      openTime: z.string(),
+      closeTime: z.string(),
+      socialLinks: z.array(socialLinkSchema),
+    })
+    .refine(
+      (values) => Boolean(values.openTime) === Boolean(values.closeTime),
+      {
+        message: t.siteSettings.openCloseTimeRequired,
+        path: ['closeTime'],
+      },
+    )
+}
 
 // Language id, e.g. "en" (any case accepted); resolved against active languages on the page.
 export const siteSettingsSearchSchema = z.object({
@@ -68,4 +88,6 @@ export const siteSettingsSearchSchema = z.object({
 })
 
 export type SiteSettingsImage = z.infer<typeof imageSchema>
-export type SiteSettingsFormValues = z.infer<typeof siteSettingsFormSchema>
+export type SiteSettingsFormValues = z.infer<
+  ReturnType<typeof createSiteSettingsFormSchema>
+>

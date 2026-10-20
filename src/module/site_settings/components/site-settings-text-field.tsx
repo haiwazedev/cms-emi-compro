@@ -1,4 +1,4 @@
-import { SITE_SETTINGS_LABELS } from '@/module/site_settings/constants/site-settings.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { SiteSettingsFormValues } from '@/module/site_settings/schemas/site-settings.schema'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -30,6 +30,7 @@ function SiteSettingsTextField({
   notConfigured = false,
   ...props
 }: SiteSettingsTextFieldProps) {
+  const { t } = useI18n()
   const {
     control,
     register,
@@ -38,7 +39,7 @@ function SiteSettingsTextField({
   const value = useWatch({ control, name })
   const id = `site-settings-${name}`
   const error = notConfigured
-    ? SITE_SETTINGS_LABELS.notConfigured
+    ? t.siteSettings.notConfigured
     : errors[name]?.message
 
   return (

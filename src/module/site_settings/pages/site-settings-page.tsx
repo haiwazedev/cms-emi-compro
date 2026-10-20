@@ -11,16 +11,16 @@ import { ImageFileField } from '@/module/site_settings/components/image-file-fie
 import { SiteSettingsTextField } from '@/module/site_settings/components/site-settings-text-field'
 import { SortableSocialLinkRow } from '@/module/site_settings/components/sortable-social-link-row'
 import {
-  SITE_SETTINGS_LABELS,
   SITE_SETTINGS_LOGO_MAX_SIZE,
   SITE_SETTINGS_LOGO_TYPES,
 } from '@/module/site_settings/constants/site-settings.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   siteSettingsQueryKeys,
   siteSettingsQueryOptions,
 } from '@/module/site_settings/queries/site-settings.queries'
 import {
-  siteSettingsFormSchema,
+  createSiteSettingsFormSchema,
   type SiteSettingsFormValues,
 } from '@/module/site_settings/schemas/site-settings.schema'
 import { Button } from '@/shared/components/ui/button'
@@ -72,6 +72,7 @@ const emptySocialLink = {
 }
 
 function SiteSettingsPage() {
+  const { t } = useI18n()
   const { lang } = useSearch({ from: '/_authenticated/site_settings' })
   const navigate = useNavigate({ from: '/site_settings' })
   const languagesQuery = useQuery(languagesQueryOptions())
@@ -93,26 +94,26 @@ function SiteSettingsPage() {
   }, [language, navigate, urlLanguage])
 
   if (languagesQuery.isPending) {
-    return <PageMessage message={SITE_SETTINGS_LABELS.loading} />
+    return <PageMessage message={t.siteSettings.loading} />
   }
   if (languagesQuery.isError) {
     return (
       <PageMessage
-        message={SITE_SETTINGS_LABELS.languagesFailed}
+        message={t.siteSettings.languagesFailed}
         onRetry={() => void languagesQuery.refetch()}
       />
     )
   }
   if (!language) {
-    return <PageMessage message={SITE_SETTINGS_LABELS.noLanguages} />
+    return <PageMessage message={t.siteSettings.noLanguages} />
   }
   if (settingsQuery.isPending) {
-    return <PageMessage message={SITE_SETTINGS_LABELS.loading} />
+    return <PageMessage message={t.siteSettings.loading} />
   }
   if (settingsQuery.isError) {
     return (
       <PageMessage
-        message={`${SITE_SETTINGS_LABELS.loadFailed}: ${settingsQuery.error.message}`}
+        message={`${t.siteSettings.loadFailed}: ${settingsQuery.error.message}`}
         onRetry={() => void settingsQuery.refetch()}
       />
     )
@@ -150,10 +151,11 @@ function SiteSettingsForm({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const form = useForm<SiteSettingsFormValues>({
-    resolver: zodResolver(siteSettingsFormSchema),
+    resolver: zodResolver(createSiteSettingsFormSchema(t)),
     defaultValues: data.values,
   })
   const {
@@ -172,16 +174,13 @@ function SiteSettingsForm({
   // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
   useBlocker({
     shouldBlockFn: () =>
-      isDirty && !window.confirm(SITE_SETTINGS_LABELS.discardChangesConfirm),
+      isDirty && !window.confirm(t.siteSettings.discardChangesConfirm),
     enableBeforeUnload: () => isDirty,
   })
 
   function requestLanguage(id: string) {
     if (id === languageId) return
-    if (
-      isDirty &&
-      !window.confirm(SITE_SETTINGS_LABELS.discardChangesConfirm)
-    ) {
+    if (isDirty && !window.confirm(t.siteSettings.discardChangesConfirm)) {
       return
     }
 
@@ -219,18 +218,16 @@ function SiteSettingsForm({
       // Saved rows now carry server ids and stored image URLs.
       reset(saved.values)
       toast.add({
-        title: 'Berhasil',
-        description: SITE_SETTINGS_LABELS.saveSuccess,
+        title: t.common.success,
+        description: t.siteSettings.saveSuccess,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error
-            ? error.message
-            : SITE_SETTINGS_LABELS.saveFailed,
+          error instanceof Error ? error.message : t.siteSettings.saveFailed,
         type: 'error',
       })
     },
@@ -238,10 +235,10 @@ function SiteSettingsForm({
 
   const isHoursMissing = isMissing('openTime') || isMissing('closeTime')
   const hoursError = isHoursMissing
-    ? SITE_SETTINGS_LABELS.notConfigured
+    ? t.siteSettings.notConfigured
     : errors.closeTime?.message
   const addressError = isMissing('address')
-    ? SITE_SETTINGS_LABELS.notConfigured
+    ? t.siteSettings.notConfigured
     : errors.address?.message
 
   return (
@@ -254,10 +251,10 @@ function SiteSettingsForm({
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {SITE_SETTINGS_LABELS.pageTitle}
+              {t.siteSettings.pageTitle}
             </h1>
             <p className="text-foreground/60 text-sm lg:text-base">
-              {SITE_SETTINGS_LABELS.description}
+              {t.siteSettings.description}
             </p>
           </div>
           {canWrite && (
@@ -267,7 +264,7 @@ function SiteSettingsForm({
               className="self-start"
             >
               <CheckIcon aria-hidden="true" className="size-4" />
-              {SITE_SETTINGS_LABELS.save}
+              {t.siteSettings.save}
             </Button>
           )}
         </header>
@@ -278,7 +275,7 @@ function SiteSettingsForm({
           onValueChange={(value) => requestLanguage(value)}
         >
           <SelectTrigger
-            aria-label={SITE_SETTINGS_LABELS.language}
+            aria-label={t.siteSettings.language}
             className="w-full lg:w-64"
           >
             <SelectValue />
@@ -300,21 +297,21 @@ function SiteSettingsForm({
                 id="site-settings-identity-title"
                 className="text-base"
               >
-                {SITE_SETTINGS_LABELS.identity}
+                {t.siteSettings.identity}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 space-y-0">
               <div className="flex flex-col gap-4 lg:flex-row">
                 <SiteSettingsTextField
                   name="companyName"
-                  label={SITE_SETTINGS_LABELS.companyName}
+                  label={t.siteSettings.companyName}
                   maxLength={200}
                   required
                   notConfigured={isMissing('companyName')}
                 />
                 <SiteSettingsTextField
                   name="shortName"
-                  label={SITE_SETTINGS_LABELS.shortName}
+                  label={t.siteSettings.shortName}
                   maxLength={50}
                   notConfigured={isMissing('shortName')}
                 />
@@ -322,12 +319,12 @@ function SiteSettingsForm({
               <div className="flex flex-col gap-4 lg:flex-row">
                 <LogoField
                   name="danantaraLogo"
-                  label={SITE_SETTINGS_LABELS.danantaraLogo}
+                  label={t.siteSettings.danantaraLogo}
                   notConfigured={isMissing('danantaraLogo')}
                 />
                 <LogoField
                   name="plnLogo"
-                  label={SITE_SETTINGS_LABELS.plnLogo}
+                  label={t.siteSettings.plnLogo}
                   notConfigured={isMissing('plnLogo')}
                 />
               </div>
@@ -337,13 +334,13 @@ function SiteSettingsForm({
           <Card aria-labelledby="site-settings-contact-title">
             <CardHeader>
               <CardTitle id="site-settings-contact-title" className="text-base">
-                {SITE_SETTINGS_LABELS.contact}
+                {t.siteSettings.contact}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 space-y-0">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="site-settings-address">
-                  {SITE_SETTINGS_LABELS.address}
+                  {t.siteSettings.address}
                   <span className="text-danger">*</span>
                 </Label>
                 <Textarea
@@ -365,34 +362,34 @@ function SiteSettingsForm({
               <div className="flex flex-col gap-4 lg:flex-row">
                 <SiteSettingsTextField
                   name="locationLat"
-                  label={SITE_SETTINGS_LABELS.locationLat}
+                  label={t.siteSettings.locationLat}
                   type="number"
                   min={-90}
                   max={90}
                   step="any"
-                  helpText={SITE_SETTINGS_LABELS.locationLatHelp}
+                  helpText={t.siteSettings.locationLatHelp}
                 />
                 <SiteSettingsTextField
                   name="locationLong"
-                  label={SITE_SETTINGS_LABELS.locationLong}
+                  label={t.siteSettings.locationLong}
                   type="number"
                   min={-180}
                   max={180}
                   step="any"
-                  helpText={SITE_SETTINGS_LABELS.locationLongHelp}
+                  helpText={t.siteSettings.locationLongHelp}
                 />
               </div>
               <div className="flex flex-col gap-4 lg:flex-row">
                 <SiteSettingsTextField
                   name="phone"
-                  label={SITE_SETTINGS_LABELS.phone}
+                  label={t.siteSettings.phone}
                   type="tel"
                   maxLength={30}
                   notConfigured={isMissing('phone')}
                 />
                 <SiteSettingsTextField
                   name="whatsapp"
-                  label={SITE_SETTINGS_LABELS.whatsapp}
+                  label={t.siteSettings.whatsapp}
                   type="tel"
                   maxLength={30}
                   notConfigured={isMissing('whatsapp')}
@@ -401,14 +398,14 @@ function SiteSettingsForm({
               <div className="flex flex-col gap-4 lg:flex-row">
                 <SiteSettingsTextField
                   name="mainEmail"
-                  label={SITE_SETTINGS_LABELS.mainEmail}
+                  label={t.siteSettings.mainEmail}
                   type="email"
                   maxLength={254}
                   notConfigured={isMissing('mainEmail')}
                 />
                 <SiteSettingsTextField
                   name="marketingEmail"
-                  label={SITE_SETTINGS_LABELS.marketingEmail}
+                  label={t.siteSettings.marketingEmail}
                   type="email"
                   maxLength={254}
                   notConfigured={isMissing('marketingEmail')}
@@ -417,26 +414,26 @@ function SiteSettingsForm({
               <div className="flex flex-col gap-4 lg:flex-row">
                 <SiteSettingsTextField
                   name="operatingDays"
-                  label={SITE_SETTINGS_LABELS.operatingDays}
+                  label={t.siteSettings.operatingDays}
                   maxLength={100}
                   notConfigured={isMissing('operatingDays')}
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <Label htmlFor="site-settings-openTime">
-                    {SITE_SETTINGS_LABELS.operatingHours}
+                    {t.siteSettings.operatingHours}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
                       id="site-settings-openTime"
                       type="time"
-                      aria-label={SITE_SETTINGS_LABELS.openTime}
+                      aria-label={t.siteSettings.openTime}
                       {...register('openTime')}
                       disabled={isMissing('openTime')}
                     />
                     <span className="text-foreground/55">-</span>
                     <Input
                       type="time"
-                      aria-label={SITE_SETTINGS_LABELS.closeTime}
+                      aria-label={t.siteSettings.closeTime}
                       aria-invalid={Boolean(hoursError)}
                       {...register('closeTime')}
                       disabled={isMissing('closeTime')}
@@ -455,10 +452,10 @@ function SiteSettingsForm({
           <Card aria-labelledby="site-settings-social-title">
             <CardHeader>
               <CardTitle id="site-settings-social-title" className="text-base">
-                {SITE_SETTINGS_LABELS.socialMedia}
+                {t.siteSettings.socialMedia}
               </CardTitle>
               <span className="text-foreground/55 text-xs">
-                {SITE_SETTINGS_LABELS.socialCount(socialLinks.fields.length)}
+                {t.siteSettings.socialCount(socialLinks.fields.length)}
               </span>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -467,7 +464,7 @@ function SiteSettingsForm({
                   role="status"
                   className="text-foreground/55 py-6 text-center text-sm"
                 >
-                  {SITE_SETTINGS_LABELS.emptySocial}
+                  {t.siteSettings.emptySocial}
                 </p>
               ) : (
                 <DragDropProvider onDragEnd={handleDragEnd}>
@@ -475,12 +472,12 @@ function SiteSettingsForm({
                     <TableHeader>
                       <TableRow className="bg-primary hover:bg-primary">
                         <TableHead className="w-12 px-2" />
-                        <TableHead>{SITE_SETTINGS_LABELS.icon}</TableHead>
-                        <TableHead>{SITE_SETTINGS_LABELS.platform}</TableHead>
-                        <TableHead>{SITE_SETTINGS_LABELS.url}</TableHead>
-                        <TableHead>{SITE_SETTINGS_LABELS.visible}</TableHead>
+                        <TableHead>{t.siteSettings.icon}</TableHead>
+                        <TableHead>{t.siteSettings.platform}</TableHead>
+                        <TableHead>{t.siteSettings.url}</TableHead>
+                        <TableHead>{t.siteSettings.visible}</TableHead>
                         <TableHead className="text-right">
-                          {SITE_SETTINGS_LABELS.action}
+                          {t.siteSettings.action}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -503,7 +500,7 @@ function SiteSettingsForm({
                 className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
                 onClick={() => socialLinks.append(emptySocialLink)}
               >
-                {SITE_SETTINGS_LABELS.addSocial}
+                {t.siteSettings.addSocial}
               </Button>
             </CardContent>
           </Card>
@@ -522,6 +519,7 @@ function LogoField({
   label: string
   notConfigured: boolean
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2">
       <Label htmlFor={`site-settings-${name}`}>{label}</Label>
@@ -542,12 +540,10 @@ function LogoField({
       />
       {notConfigured ? (
         <p role="alert" className="text-danger text-sm">
-          {SITE_SETTINGS_LABELS.notConfigured}
+          {t.siteSettings.notConfigured}
         </p>
       ) : (
-        <p className="text-foreground/55 text-xs">
-          {SITE_SETTINGS_LABELS.logoHelp}
-        </p>
+        <p className="text-foreground/55 text-xs">{t.siteSettings.logoHelp}</p>
       )}
     </div>
   )
@@ -560,6 +556,7 @@ function PageMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="bg-primary flex min-h-full flex-col items-center justify-center gap-3 p-4 text-center">
       <p
@@ -570,7 +567,7 @@ function PageMessage({
       </p>
       {onRetry && (
         <Button type="button" variant="outline" onClick={onRetry}>
-          {SITE_SETTINGS_LABELS.retry}
+          {t.common.retry}
         </Button>
       )}
     </div>
