@@ -15,6 +15,7 @@ const en: Dictionary = {
     requestFailed: 'The request could not be completed.',
     connectionFailed: 'Unable to connect to the server. Please try again.',
     justNow: 'just now',
+    contentLabel: 'Content:',
   },
   auth: {
     brandTitle: 'Content',

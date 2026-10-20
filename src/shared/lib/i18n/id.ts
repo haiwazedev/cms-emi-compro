@@ -13,6 +13,7 @@ const id = {
     requestFailed: 'Permintaan tidak dapat diselesaikan.',
     connectionFailed: 'Tidak dapat terhubung ke server. Silakan coba lagi.',
     justNow: 'baru saja',
+    contentLabel: 'Konten:',
   },
   auth: {
     brandTitle: 'Content',

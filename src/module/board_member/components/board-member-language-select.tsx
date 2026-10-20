@@ -21,22 +21,27 @@ function BoardMemberLanguageSelect({
 }: BoardMemberLanguageSelectProps) {
   const { t } = useI18n()
   return (
-    <Select value={languageId} onValueChange={onLanguageChange}>
-      <SelectTrigger
-        aria-label={t.boardMember.language}
-        className="w-full lg:w-64"
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {languages.map((language) => (
-          <SelectItem key={language.id} value={language.id}>
-            <span aria-hidden="true">{language.flag}</span>
-            {language.language}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="flex items-center gap-2">
+      <span className="shrink-0 text-sm font-medium">
+        {t.common.contentLabel}
+      </span>
+      <Select value={languageId} onValueChange={onLanguageChange}>
+        <SelectTrigger
+          aria-label={t.boardMember.language}
+          className="w-full lg:w-64"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {languages.map((language) => (
+            <SelectItem key={language.id} value={language.id}>
+              <span aria-hidden="true">{language.flag}</span>
+              {language.language}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
 
