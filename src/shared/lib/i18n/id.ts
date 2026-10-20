@@ -783,6 +783,37 @@ const id = {
     close: 'Tutup dialog pilih media',
     unsupportedFile: 'Pilih gambar PNG, JPG, atau JPEG.',
   },
+  inbox: {
+    pageTitle: 'Pesan Masuk',
+    description: (unread: number) =>
+      `Pesan dari formulir kontak situs · ${unread} belum dibaca`,
+    markAllRead: 'Tandai semua dibaca',
+    exportCsv: 'Ekspor CSV',
+    underDevelopment: 'Under Development',
+    searchPlaceholder: 'Cari nama atau subjek...',
+    searchLabel: 'Cari pesan',
+    subjectFilterLabel: 'Filter subjek',
+    allSubjects: 'Semua subjek',
+    company: 'Perusahaan',
+    subject: 'Subjek',
+    unread: 'Belum dibaca',
+    replyViaEmail: 'Balas via Email',
+    markRead: 'Tandai dibaca',
+    markUnread: 'Tandai belum dibaca',
+    loading: 'Memuat pesan...',
+    loadFailed: 'Pesan gagal dimuat.',
+    noMessages: 'Tidak ada pesan yang cocok.',
+    noSelection: 'Pilih pesan untuk melihat detail.',
+    deleteTitle: 'Hapus pesan?',
+    deleteDescription:
+      'Pesan ini akan dihapus. Tindakan ini tidak dapat dibatalkan.',
+    confirmDelete: 'Ya, hapus',
+    closeDeleteDialog: 'Tutup dialog hapus',
+    replyPrefix: 'Re: ',
+    deleted: 'Pesan berhasil dihapus.',
+    deleteFailed: 'Pesan gagal dihapus.',
+    updateFailed: 'Status pesan gagal diperbarui.',
+  },
 }
 
 type Dictionary = typeof id

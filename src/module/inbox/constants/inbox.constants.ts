@@ -1,38 +1,6 @@
 export const INBOX_LABELS = {
   pageTitle: 'Pesan Masuk',
   documentTitle: 'Pesan Masuk | PLN EMI CMS',
-  description: (unread: number) =>
-    `Pesan dari formulir kontak situs · ${unread} belum dibaca`,
-  markAllRead: 'Tandai semua dibaca',
-  exportCsv: 'Ekspor CSV',
-  underDevelopment: 'Under Development',
-  searchPlaceholder: 'Cari nama atau subjek...',
-  searchLabel: 'Cari pesan',
-  subjectFilterLabel: 'Filter subjek',
-  allSubjects: 'Semua subjek',
-  company: 'Perusahaan',
-  subject: 'Subjek',
-  unread: 'Belum dibaca',
-  replyViaEmail: 'Balas via Email',
-  markRead: 'Tandai dibaca',
-  markUnread: 'Tandai belum dibaca',
-  delete: 'Hapus',
-  loading: 'Memuat pesan...',
-  loadFailed: 'Pesan gagal dimuat.',
-  noMessages: 'Tidak ada pesan yang cocok.',
-  noSelection: 'Pilih pesan untuk melihat detail.',
-  deleteTitle: 'Hapus pesan?',
-  deleteDescription:
-    'Pesan ini akan dihapus. Tindakan ini tidak dapat dibatalkan.',
-  confirmDelete: 'Ya, hapus',
-  cancel: 'Batal',
-  closeDeleteDialog: 'Tutup dialog hapus',
-  replyPrefix: 'Re: ',
-  success: 'Berhasil',
-  failed: 'Gagal',
-  deleted: 'Pesan berhasil dihapus.',
-  deleteFailed: 'Pesan gagal dihapus.',
-  updateFailed: 'Status pesan gagal diperbarui.',
 } as const
 
 export const INBOX_ALL_SUBJECTS = 'all'

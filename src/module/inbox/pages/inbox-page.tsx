@@ -6,10 +6,8 @@ import {
 } from '@/module/inbox/api/inbox.api'
 import { InboxMessageDetail } from '@/module/inbox/components/inbox-message-detail'
 import { InboxMessageItem } from '@/module/inbox/components/inbox-message-item'
-import {
-  INBOX_ALL_SUBJECTS,
-  INBOX_LABELS,
-} from '@/module/inbox/constants/inbox.constants'
+import { INBOX_ALL_SUBJECTS } from '@/module/inbox/constants/inbox.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   inboxCountsQueryOptions,
   inboxQueryKeys,
@@ -45,6 +43,7 @@ import { SearchIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 function InboxPage() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -92,7 +91,7 @@ function InboxPage() {
 
   function showError(error: unknown, fallback: string) {
     toast.add({
-      title: INBOX_LABELS.failed,
+      title: t.common.error,
       description: error instanceof Error ? error.message : fallback,
       type: 'error',
     })
@@ -102,13 +101,13 @@ function InboxPage() {
     mutationFn: ({ id, isRead }: { id: number; isRead: boolean }) =>
       updateInboxRead(id, isRead),
     onSuccess: refreshInboxes,
-    onError: (error) => showError(error, INBOX_LABELS.updateFailed),
+    onError: (error) => showError(error, t.inbox.updateFailed),
   })
 
   const markAllReadMutation = useMutation({
     mutationFn: markAllInboxesRead,
     onSuccess: refreshInboxes,
-    onError: (error) => showError(error, INBOX_LABELS.updateFailed),
+    onError: (error) => showError(error, t.inbox.updateFailed),
   })
 
   const deleteMutation = useMutation({
@@ -118,12 +117,12 @@ function InboxPage() {
       setDeleteTarget(null)
       await refreshInboxes()
       toast.add({
-        title: INBOX_LABELS.success,
-        description: INBOX_LABELS.deleted,
+        title: t.common.success,
+        description: t.inbox.deleted,
         type: 'success',
       })
     },
-    onError: (error) => showError(error, INBOX_LABELS.deleteFailed),
+    onError: (error) => showError(error, t.inbox.deleteFailed),
   })
 
   function selectMessage(message: Inbox) {
@@ -138,10 +137,10 @@ function InboxPage() {
         {/* Left */}
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {INBOX_LABELS.pageTitle}
+            {t.inbox.pageTitle}
           </h1>
           <p className="text-foreground/60 text-sm lg:text-base">
-            {INBOX_LABELS.description(unreadCount)}
+            {t.inbox.description(unreadCount)}
           </p>
         </div>
 
@@ -153,13 +152,13 @@ function InboxPage() {
             disabled={unreadCount === 0 || markAllReadMutation.isPending}
             onClick={() => markAllReadMutation.mutate()}
           >
-            {INBOX_LABELS.markAllRead}
+            {t.inbox.markAllRead}
           </Button>
         </div>
       </header>
 
       <Card
-        aria-label={INBOX_LABELS.pageTitle}
+        aria-label={t.inbox.pageTitle}
         className="flex flex-col lg:min-h-0 lg:flex-1"
       >
         {/* Search and Filters */}
@@ -171,8 +170,8 @@ function InboxPage() {
             />
             <Input
               type="search"
-              aria-label={INBOX_LABELS.searchLabel}
-              placeholder={INBOX_LABELS.searchPlaceholder}
+              aria-label={t.inbox.searchLabel}
+              placeholder={t.inbox.searchPlaceholder}
               className="pl-9 text-sm"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -180,14 +179,14 @@ function InboxPage() {
           </div>
           <Select value={subjectFilter} onValueChange={setSubjectFilter}>
             <SelectTrigger
-              aria-label={INBOX_LABELS.subjectFilterLabel}
+              aria-label={t.inbox.subjectFilterLabel}
               className="lg:w-72"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={INBOX_ALL_SUBJECTS}>
-                {INBOX_LABELS.allSubjects}
+                {t.inbox.allSubjects}
               </SelectItem>
               {subjectsQuery.data?.map((subject) => (
                 <SelectItem key={subject.id} value={String(subject.id)}>
@@ -203,11 +202,11 @@ function InboxPage() {
           {/* Inbox List */}
           <div className="border-border border-b lg:w-96 lg:shrink-0 lg:overflow-y-auto lg:border-r lg:border-b-0">
             {inboxesQuery.isPending ? (
-              <EmptyMessage message={INBOX_LABELS.loading} />
+              <EmptyMessage message={t.inbox.loading} />
             ) : inboxesQuery.isError ? (
-              <EmptyMessage message={INBOX_LABELS.loadFailed} />
+              <EmptyMessage message={t.inbox.loadFailed} />
             ) : messages.length === 0 ? (
-              <EmptyMessage message={INBOX_LABELS.noMessages} />
+              <EmptyMessage message={t.inbox.noMessages} />
             ) : (
               <ul>
                 {messages.map((message) => (
@@ -242,7 +241,7 @@ function InboxPage() {
                 onDelete={() => setDeleteTarget(selectedMessage)}
               />
             ) : (
-              <EmptyMessage message={INBOX_LABELS.noSelection} />
+              <EmptyMessage message={t.inbox.noSelection} />
             )}
           </div>
         </div>
@@ -256,10 +255,10 @@ function InboxPage() {
       >
         <DialogContent
           className="max-w-xl"
-          closeLabel={INBOX_LABELS.closeDeleteDialog}
+          closeLabel={t.inbox.closeDeleteDialog}
         >
           <DialogHeader className="border-border border-b">
-            <DialogTitle>{INBOX_LABELS.deleteTitle}</DialogTitle>
+            <DialogTitle>{t.inbox.deleteTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 px-5 py-6">
             <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
@@ -268,9 +267,7 @@ function InboxPage() {
             <p className="text-accent font-semibold break-words">
               {deleteTarget?.name} · {deleteTarget?.inbox_subject.name}
             </p>
-            <DialogDescription>
-              {INBOX_LABELS.deleteDescription}
-            </DialogDescription>
+            <DialogDescription>{t.inbox.deleteDescription}</DialogDescription>
           </div>
           <DialogFooter className="bg-primary">
             <Button
@@ -278,7 +275,7 @@ function InboxPage() {
               variant="outline"
               onClick={() => setDeleteTarget(null)}
             >
-              {INBOX_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -288,7 +285,7 @@ function InboxPage() {
                 if (deleteTarget) deleteMutation.mutate(deleteTarget)
               }}
             >
-              {INBOX_LABELS.confirmDelete}
+              {t.inbox.confirmDelete}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -304,6 +301,7 @@ function LoadMoreTrigger({
   loading: boolean
   onVisible: () => void
 }) {
+  const { t } = useI18n()
   const ref = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
@@ -323,7 +321,7 @@ function LoadMoreTrigger({
       role="status"
       className="text-foreground/55 px-4 py-4 text-center text-sm"
     >
-      {loading && INBOX_LABELS.loading}
+      {loading && t.inbox.loading}
     </li>
   )
 }

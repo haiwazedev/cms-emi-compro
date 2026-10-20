@@ -789,6 +789,37 @@ const en: Dictionary = {
     close: 'Close media picker dialog',
     unsupportedFile: 'Choose a PNG, JPG, or JPEG image.',
   },
+  inbox: {
+    pageTitle: 'Inbox',
+    description: (unread: number) =>
+      `Messages from the site contact form · ${unread} unread`,
+    markAllRead: 'Mark all as read',
+    exportCsv: 'Export CSV',
+    underDevelopment: 'Under Development',
+    searchPlaceholder: 'Search name or subject...',
+    searchLabel: 'Search messages',
+    subjectFilterLabel: 'Filter subject',
+    allSubjects: 'All subjects',
+    company: 'Company',
+    subject: 'Subject',
+    unread: 'Unread',
+    replyViaEmail: 'Reply via Email',
+    markRead: 'Mark as read',
+    markUnread: 'Mark as unread',
+    loading: 'Loading messages...',
+    loadFailed: 'Failed to load messages.',
+    noMessages: 'No matching messages.',
+    noSelection: 'Select a message to see its details.',
+    deleteTitle: 'Delete message?',
+    deleteDescription:
+      'This message will be deleted. This action cannot be undone.',
+    confirmDelete: 'Yes, delete',
+    closeDeleteDialog: 'Close delete dialog',
+    replyPrefix: 'Re: ',
+    deleted: 'Message deleted successfully.',
+    deleteFailed: 'Failed to delete message.',
+    updateFailed: 'Failed to update message status.',
+  },
 }
 
 export { en }
