@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { activityLogsQueryOptions } from '@/module/activity_log/queries/activity-log.queries'
 import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
 import { Card, CardContent } from '@/shared/components/ui/card'
@@ -8,6 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 const RECENT_ACTIVITY_PARAMS = { page: 1, limit: 3 }
 
 function DashboardRecentActivity() {
+  const { locale } = useI18n()
   const activityQuery = useQuery(
     activityLogsQueryOptions(RECENT_ACTIVITY_PARAMS),
   )
@@ -68,7 +70,7 @@ function DashboardRecentActivity() {
                     dateTime={activity.created_at}
                     className="text-foreground/55 text-xs"
                   >
-                    {formatRelativeTime(activity.created_at)}
+                    {formatRelativeTime(activity.created_at, locale)}
                   </time>
                 </div>
               </li>

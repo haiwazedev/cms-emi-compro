@@ -1,3 +1,4 @@
+import { DICTIONARIES, type Locale } from '@/shared/lib/i18n/i18n-context'
 export const USER_LABELS = {
   pageTitle: 'Pengguna & Akses',
   documentTitle: 'Pengguna & Akses | PLN EMI CMS',
@@ -94,9 +95,6 @@ export const PERMISSION_LABELS: Record<string, string> = {
 
 export const USER_DEFAULT_PAGE_SIZE = 20
 
-const relativeTimeFormat = new Intl.RelativeTimeFormat('id', {
-  numeric: 'auto',
-})
 const RELATIVE_TIME_UNITS = [
   ['year', 365 * 24 * 60 * 60],
   ['month', 30 * 24 * 60 * 60],
@@ -107,8 +105,15 @@ const RELATIVE_TIME_UNITS = [
 ] as const
 
 // "kemarin", "3 hari yang lalu", "baru saja" for under a minute.
-export function formatRelativeTime(value: string, now = Date.now()) {
+export function formatRelativeTime(
+  value: string,
+  locale: Locale,
+  now = Date.now(),
+) {
   const seconds = (new Date(value).getTime() - now) / 1000
+  const relativeTimeFormat = new Intl.RelativeTimeFormat(locale, {
+    numeric: 'auto',
+  })
 
   for (const [unit, unitSeconds] of RELATIVE_TIME_UNITS) {
     if (Math.abs(seconds) >= unitSeconds) {
@@ -116,11 +121,11 @@ export function formatRelativeTime(value: string, now = Date.now()) {
     }
   }
 
-  return 'baru saja'
+  return DICTIONARIES[locale].common.justNow
 }
 
-export function formatDateTime(value: string) {
-  return new Date(value).toLocaleString('id-ID', {
+export function formatDateTime(value: string, locale: Locale) {
+  return new Date(value).toLocaleString(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   })

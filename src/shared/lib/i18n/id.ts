@@ -7,6 +7,7 @@ const id = {
     close: 'Tutup',
     closeNotification: 'Tutup notifikasi',
     loading: 'Memuat...',
+    justNow: 'baru saja',
   },
 }
 

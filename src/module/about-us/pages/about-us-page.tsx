@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { saveAboutUsContent } from '@/module/about-us/api/about-us.api'
 import type {
@@ -152,6 +153,7 @@ function AboutUsEditor({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { locale } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const aboutUsQuery = useQuery(aboutUsContentQueryOptions(languageId))
@@ -722,6 +724,7 @@ function AboutUsEditor({
                   <MetaRow label={ABOUT_US_LABELS.updated}>
                     {formatRelativeTime(
                       latestItem.updated_at ?? latestItem.created_at,
+                      locale,
                     )}
                   </MetaRow>
                   <MetaRow label={ABOUT_US_LABELS.updatedBy}>

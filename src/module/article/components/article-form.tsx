@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import type {
@@ -81,6 +82,7 @@ function ArticleForm({
   languageId,
   onLanguageChange,
 }: ArticleFormProps) {
+  const { locale } = useI18n()
   const isEditing = mode === 'edit'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -326,7 +328,8 @@ function ArticleForm({
               </h1>
               {article?.updated_at && (
                 <p className="text-muted text-sm">
-                  Terakhir disimpan {formatRelativeTime(article.updated_at)}
+                  Terakhir disimpan{' '}
+                  {formatRelativeTime(article.updated_at, locale)}
                   {article.updated_by ? ' oleh ' + article.updated_by : ''}
                 </p>
               )}

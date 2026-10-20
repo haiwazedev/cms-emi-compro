@@ -1,21 +1,28 @@
+import { DICTIONARIES, type Locale } from './i18n/i18n-context'
+
 const MINUTE = 60_000
 const HOUR = 60 * MINUTE
 
-// "baru saja", "5 menit lalu", "2 jam lalu", "Kemarin", "3 hari lalu", then a date.
-export function formatRelativeTime(value: string, now = new Date()): string {
+// "baru saja", "5 menit yang lalu", "2 jam yang lalu", "kemarin", "3 hari yang lalu", then a date.
+export function formatRelativeTime(
+  value: string,
+  locale: Locale,
+  now = new Date(),
+): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return '-'
 
   const elapsed = now.getTime() - date.getTime()
   const days = calendarDaysBetween(date, now)
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
 
-  if (elapsed < MINUTE) return 'baru saja'
-  if (elapsed < HOUR) return `${Math.floor(elapsed / MINUTE)} menit lalu`
-  if (days === 0) return `${Math.floor(elapsed / HOUR)} jam lalu`
-  if (days === 1) return 'Kemarin'
-  if (days < 7) return `${days} hari lalu`
+  if (elapsed < MINUTE) return DICTIONARIES[locale].common.justNow
+  if (elapsed < HOUR)
+    return relative.format(-Math.floor(elapsed / MINUTE), 'minute')
+  if (days === 0) return relative.format(-Math.floor(elapsed / HOUR), 'hour')
+  if (days < 7) return relative.format(-days, 'day')
 
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

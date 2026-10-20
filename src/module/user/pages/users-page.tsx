@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { authQueryKey } from '@/module/auth/queries/auth.queries'
 import { createUser, deleteUser, updateUser } from '@/module/user/api/user.api'
 import type { User, UserFields } from '@/module/user/api/user.api'
@@ -331,6 +332,7 @@ function UserRow({
   onEdit: () => void
   onDelete: () => void
 }) {
+  const { locale } = useI18n()
   return (
     <TableRow>
       {/* Avatar */}
@@ -383,9 +385,9 @@ function UserRow({
         {user.last_signed_in ? (
           <time
             dateTime={user.last_signed_in}
-            title={formatDateTime(user.last_signed_in)}
+            title={formatDateTime(user.last_signed_in, locale)}
           >
-            {formatRelativeTime(user.last_signed_in)}
+            {formatRelativeTime(user.last_signed_in, locale)}
           </time>
         ) : (
           USER_LABELS.neverLoggedIn

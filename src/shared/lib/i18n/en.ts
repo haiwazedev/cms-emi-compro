@@ -9,6 +9,7 @@ const en: Dictionary = {
     close: 'Close',
     closeNotification: 'Close notification',
     loading: 'Loading...',
+    justNow: 'just now',
   },
 }
 

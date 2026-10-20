@@ -18,7 +18,8 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
   - Static `<span>`s become `<button>`s calling `setLocale`; active state from current locale
   - Drop `activeLanguage` and `languages` from `NAVIGATION_TOPBAR_LABELS`
 - [x] **3. Shared components**: close labels in `src/shared/components/ui` (`dialog`, `sheet`, `toast`). Empty states, confirm dialogs and toast messages live in module constants, so they move with each module step
-- [ ] **4. Dates & formatting**: `format-relative-time.ts`, `Intl.DateTimeFormat(locale)`, `react-day-picker` locale
+- [x] **4. Dates & formatting**: `formatRelativeTime` (shared + `user.constants`) and `formatDateTime` take `locale`; `Calendar` follows the UI locale
+  - Module-specific `Intl`/`toLocale*('id-ID')` calls move with their module step (inbox, dashboard, document_commitment, article)
 - [ ] **5. Validation pattern**: convert Zod schemas to receive `t` (pilot on one module, then reuse)
 - [ ] **6. Module: nav**
 - [ ] **7. Module: auth** (login)
@@ -46,3 +47,4 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - Keys grouped under the module name (`t.faq.*`); shared words reuse `t.common.*`
 - `en` translations filled in
 - Form validation messages follow the active locale
+- Dates and numbers use `locale` from `useI18n()` instead of `'id-ID'`
