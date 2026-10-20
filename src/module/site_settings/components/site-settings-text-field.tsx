@@ -59,7 +59,7 @@ function SiteSettingsTextField({
       {helpText && <p className="text-foreground/55 text-xs">{helpText}</p>}
       {maxLength && (
         <p className="text-foreground/55 text-xs">
-          {value.length + ` / ${maxLength} karakter`}
+          {t.common.characterCount(value.length, maxLength)}
         </p>
       )}
       {error && (

@@ -93,7 +93,7 @@ function FaqFormCard({
               onChange={(event) => setQuestion(event.currentTarget.value)}
             />
             <p className="text-muted text-xs">
-              {question.length + ' / 200 karakter'}
+              {t.common.characterCount(question.length, 200)}
             </p>
           </div>
 

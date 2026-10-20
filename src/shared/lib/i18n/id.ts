@@ -1,5 +1,7 @@
 const id = {
   common: {
+    characterCount: (count: number, max: number) =>
+      `${count} / ${max} karakter`,
     retry: 'Coba lagi',
     success: 'Berhasil',
     error: 'Gagal',

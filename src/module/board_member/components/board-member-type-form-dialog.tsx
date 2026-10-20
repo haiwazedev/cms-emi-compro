@@ -78,7 +78,7 @@ function BoardMemberTypeFormDialog({
               {...register('type')}
             />
             <p className="text-foreground/55 text-xs">
-              {typeValue.length + ' / 100 karakter'}
+              {t.common.characterCount(typeValue.length, 100)}
             </p>
             {errors.type?.message && (
               <p role="alert" className="text-danger text-sm">

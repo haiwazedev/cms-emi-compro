@@ -117,7 +117,7 @@ function ClientFormDialog({
                 onChange={(event) => setName(event.currentTarget.value)}
               />
               <p className="text-foreground/55 text-xs">
-                {name.length + ' / 200 karakter'}
+                {t.common.characterCount(name.length, 200)}
               </p>
             </div>
 

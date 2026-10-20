@@ -439,7 +439,7 @@ function ArticleForm({
                       <strong className="font-semibold">
                         {slugValue || 'slug'}
                       </strong>
-                      {' · ' + slugValue.length + ' / 255 karakter'}
+                      {' · ' + t.common.characterCount(slugValue.length, 255)}
                     </>
                   }
                 >
@@ -497,7 +497,10 @@ function ArticleForm({
                   id="article-press-release-number"
                   label={t.article.pressReleaseNumberField}
                   error={errors.press_release_number?.message}
-                  hint={pressReleaseNumberValue.length + ' / 255 karakter'}
+                  hint={t.common.characterCount(
+                    pressReleaseNumberValue.length,
+                    255,
+                  )}
                 >
                   {/* Shared across languages, unlike the fields above. */}
                   <Input
@@ -525,7 +528,7 @@ function ArticleForm({
                     id="article-contact-name"
                     label={t.article.contactNameField}
                     error={errors.cp_name?.message}
-                    hint={cpNameValue.length + ' / 100 karakter'}
+                    hint={t.common.characterCount(cpNameValue.length, 100)}
                   >
                     <Input
                       id="article-contact-name"
@@ -538,7 +541,7 @@ function ArticleForm({
                     id="article-contact-role"
                     label={t.article.contactRoleField}
                     error={errors.cp_role?.message}
-                    hint={cpRoleValue.length + ' / 100 karakter'}
+                    hint={t.common.characterCount(cpRoleValue.length, 100)}
                   >
                     <Input
                       id="article-contact-role"
@@ -553,7 +556,7 @@ function ArticleForm({
                     id="article-contact-phone"
                     label={t.article.contactPhoneField}
                     error={errors.cp_phone_number?.message}
-                    hint={cpPhoneValue.length + ' / 100 karakter'}
+                    hint={t.common.characterCount(cpPhoneValue.length, 100)}
                   >
                     <Input
                       id="article-contact-phone"
@@ -566,7 +569,7 @@ function ArticleForm({
                     id="article-contact-email"
                     label={t.article.contactEmailField}
                     error={errors.cp_email?.message}
-                    hint={cpEmailValue.length + ' / 100 karakter'}
+                    hint={t.common.characterCount(cpEmailValue.length, 100)}
                   >
                     <Input
                       id="article-contact-email"

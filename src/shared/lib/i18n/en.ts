@@ -2,6 +2,8 @@ import type { Dictionary } from './id'
 
 const en: Dictionary = {
   common: {
+    characterCount: (count: number, max: number) =>
+      `${count} / ${max} characters`,
     retry: 'Try again',
     success: 'Success',
     error: 'Error',

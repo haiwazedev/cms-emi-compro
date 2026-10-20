@@ -164,7 +164,7 @@ function BoardMemberFormDialog({
                 {...register('name')}
               />
               <p className="text-foreground/55 text-xs">
-                {nameValue.length + ' / 200 karakter'}
+                {t.common.characterCount(nameValue.length, 200)}
               </p>
               {errors.name?.message && (
                 <p role="alert" className="text-danger text-sm">
@@ -185,7 +185,7 @@ function BoardMemberFormDialog({
                 {...register('company_name')}
               />
               <p className="text-foreground/55 text-xs">
-                {companyNameValue.length + ' / 100 karakter'}
+                {t.common.characterCount(companyNameValue.length, 100)}
               </p>
               {errors.company_name?.message && (
                 <p role="alert" className="text-danger text-sm">
@@ -207,7 +207,7 @@ function BoardMemberFormDialog({
                 {...register('role')}
               />
               <p className="text-foreground/55 text-xs">
-                {roleValue.length + ' / 100 karakter'}
+                {t.common.characterCount(roleValue.length, 100)}
               </p>
               {errors.role?.message && (
                 <p role="alert" className="text-danger text-sm">

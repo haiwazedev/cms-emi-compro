@@ -351,7 +351,7 @@ function SiteSettingsForm({
                   disabled={isMissing('address')}
                 />
                 <p className="text-foreground/55 text-xs">
-                  {addressValue.length + ' / 500 karakter'}
+                  {t.common.characterCount(addressValue.length, 500)}
                 </p>
                 {addressError && (
                   <p role="alert" className="text-danger text-sm">

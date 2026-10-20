@@ -81,7 +81,7 @@ function DocumentCommitmentCategoryFormDialog({
               {...register('name')}
             />
             <p className="text-foreground/55 text-xs">
-              {nameValue.length + ' / 100 karakter'}
+              {t.common.characterCount(nameValue.length, 100)}
             </p>
             {errors.name?.message && (
               <p role="alert" className="text-danger text-sm">

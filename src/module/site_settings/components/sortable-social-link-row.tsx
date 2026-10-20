@@ -78,7 +78,7 @@ function SortableSocialLinkRow({
           {...register(`socialLinks.${index}.platform`)}
         />
         <p className="text-foreground/55 mt-1 text-xs">
-          {platformValue.length + ' / 50 karakter'}
+          {t.common.characterCount(platformValue.length, 50)}
         </p>
         <RowError message={rowErrors?.platform?.message} />
       </TableCell>
@@ -90,7 +90,7 @@ function SortableSocialLinkRow({
           {...register(`socialLinks.${index}.url`)}
         />
         <p className="text-foreground/55 mt-1 text-xs">
-          {urlValue.length + ' / 255 karakter'}
+          {t.common.characterCount(urlValue.length, 255)}
         </p>
         <RowError message={rowErrors?.url?.message} />
       </TableCell>

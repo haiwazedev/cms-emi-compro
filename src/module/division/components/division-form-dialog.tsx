@@ -144,7 +144,7 @@ function DivisionFormDialog({
                 onChange={(event) => setName(event.currentTarget.value)}
               />
               <p className="text-foreground/55 text-xs">
-                {name.length + ' / 200 karakter'}
+                {t.common.characterCount(name.length, 200)}
               </p>
             </div>
 
@@ -161,7 +161,7 @@ function DivisionFormDialog({
                 onChange={(event) => setAbbreviation(event.currentTarget.value)}
               />
               <p className="text-foreground/55 text-xs">
-                {abbreviation.length + ' / 50 karakter'}
+                {t.common.characterCount(abbreviation.length, 50)}
               </p>
             </div>
 

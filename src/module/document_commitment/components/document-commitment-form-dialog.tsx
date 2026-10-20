@@ -192,7 +192,7 @@ function DocumentCommitmentFormDialog({
                 {...register('title')}
               />
               <p className="text-foreground/55 text-xs">
-                {titleValue.length + ' / 200 karakter'}
+                {t.common.characterCount(titleValue.length, 200)}
               </p>
               {errors.title?.message && (
                 <p role="alert" className="text-danger text-sm">

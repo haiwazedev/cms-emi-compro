@@ -89,7 +89,7 @@ function ArticleCategoryFormDialog({
               {...register('name')}
             />
             <p className="text-foreground/55 text-xs">
-              {name.length + ' / 100 karakter'}
+              {t.common.characterCount(name.length, 100)}
             </p>
             <p
               id="article-category-slug"
