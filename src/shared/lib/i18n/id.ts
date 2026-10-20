@@ -5,6 +5,7 @@ const id = {
     delete: 'Hapus',
     edit: 'Edit',
     close: 'Tutup',
+    closeNotification: 'Tutup notifikasi',
     loading: 'Memuat...',
   },
 }

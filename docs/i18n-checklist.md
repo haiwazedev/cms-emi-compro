@@ -17,7 +17,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **2. Locale switcher**: wire existing `LanguageSelector` (`src/module/nav/components/language-selector.tsx`) to `useI18n()`
   - Static `<span>`s become `<button>`s calling `setLocale`; active state from current locale
   - Drop `activeLanguage` and `languages` from `NAVIGATION_TOPBAR_LABELS`
-- [ ] **3. Shared components**: `src/shared/components`, `src/shared/layouts`, table empty states, confirm dialogs, toasts
+- [x] **3. Shared components**: close labels in `src/shared/components/ui` (`dialog`, `sheet`, `toast`). Empty states, confirm dialogs and toast messages live in module constants, so they move with each module step
 - [ ] **4. Dates & formatting**: `format-relative-time.ts`, `Intl.DateTimeFormat(locale)`, `react-day-picker` locale
 - [ ] **5. Validation pattern**: convert Zod schemas to receive `t` (pilot on one module, then reuse)
 - [ ] **6. Module: nav**
