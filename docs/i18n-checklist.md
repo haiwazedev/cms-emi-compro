@@ -27,7 +27,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **6. Module: nav** (sidebar, topbar, drawer, profile, search); page title comes from route `staticData.title`, so it moves with step 23
 - [x] **7. Module: auth** (login), done together with step 5; route `pageTitle` stays for step 23
 - [x] **8. Module: dashboard**
-- [ ] **9. Module: faq**
+- [x] **9. Module: faq**
 - [ ] **10. Module: client**
 - [ ] **11. Module: division**
 - [ ] **12. Module: board_member** (incl. types)

@@ -1,6 +1,6 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ArticleLanguagePills } from '@/module/article/components/article-language-pills'
-import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { FaqListItem } from '@/module/faq/api/faq.api'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
@@ -24,6 +24,7 @@ function SortableFaqRow({
   onEdit,
   onDelete,
 }: SortableFaqRowProps) {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `faq:${faq.id}`,
@@ -46,7 +47,7 @@ function SortableFaqRow({
             ref={dragHandleRef}
             type="button"
             disabled={disabled}
-            aria-label={FAQ_LABELS.dragFaq(index + 1)}
+            aria-label={t.faq.dragFaq(index + 1)}
             className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
           >
             <GripVerticalIcon aria-hidden="true" className="size-4" />
@@ -85,7 +86,7 @@ function SortableFaqRow({
               size="icon"
               className="size-8"
               disabled={disabled}
-              aria-label={FAQ_LABELS.editAction(question)}
+              aria-label={t.faq.editAction(question)}
               onClick={onEdit}
             >
               <PencilIcon aria-hidden="true" className="size-4" />
@@ -100,7 +101,7 @@ function SortableFaqRow({
               size="icon"
               className="size-8"
               disabled={disabled}
-              aria-label={FAQ_LABELS.deleteAction(question)}
+              aria-label={t.faq.deleteAction(question)}
               onClick={onDelete}
             >
               <Trash2Icon aria-hidden="true" className="size-4" />

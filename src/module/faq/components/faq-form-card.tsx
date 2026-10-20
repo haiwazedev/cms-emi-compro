@@ -1,7 +1,7 @@
 import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
-import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { FaqStatus, FaqWriteFields } from '@/module/faq/api/faq.api'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -37,6 +37,7 @@ function FaqFormCard({
   onSubmit,
   onDirtyChange,
 }: FaqFormCardProps) {
+  const { t } = useI18n()
   const { canPublish } = usePermissions()
   const [question, setQuestion] = useState(initial?.question ?? '')
   const [answer, setAnswer] = useState(initial?.answer ?? '')
@@ -54,12 +55,12 @@ function FaqFormCard({
     setFormError(undefined)
 
     if (!question.trim()) {
-      setFormError(FAQ_LABELS.requiredQuestion)
+      setFormError(t.faq.requiredQuestion)
       return
     }
 
     if (!answer) {
-      setFormError(FAQ_LABELS.requiredAnswer)
+      setFormError(t.faq.requiredAnswer)
       return
     }
 
@@ -79,7 +80,7 @@ function FaqFormCard({
         <div className="flex flex-col gap-4 p-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="faq-question">
-              {FAQ_LABELS.question}{' '}
+              {t.faq.question}{' '}
               <span aria-hidden="true" className="text-danger">
                 *
               </span>
@@ -99,7 +100,7 @@ function FaqFormCard({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="faq-answer">
-              {FAQ_LABELS.answer}{' '}
+              {t.faq.answer}{' '}
               <span aria-hidden="true" className="text-danger">
                 *
               </span>
@@ -115,7 +116,7 @@ function FaqFormCard({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="faq-status">{FAQ_LABELS.status}</Label>
+            <Label htmlFor="faq-status">{t.faq.status}</Label>
             <Select
               value={canPublish ? status : 'DRAFT'}
               disabled={pending || !canPublish}
@@ -125,10 +126,8 @@ function FaqFormCard({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="DRAFT">{FAQ_LABELS.draft}</SelectItem>
-                <SelectItem value="PUBLISHED">
-                  {FAQ_LABELS.published}
-                </SelectItem>
+                <SelectItem value="DRAFT">{t.faq.draft}</SelectItem>
+                <SelectItem value="PUBLISHED">{t.faq.published}</SelectItem>
               </SelectContent>
             </Select>
             {!canPublish && (
@@ -150,7 +149,7 @@ function FaqFormCard({
             disabled={pending}
             onClick={onCancel}
           >
-            {FAQ_LABELS.cancel}
+            {t.common.cancel}
           </Button>
           <Button
             type="submit"
@@ -163,12 +162,12 @@ function FaqFormCard({
                   aria-hidden="true"
                   className="size-4 animate-spin"
                 />
-                {FAQ_LABELS.saving}
+                {t.faq.saving}
               </>
             ) : (
               <>
                 <CheckIcon aria-hidden="true" className="size-4" />
-                {FAQ_LABELS.save}
+                {t.faq.save}
               </>
             )}
           </Button>
