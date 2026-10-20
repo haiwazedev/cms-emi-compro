@@ -39,34 +39,37 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { SearchIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 function InboxPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [subjectFilter, setSubjectFilter] = useState(INBOX_ALL_SUBJECTS)
+  const navigate = useNavigate({ from: '/inbox' })
+  const { search, inbox_subject_id } = useSearch({
+    from: '/_authenticated/inbox',
+  })
+  const [searchValue, setSearchValue] = useState(search ?? '')
   const [selectedId, setSelectedId] = useState<number>()
   const [deleteTarget, setDeleteTarget] = useState<Inbox | null>(null)
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(
-      () => setDebouncedSearch(search.trim()),
-      300,
-    )
+    const nextSearch = searchValue.trim() || undefined
+    if (nextSearch === search) return
+
+    const timeoutId = window.setTimeout(() => {
+      void navigate({
+        search: (previous) => ({ ...previous, search: nextSearch }),
+        replace: true,
+      })
+    }, 300)
+
     return () => window.clearTimeout(timeoutId)
-  }, [search])
+  }, [navigate, search, searchValue])
 
   const inboxesQuery = useInfiniteQuery(
-    inboxesQueryOptions({
-      search: debouncedSearch || undefined,
-      inbox_subject_id:
-        subjectFilter === INBOX_ALL_SUBJECTS
-          ? undefined
-          : Number(subjectFilter),
-    }),
+    inboxesQueryOptions({ search, inbox_subject_id }),
   )
   const countsQuery = useQuery(inboxCountsQueryOptions())
   const subjectsQuery = useQuery(inboxSubjectsQueryOptions())
@@ -173,11 +176,24 @@ function InboxPage() {
               aria-label={t.inbox.searchLabel}
               placeholder={t.inbox.searchPlaceholder}
               className="pl-9 text-sm"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
             />
           </div>
-          <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+          <Select
+            value={
+              inbox_subject_id ? String(inbox_subject_id) : INBOX_ALL_SUBJECTS
+            }
+            onValueChange={(value) =>
+              void navigate({
+                search: (previous) => ({
+                  ...previous,
+                  inbox_subject_id:
+                    value === INBOX_ALL_SUBJECTS ? undefined : Number(value),
+                }),
+              })
+            }
+          >
             <SelectTrigger
               aria-label={t.inbox.subjectFilterLabel}
               className="lg:w-72"
