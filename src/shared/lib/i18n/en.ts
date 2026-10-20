@@ -12,6 +12,8 @@ const en: Dictionary = {
     close: 'Close',
     closeNotification: 'Close notification',
     loading: 'Loading...',
+    requestFailed: 'The request could not be completed.',
+    connectionFailed: 'Unable to connect to the server. Please try again.',
     justNow: 'just now',
   },
   auth: {

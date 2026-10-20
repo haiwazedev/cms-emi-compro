@@ -10,6 +10,8 @@ const id = {
     close: 'Tutup',
     closeNotification: 'Tutup notifikasi',
     loading: 'Memuat...',
+    requestFailed: 'Permintaan tidak dapat diselesaikan.',
+    connectionFailed: 'Tidak dapat terhubung ke server. Silakan coba lagi.',
     justNow: 'baru saja',
   },
   auth: {

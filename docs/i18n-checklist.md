@@ -42,7 +42,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **21. Module: activity_log** (API and queries only, no UI text; its feed is translated in step 8)
 - [x] **22. Module: language** (no UI text; select label comes from callers, language names from the API)
 - [x] **23. Route titles** in `src/routes/*`: `staticData.title` is `(t) => string`, resolved in `AuthenticatedLayout`; removed unused `head()` meta titles (no `<HeadContent />` renders them) and the leftover `*_LABELS` constants
-- [ ] **24. Sweep**: grep for leftover hardcoded Indonesian strings; decide on API error messages (show as-is or map by code); remove `PERMISSION_HINTS` once every user reads `t.auth.draftOnly`
+- [x] **24. Sweep**: no hardcoded UI strings left; removed `PERMISSION_HINTS`. API errors are shown as the server sends them (the API returns only `message`, no codes); the client's own fallback errors use `t.common.requestFailed` / `connectionFailed`
 
 ## Per-module definition of done
 
