@@ -28,7 +28,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **7. Module: auth** (login), done together with step 5; route `pageTitle` stays for step 23
 - [x] **8. Module: dashboard**
 - [x] **9. Module: faq**
-- [ ] **10. Module: client**
+- [x] **10. Module: client**
 - [ ] **11. Module: division**
 - [ ] **12. Module: board_member** (incl. types)
 - [ ] **13. Module: document_commitment** (incl. categories, upload dialog)

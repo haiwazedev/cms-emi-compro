@@ -1,6 +1,6 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { Client } from '@/module/client/api/client.api'
-import { CLIENT_LABELS } from '@/module/client/constants/client.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import { Button } from '@/shared/components/ui/button'
 import { useSortable } from '@dnd-kit/react/sortable'
@@ -21,6 +21,7 @@ function SortableClientCard({
   onEdit,
   onDelete,
 }: SortableClientCardProps) {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `client:${client.id}`,
@@ -46,7 +47,7 @@ function SortableClientCard({
             ref={dragHandleRef}
             type="button"
             disabled={disabled}
-            aria-label={CLIENT_LABELS.dragClient(client.name)}
+            aria-label={t.client.dragClient(client.name)}
             className="bg-background/80 text-secondary absolute top-2 left-2 cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
           >
             <GripVerticalIcon aria-hidden="true" className="size-4" />
@@ -61,7 +62,7 @@ function SortableClientCard({
               size="icon"
               className="size-7"
               disabled={disabled}
-              aria-label={CLIENT_LABELS.editAction(client.name)}
+              aria-label={t.client.editAction(client.name)}
               onClick={onEdit}
             >
               <PencilIcon aria-hidden="true" className="size-3.5" />
@@ -74,7 +75,7 @@ function SortableClientCard({
               size="icon"
               className="size-7"
               disabled={disabled}
-              aria-label={CLIENT_LABELS.deleteAction(client.name)}
+              aria-label={t.client.deleteAction(client.name)}
               onClick={onDelete}
             >
               <Trash2Icon aria-hidden="true" className="size-3.5" />

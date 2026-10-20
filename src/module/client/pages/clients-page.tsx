@@ -8,7 +8,7 @@ import {
 import type { Client, ClientWriteFields } from '@/module/client/api/client.api'
 import { ClientFormDialog } from '@/module/client/components/client-form-dialog'
 import { SortableClientCard } from '@/module/client/components/sortable-client-card'
-import { CLIENT_LABELS } from '@/module/client/constants/client.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   clientQueryKeys,
   clientsQueryOptions,
@@ -34,6 +34,7 @@ import { useState } from 'react'
 type FormState = { client?: Client }
 
 function ClientsPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const clientsQuery = useQuery(clientsQueryOptions())
@@ -43,12 +44,12 @@ function ClientsPage() {
   const clients = clientsQuery.data ?? []
 
   function showSuccess(description: string) {
-    toast.add({ title: 'Berhasil', description, type: 'success' })
+    toast.add({ title: t.common.success, description, type: 'success' })
   }
 
   function showError(error: unknown, fallback: string) {
     toast.add({
-      title: 'Gagal',
+      title: t.common.error,
       description: error instanceof Error ? error.message : fallback,
       type: 'error',
     })
@@ -66,12 +67,10 @@ function ClientsPage() {
       setForm(null)
       await queryClient.invalidateQueries({ queryKey: clientQueryKeys.all })
       showSuccess(
-        variables.clientId === undefined
-          ? CLIENT_LABELS.created
-          : CLIENT_LABELS.updated,
+        variables.clientId === undefined ? t.client.created : t.client.updated,
       )
     },
-    onError: (error) => showError(error, CLIENT_LABELS.saveFailed),
+    onError: (error) => showError(error, t.client.saveFailed),
   })
 
   const deleteMutation = useMutation({
@@ -79,9 +78,9 @@ function ClientsPage() {
     onSuccess: async () => {
       setDeleteTarget(null)
       await queryClient.invalidateQueries({ queryKey: clientQueryKeys.all })
-      showSuccess(CLIENT_LABELS.deleted)
+      showSuccess(t.client.deleted)
     },
-    onError: (error) => showError(error, CLIENT_LABELS.deleteFailed),
+    onError: (error) => showError(error, t.client.deleteFailed),
   })
 
   const reorderMutation = useMutation({
@@ -91,7 +90,7 @@ function ClientsPage() {
     },
     onError: (error) => {
       void queryClient.invalidateQueries({ queryKey: clientQueryKeys.list() })
-      showError(error, CLIENT_LABELS.orderFailed)
+      showError(error, t.client.orderFailed)
     },
   })
 
@@ -118,10 +117,10 @@ function ClientsPage() {
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {CLIENT_LABELS.pageTitle}
+              {t.client.pageTitle}
             </h1>
             <p className="text-foreground/60 text-sm lg:text-base">
-              {CLIENT_LABELS.description}
+              {t.client.description}
             </p>
           </div>
           {canWrite && (
@@ -131,27 +130,27 @@ function ClientsPage() {
               onClick={() => setForm({})}
             >
               <PlusIcon aria-hidden="true" className="size-4" />
-              {CLIENT_LABELS.addClient}
+              {t.client.addClient}
             </Button>
           )}
         </header>
 
         <div className="flex flex-col gap-3">
-          <Card aria-label={CLIENT_LABELS.pageTitle}>
+          <Card aria-label={t.client.pageTitle}>
             <CardHeader>
-              <CardTitle>{CLIENT_LABELS.clientCount(clients.length)}</CardTitle>
-              <p className="text-secondary text-xs">{CLIENT_LABELS.dragHint}</p>
+              <CardTitle>{t.client.clientCount(clients.length)}</CardTitle>
+              <p className="text-secondary text-xs">{t.client.dragHint}</p>
             </CardHeader>
 
             {clientsQuery.isPending ? (
-              <SectionMessage message={CLIENT_LABELS.loadingClients} />
+              <SectionMessage message={t.client.loadingClients} />
             ) : clientsQuery.isError ? (
               <SectionMessage
-                message={CLIENT_LABELS.clientsFailed}
+                message={t.client.clientsFailed}
                 onRetry={() => void clientsQuery.refetch()}
               />
             ) : clients.length === 0 ? (
-              <SectionMessage message={CLIENT_LABELS.noClients} />
+              <SectionMessage message={t.client.noClients} />
             ) : (
               <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-5">
                 {clients.map((client, index) => (
@@ -169,7 +168,7 @@ function ClientsPage() {
           </Card>
 
           <p className="text-foreground/55 text-xs italic">
-            {CLIENT_LABELS.logoHint}
+            {t.client.logoHint}
           </p>
         </div>
 
@@ -195,10 +194,10 @@ function ClientsPage() {
         >
           <DialogContent
             className="max-w-xl"
-            closeLabel={CLIENT_LABELS.closeDeleteDialog}
+            closeLabel={t.client.closeDeleteDialog}
           >
             <DialogHeader className="border-border border-b">
-              <DialogTitle>{CLIENT_LABELS.deleteTitle}</DialogTitle>
+              <DialogTitle>{t.client.deleteTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 py-6">
               <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
@@ -208,7 +207,7 @@ function ClientsPage() {
                 {deleteTarget?.name}
               </p>
               <DialogDescription>
-                {CLIENT_LABELS.deleteDescription}
+                {t.client.deleteDescription}
               </DialogDescription>
             </div>
             <DialogFooter className="bg-primary">
@@ -218,7 +217,7 @@ function ClientsPage() {
                 disabled={deleteMutation.isPending}
                 onClick={() => setDeleteTarget(null)}
               >
-                {CLIENT_LABELS.cancel}
+                {t.common.cancel}
               </Button>
               <Button
                 type="button"
@@ -234,10 +233,10 @@ function ClientsPage() {
                       aria-hidden="true"
                       className="size-4 animate-spin"
                     />
-                    {CLIENT_LABELS.deleting}
+                    {t.client.deleting}
                   </>
                 ) : (
-                  CLIENT_LABELS.confirmDelete
+                  t.client.confirmDelete
                 )}
               </Button>
             </DialogFooter>
@@ -255,6 +254,7 @@ function SectionMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
       <p
@@ -265,7 +265,7 @@ function SectionMessage({
       </p>
       {onRetry && (
         <Button type="button" variant="outline" onClick={onRetry}>
-          {CLIENT_LABELS.retry}
+          {t.common.retry}
         </Button>
       )}
     </div>

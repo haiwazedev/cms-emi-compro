@@ -1,6 +1,6 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { Client, ClientWriteFields } from '@/module/client/api/client.api'
 import {
-  CLIENT_LABELS,
   CLIENT_LOGO_ACCEPT,
   CLIENT_LOGO_MAX_SIZE,
 } from '@/module/client/constants/client.constants'
@@ -34,6 +34,7 @@ function ClientFormDialog({
   onOpenChange,
   onSubmit,
 }: ClientFormDialogProps) {
+  const { t } = useI18n()
   const [name, setName] = useState(client?.name ?? '')
   const [logoFile, setLogoFile] = useState<File>()
   const [previewUrl, setPreviewUrl] = useState<string>()
@@ -54,12 +55,12 @@ function ClientFormDialog({
 
     const extension = '.' + file.name.split('.').at(-1)?.toLowerCase()
     if (!CLIENT_LOGO_ACCEPT.split(',').includes(extension)) {
-      setFormError(CLIENT_LABELS.unsupportedLogo)
+      setFormError(t.client.unsupportedLogo)
       return
     }
 
     if (file.size > CLIENT_LOGO_MAX_SIZE) {
-      setFormError(CLIENT_LABELS.logoTooLarge)
+      setFormError(t.client.logoTooLarge)
       return
     }
 
@@ -78,12 +79,12 @@ function ClientFormDialog({
     event.preventDefault()
 
     if (!name.trim()) {
-      setFormError(CLIENT_LABELS.requiredName)
+      setFormError(t.client.requiredName)
       return
     }
 
     if (!logoUrl) {
-      setFormError(CLIENT_LABELS.requiredLogo)
+      setFormError(t.client.requiredLogo)
       return
     }
 
@@ -95,17 +96,16 @@ function ClientFormDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {client ? CLIENT_LABELS.editTitle : CLIENT_LABELS.createTitle}
+            {client ? t.client.editTitle : t.client.createTitle}
           </DialogTitle>
-          <DialogDescription>{CLIENT_LABELS.formDescription}</DialogDescription>
+          <DialogDescription>{t.client.formDescription}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
           <div className="flex flex-col gap-4 overflow-y-auto px-5 py-5">
             <div className="flex flex-col gap-2">
               <Label htmlFor="client-name">
-                {CLIENT_LABELS.clientName}{' '}
-                <span className="text-danger">*</span>
+                {t.client.clientName} <span className="text-danger">*</span>
               </Label>
               <Input
                 id="client-name"
@@ -123,7 +123,7 @@ function ClientFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="client-logo">
-                {CLIENT_LABELS.logo} <span className="text-danger">*</span>
+                {t.client.logo} <span className="text-danger">*</span>
               </Label>
               <label
                 htmlFor="client-logo"
@@ -154,13 +154,13 @@ function ClientFormDialog({
                   />
                 )}
                 <p className="text-foreground/70 text-sm">
-                  {CLIENT_LABELS.dropLogo}{' '}
+                  {t.client.dropLogo}{' '}
                   <span className="text-secondary font-medium">
-                    {CLIENT_LABELS.pickFromDevice}
+                    {t.client.pickFromDevice}
                   </span>
                 </p>
                 <p className="text-foreground/55 text-xs">
-                  {CLIENT_LABELS.logoFileHint}
+                  {t.client.logoFileHint}
                 </p>
                 <input
                   id="client-logo"
@@ -174,9 +174,7 @@ function ClientFormDialog({
                   }}
                 />
               </label>
-              <p className="text-foreground/55 text-xs">
-                {CLIENT_LABELS.logoHint}
-              </p>
+              <p className="text-foreground/55 text-xs">{t.client.logoHint}</p>
             </div>
 
             {formError && (
@@ -193,7 +191,7 @@ function ClientFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {CLIENT_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -202,10 +200,10 @@ function ClientFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {CLIENT_LABELS.saving}
+                  {t.client.saving}
                 </>
               ) : (
-                CLIENT_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>
