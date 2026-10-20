@@ -13,9 +13,15 @@ import { SortableFaqRow } from '@/module/faq/components/sortable-faq-row'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   faqQueryKeys,
+  faqsByLanguageQueryOptions,
   faqsQueryOptions,
 } from '@/module/faq/queries/faq.queries'
-import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
+import { LanguageSelect } from '@/module/language/components/language-select'
+import {
+  DEFAULT_LANGUAGE_ID,
+  findDefaultLanguage,
+} from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Card } from '@/shared/components/ui/card'
 import {
@@ -38,6 +44,7 @@ import { DragDropProvider } from '@dnd-kit/react'
 import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
@@ -47,11 +54,39 @@ function FaqsPage() {
   const { t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
+  const navigate = useNavigate({ from: '/faqs' })
+  const { lang } = useSearch({ from: '/_authenticated/faqs' })
+  const languagesQuery = useQuery(languagesQueryOptions())
   const faqsQuery = useQuery(faqsQueryOptions())
   const [form, setForm] = useState<FormState | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FaqListItem | null>(null)
+  const [editorDirty, setEditorDirty] = useState(false)
+
+  const languages = languagesQuery.data ?? []
+  const language =
+    languages.find((item) => item.id === lang) ?? findDefaultLanguage(languages)
+  const languageId = language?.id ?? DEFAULT_LANGUAGE_ID
+  // The full list keeps every FAQ for reordering; this one adds the
+  // questions of the selected language.
+  const localizedFaqsQuery = useQuery(faqsByLanguageQueryOptions(languageId))
 
   const faqs = faqsQuery.data ?? []
+  const localizedQuestions = new Map(
+    localizedFaqsQuery.data?.map((faq) => [faq.id, faq.question ?? '']),
+  )
+
+  function requestLanguage(id: string) {
+    if (id === language?.id) return
+    if (
+      form?.faq &&
+      editorDirty &&
+      !window.confirm(t.faq.discardChangesConfirm)
+    )
+      return
+
+    setEditorDirty(false)
+    void navigate({ search: { lang: id } })
+  }
 
   function showSuccess(description: string) {
     toast.add({ title: t.common.success, description, type: 'success' })
@@ -149,6 +184,23 @@ function FaqsPage() {
           )}
         </header>
 
+        {/* Language Select */}
+        {languagesQuery.isError ? (
+          <SectionMessage
+            message={t.faq.languagesFailed}
+            onRetry={() => void languagesQuery.refetch()}
+          />
+        ) : (
+          language && (
+            <LanguageSelect
+              label={t.faq.language}
+              languages={languages}
+              value={language.id}
+              onChange={requestLanguage}
+            />
+          )
+        )}
+
         {/* Content */}
         <Card aria-label={t.faq.pageTitle}>
           {faqsQuery.isPending ? (
@@ -188,6 +240,7 @@ function FaqsPage() {
                     <SortableFaqRow
                       key={faq.id}
                       faq={faq}
+                      localizedQuestion={localizedQuestions.get(faq.id)}
                       index={index}
                       selected={faq.id === form?.faq?.id}
                       disabled={rowsDisabled}
@@ -201,34 +254,36 @@ function FaqsPage() {
           )}
         </Card>
 
-        {form?.faq ? (
-          <FaqEditor
-            key={form.faq.id}
-            faq={form.faq}
-            pending={saveMutation.isPending}
-            onCancel={() => setForm(null)}
-            onSubmit={(languageId, fields) =>
-              saveMutation.mutate({
-                faqId: form.faq?.id,
-                fields: { ...fields, language_id: languageId },
-              })
-            }
-          />
-        ) : (
-          form && (
-            // New FAQs start with Bahasa Indonesia content.
-            <FaqFormCard
-              title={t.faq.createTitle}
-              pending={saveMutation.isPending}
-              onCancel={() => setForm(null)}
-              onSubmit={(fields) =>
-                saveMutation.mutate({
-                  fields: { ...fields, language_id: DEFAULT_LANGUAGE_ID },
-                })
-              }
-            />
-          )
-        )}
+        {form?.faq
+          ? language && (
+              <FaqEditor
+                key={form.faq.id}
+                faq={form.faq}
+                language={language}
+                pending={saveMutation.isPending}
+                onCancel={() => setForm(null)}
+                onDirtyChange={setEditorDirty}
+                onSubmit={(fields) =>
+                  saveMutation.mutate({
+                    faqId: form.faq?.id,
+                    fields: { ...fields, language_id: language.id },
+                  })
+                }
+              />
+            )
+          : form && (
+              // New FAQs start with Bahasa Indonesia content.
+              <FaqFormCard
+                title={t.faq.createTitle}
+                pending={saveMutation.isPending}
+                onCancel={() => setForm(null)}
+                onSubmit={(fields) =>
+                  saveMutation.mutate({
+                    fields: { ...fields, language_id: DEFAULT_LANGUAGE_ID },
+                  })
+                }
+              />
+            )}
 
         <Dialog
           open={deleteTarget !== null}

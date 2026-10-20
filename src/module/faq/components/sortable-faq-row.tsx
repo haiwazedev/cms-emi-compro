@@ -9,6 +9,8 @@ import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
 
 interface SortableFaqRowProps {
   faq: FaqListItem
+  // Question in the selected language; missing means not translated yet.
+  localizedQuestion?: string
   index: number
   selected: boolean
   disabled: boolean
@@ -18,6 +20,7 @@ interface SortableFaqRowProps {
 
 function SortableFaqRow({
   faq,
+  localizedQuestion,
   index,
   selected,
   disabled,
@@ -32,7 +35,7 @@ function SortableFaqRow({
     group: 'faqs',
     disabled: !canWrite,
   })
-  const question = faq.question ?? ''
+  const question = localizedQuestion ?? faq.question ?? ''
 
   return (
     <TableRow
@@ -62,7 +65,11 @@ function SortableFaqRow({
       <TableCell className="min-w-64">
         <button
           type="button"
-          className="text-accent text-left font-medium"
+          className={
+            localizedQuestion === undefined
+              ? 'text-muted text-left italic'
+              : 'text-accent text-left font-medium'
+          }
           disabled={!canWrite}
           onClick={onEdit}
         >

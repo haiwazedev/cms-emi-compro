@@ -51,8 +51,8 @@ interface FaqResponse {
   faq: Faq
 }
 
-export async function getFaqs() {
-  const { data } = await apiClient.get<FaqsResponse>('/faqs')
+export async function getFaqs(params: { language_id?: string } = {}) {
+  const { data } = await apiClient.get<FaqsResponse>('/faqs', { params })
   return data.faqs
 }
 
