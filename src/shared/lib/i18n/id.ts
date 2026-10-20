@@ -69,7 +69,7 @@ const id = {
   dashboard: {
     greeting: (name: string) => `Selamat datang, ${name} 👋`,
     description: (time: string) =>
-      `Ringkasan konten situs PT Energy Management Indonesia (Persero) — diperbarui hari ini, ${time} WIB.`,
+      `Ringkasan konten situs PT Energy Management Indonesia (Persero) — diperbarui hari ini, ${time}.`,
     viewSite: 'Lihat Situs',
     newArticle: 'Artikel Baru',
     latestArticles: 'Artikel Terbaru',
@@ -196,6 +196,7 @@ const id = {
     serviceName: 'Nama layanan',
     abbreviation: 'Singkatan',
     serviceCount: 'Jumlah',
+    serviceUnit: { one: 'layanan', other: 'layanan' },
     order: 'Urutan',
     status: 'Status',
     division: 'Divisi',
@@ -428,6 +429,7 @@ const id = {
     categoryDescription:
       'Kelola kategori untuk mengelompokkan dokumen komitmen.',
     backToDocuments: 'Kembali ke Dokumen Komitmen',
+    categoryFormDescription: 'Atur nama kategori dokumen komitmen.',
     addCategory: 'Tambah Kategori',
     createCategory: 'Tambah Kategori',
     editCategory: 'Ubah Kategori',
@@ -466,9 +468,11 @@ const id = {
     titleHint: (count: number) => `Maksimal 120 karakter · terpakai ${count}`,
     slugHint: 'Dibuat otomatis dari judul. emipersero.co.id/berita/',
     summaryField: 'Ringkasan',
+    summaryHint: 'Tampil pada kartu berita di halaman Media & Informasi.',
     bodyField: 'Isi Artikel',
     pressReleaseNumberField: 'Nomor Siaran Pers',
     contactSection: 'Narahubung',
+    component: 'Komponen',
     contactNameField: 'Nama',
     contactRoleField: 'Jabatan',
     contactPhoneField: 'Telepon',
@@ -654,6 +658,7 @@ const id = {
     teaserTitle: 'Judul Teaser',
     ctaTitle: 'Judul CTA',
     teaserContent: 'Isi Teaser',
+    actions: 'Aksi',
   },
   aboutUs: {
     languagesFailed: 'Daftar bahasa gagal dimuat.',

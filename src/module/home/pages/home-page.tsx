@@ -516,7 +516,7 @@ function HomeEditor({
                           {t.home.statisticDescription}
                         </StatisticHead>
                         <TableHead>
-                          <span className="sr-only">Aksi</span>
+                          <span className="sr-only">{t.home.actions}</span>
                         </TableHead>
                       </TableRow>
                     </TableHeader>

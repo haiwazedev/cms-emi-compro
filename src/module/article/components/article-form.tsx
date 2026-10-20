@@ -454,7 +454,7 @@ function ArticleForm({
                   label={t.article.summaryField}
                   required
                   error={errors.summary?.message}
-                  hint="Tampil pada kartu berita di halaman Media & Informasi."
+                  hint={t.article.summaryHint}
                 >
                   <Textarea
                     id="article-summary"
@@ -506,7 +506,9 @@ function ArticleForm({
                 <CardTitle className="text-base font-bold">
                   {t.article.contactSection}
                 </CardTitle>
-                <span className="text-muted text-sm">Komponen</span>
+                <span className="text-muted text-sm">
+                  {t.article.component}
+                </span>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-5 lg:flex-row">
@@ -573,7 +575,7 @@ function ArticleForm({
                   {t.article.publicationStatus}
                 </h2>
                 <div className="border-border flex items-center justify-between border-b pb-3 text-sm">
-                  <span className="text-muted">Status</span>
+                  <span className="text-muted">{t.article.status}</span>
                   {currentStatus === 'PUBLISHED' ||
                   currentStatus === 'DRAFT' ? (
                     <ArticleStatusPill status={currentStatus} />

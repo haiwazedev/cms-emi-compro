@@ -58,7 +58,7 @@ function DocumentCommitmentCategoryFormDialog({
               : t.documentCommitment.createCategory}
           </DialogTitle>
           <DialogDescription>
-            Atur nama kategori dokumen komitmen.
+            {t.documentCommitment.categoryFormDescription}
           </DialogDescription>
         </DialogHeader>
 

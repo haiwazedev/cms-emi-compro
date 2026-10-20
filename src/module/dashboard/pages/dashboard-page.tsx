@@ -115,12 +115,13 @@ function DashboardPage() {
   )
 }
 
-// WIB (GMT+7), e.g. "09.14".
+// Jakarta time with a localized zone name, e.g. "09.14 WIB" or "09:14 AM GMT+7".
 function formatWibTime(date: Date, locale: Locale) {
   return new Intl.DateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: 'Asia/Jakarta',
+    timeZoneName: 'short',
   }).format(date)
 }
 

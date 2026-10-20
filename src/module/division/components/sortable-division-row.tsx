@@ -33,7 +33,7 @@ function SortableDivisionRow({
   onEdit,
   onDelete,
 }: SortableDivisionRowProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const name = content?.name ?? t.division.missingTranslation
   const abbreviation = content?.abbr ?? t.division.missingTranslation
@@ -104,7 +104,13 @@ function SortableDivisionRow({
         ) : (
           <>
             <span className="text-accent font-semibold">{serviceCount}</span>{' '}
-            layanan
+            {
+              t.division.serviceUnit[
+                new Intl.PluralRules(locale).select(serviceCount) === 'one'
+                  ? 'one'
+                  : 'other'
+              ]
+            }
           </>
         )}
       </TableCell>
