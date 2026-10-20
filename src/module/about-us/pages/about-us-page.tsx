@@ -6,7 +6,7 @@ import type {
   AboutUsContentWriteItem,
 } from '@/module/about-us/api/about-us.api'
 import { SortableAboutUsItem } from '@/module/about-us/components/sortable-about-us-item'
-import { ABOUT_US_LABELS } from '@/module/about-us/constants/about-us.constants'
+import type { Dictionary } from '@/shared/lib/i18n/id'
 import {
   aboutUsContentQueryKeys,
   aboutUsContentQueryOptions,
@@ -102,6 +102,7 @@ interface ItemDialogValue {
 }
 
 function AboutUsPage() {
+  const { t } = useI18n()
   const { lang } = useSearch({ from: '/_authenticated/about-us' })
   const navigate = useNavigate({ from: '/about-us' })
   const languagesQuery = useQuery(languagesQueryOptions())
@@ -116,18 +117,18 @@ function AboutUsPage() {
   }, [language, navigate, urlLanguage])
 
   if (languagesQuery.isPending) {
-    return <AboutUsPageMessage message={ABOUT_US_LABELS.loading} />
+    return <AboutUsPageMessage message={t.aboutUs.loading} />
   }
   if (languagesQuery.isError) {
     return (
       <AboutUsPageMessage
-        message={ABOUT_US_LABELS.languagesFailed}
+        message={t.aboutUs.languagesFailed}
         onRetry={() => void languagesQuery.refetch()}
       />
     )
   }
   if (!language) {
-    return <AboutUsPageMessage message={ABOUT_US_LABELS.noLanguages} />
+    return <AboutUsPageMessage message={t.aboutUs.noLanguages} />
   }
 
   return (
@@ -153,7 +154,7 @@ function AboutUsEditor({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const aboutUsQuery = useQuery(aboutUsContentQueryOptions(languageId))
@@ -190,13 +191,13 @@ function AboutUsEditor({
   // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
   useBlocker({
     shouldBlockFn: () =>
-      isDirty && !window.confirm(ABOUT_US_LABELS.discardChangesConfirm),
+      isDirty && !window.confirm(t.aboutUs.discardChangesConfirm),
     enableBeforeUnload: () => isDirty,
   })
 
   function requestLanguage(id: string) {
     if (id === languageId) return
-    if (isDirty && !window.confirm(ABOUT_US_LABELS.discardChangesConfirm)) {
+    if (isDirty && !window.confirm(t.aboutUs.discardChangesConfirm)) {
       return
     }
 
@@ -212,8 +213,8 @@ function AboutUsEditor({
   function addLanguage(id: string) {
     if (!hasContent(DEFAULT_LANGUAGE_ID)) {
       toast.add({
-        title: 'Gagal',
-        description: ABOUT_US_LABELS.defaultLanguageRequired,
+        title: t.common.error,
+        description: t.aboutUs.defaultLanguageRequired,
         type: 'error',
       })
       return
@@ -237,16 +238,16 @@ function AboutUsEditor({
       )
       setSavedDraft(mapAboutUsContents(contents))
       toast.add({
-        title: 'Berhasil',
-        description: ABOUT_US_LABELS.saveSuccess,
+        title: t.common.success,
+        description: t.aboutUs.saveSuccess,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : ABOUT_US_LABELS.saveFailed,
+          error instanceof Error ? error.message : t.aboutUs.saveFailed,
         type: 'error',
       })
     },
@@ -395,7 +396,7 @@ function AboutUsEditor({
         message={
           aboutUsQuery.error instanceof Error
             ? aboutUsQuery.error.message
-            : ABOUT_US_LABELS.loadFailed
+            : t.aboutUs.loadFailed
         }
         onRetry={() => void aboutUsQuery.refetch()}
       />
@@ -403,7 +404,7 @@ function AboutUsEditor({
   }
 
   if (aboutUsQuery.isPending || !editorDraft || !baselineDraft) {
-    return <AboutUsPageMessage message={ABOUT_US_LABELS.loading} />
+    return <AboutUsPageMessage message={t.aboutUs.loading} />
   }
 
   const canDeleteMission =
@@ -444,10 +445,10 @@ function AboutUsEditor({
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {ABOUT_US_LABELS.pageTitle}
+              {t.aboutUs.pageTitle}
             </h1>
             <p className="text-muted text-sm lg:text-base">
-              {ABOUT_US_LABELS.description}
+              {t.aboutUs.description}
             </p>
           </div>
           <div className="flex items-center gap-2 self-start lg:self-auto">
@@ -455,9 +456,9 @@ function AboutUsEditor({
               type="button"
               variant="outline"
               disabled
-              title={ABOUT_US_LABELS.previewDisabled}
+              title={t.aboutUs.previewDisabled}
             >
-              {ABOUT_US_LABELS.preview}
+              {t.aboutUs.preview}
             </Button>
             {canWrite && (
               <Button
@@ -475,8 +476,8 @@ function AboutUsEditor({
                   <CheckIcon aria-hidden="true" className="size-4" />
                 )}
                 {saveMutation.isPending
-                  ? ABOUT_US_LABELS.saving
-                  : ABOUT_US_LABELS.savePublish}
+                  ? t.aboutUs.saving
+                  : t.aboutUs.savePublish}
               </Button>
             )}
           </div>
@@ -494,13 +495,13 @@ function AboutUsEditor({
                   id="about-us-profile-title"
                   className="text-base font-bold"
                 >
-                  {ABOUT_US_LABELS.companyProfile}
+                  {t.aboutUs.companyProfile}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="about-us-profile-content">
-                    {ABOUT_US_LABELS.profileContent}
+                    {t.aboutUs.profileContent}
                     <span aria-hidden="true" className="text-danger">
                       *
                     </span>
@@ -508,7 +509,7 @@ function AboutUsEditor({
                   <div className="border-border overflow-hidden rounded-lg border">
                     <ArticleRichTextEditor
                       id="about-us-profile-content"
-                      ariaLabel={ABOUT_US_LABELS.profileContent}
+                      ariaLabel={t.aboutUs.profileContent}
                       content={editorDraft.profileContent}
                       onChange={changeProfileContent}
                     />
@@ -516,7 +517,7 @@ function AboutUsEditor({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>{ABOUT_US_LABELS.companyPhoto}</Label>
+                  <Label>{t.aboutUs.companyPhoto}</Label>
                   <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
                     <div className="bg-primary flex h-36 w-full items-center justify-center overflow-hidden rounded-md lg:h-32 lg:w-52">
                       {selectedPhoto ? (
@@ -531,7 +532,7 @@ function AboutUsEditor({
                           role="status"
                           className="text-foreground/55 text-xs"
                         >
-                          {ABOUT_US_LABELS.loadingPhoto}
+                          {t.aboutUs.loadingPhoto}
                         </span>
                       ) : (
                         <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
@@ -539,8 +540,8 @@ function AboutUsEditor({
                           <span>
                             {mediaQuery.isError &&
                             editorDraft.companyPictureFilepath
-                              ? ABOUT_US_LABELS.photoUnavailable
-                              : ABOUT_US_LABELS.noPhoto}
+                              ? t.aboutUs.photoUnavailable
+                              : t.aboutUs.noPhoto}
                           </span>
                         </div>
                       )}
@@ -552,8 +553,8 @@ function AboutUsEditor({
                         onClick={() => setPhotoPickerOpen(true)}
                       >
                         {editorDraft.companyPictureFilepath
-                          ? ABOUT_US_LABELS.changePhoto
-                          : ABOUT_US_LABELS.choosePhoto}
+                          ? t.aboutUs.changePhoto
+                          : t.aboutUs.choosePhoto}
                       </Button>
                       {selectedPhoto && (
                         <p className="text-muted text-xs">
@@ -575,13 +576,13 @@ function AboutUsEditor({
                   id="about-us-vision-mission-title"
                   className="text-base font-bold"
                 >
-                  {ABOUT_US_LABELS.visionMission}
+                  {t.aboutUs.visionMission}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="about-us-vision">
-                    {ABOUT_US_LABELS.vision}
+                    {t.aboutUs.vision}
                     <span aria-hidden="true" className="text-danger">
                       *
                     </span>
@@ -597,13 +598,13 @@ function AboutUsEditor({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label>{ABOUT_US_LABELS.missions}</Label>
+                  <Label>{t.aboutUs.missions}</Label>
                   {editorDraft.missions.length === 0 ? (
                     <p
                       role="status"
                       className="text-foreground/55 py-6 text-center text-sm"
                     >
-                      {ABOUT_US_LABELS.emptyMissions}
+                      {t.aboutUs.emptyMissions}
                     </p>
                   ) : (
                     <div className="flex flex-col gap-2">
@@ -630,7 +631,7 @@ function AboutUsEditor({
                     className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
                     onClick={() => openAddDialog('mission')}
                   >
-                    {ABOUT_US_LABELS.addMission}
+                    {t.aboutUs.addMission}
                   </Button>
                 </div>
               </CardContent>
@@ -642,10 +643,10 @@ function AboutUsEditor({
                   id="about-us-timeline-title"
                   className="text-base font-bold"
                 >
-                  {ABOUT_US_LABELS.timeline}
+                  {t.aboutUs.timeline}
                 </CardTitle>
                 <span className="text-muted text-xs">
-                  {ABOUT_US_LABELS.timelineCount(editorDraft.timeline.length)}
+                  {t.aboutUs.timelineCount(editorDraft.timeline.length)}
                 </span>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -654,7 +655,7 @@ function AboutUsEditor({
                     role="status"
                     className="text-foreground/55 py-6 text-center text-sm"
                   >
-                    {ABOUT_US_LABELS.emptyTimeline}
+                    {t.aboutUs.emptyTimeline}
                   </p>
                 ) : (
                   <div className="flex flex-col gap-2">
@@ -683,7 +684,7 @@ function AboutUsEditor({
                   className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
                   onClick={() => openAddDialog('timeline')}
                 >
-                  {ABOUT_US_LABELS.addTimeline}
+                  {t.aboutUs.addTimeline}
                 </Button>
               </CardContent>
             </Card>
@@ -711,30 +712,30 @@ function AboutUsEditor({
           </fieldset>
 
           <aside className="flex w-full flex-col gap-4 lg:w-80 lg:shrink-0 lg:gap-6">
-            <SidebarCard title={ABOUT_US_LABELS.status}>
-              <MetaRow label={ABOUT_US_LABELS.status}>
+            <SidebarCard title={t.aboutUs.status}>
+              <MetaRow label={t.aboutUs.status}>
                 {latestItem ? (
                   <ArticleStatusPill status="PUBLISHED" />
                 ) : (
-                  <span className="text-muted">{ABOUT_US_LABELS.missing}</span>
+                  <span className="text-muted">{t.aboutUs.missing}</span>
                 )}
               </MetaRow>
               {latestItem && (
                 <>
-                  <MetaRow label={ABOUT_US_LABELS.updated}>
+                  <MetaRow label={t.aboutUs.updated}>
                     {formatRelativeTime(
                       latestItem.updated_at ?? latestItem.created_at,
                       locale,
                     )}
                   </MetaRow>
-                  <MetaRow label={ABOUT_US_LABELS.updatedBy}>
+                  <MetaRow label={t.aboutUs.updatedBy}>
                     {latestItem.updated_by ?? latestItem.created_by}
                   </MetaRow>
                 </>
               )}
             </SidebarCard>
 
-            <SidebarCard title={ABOUT_US_LABELS.translation}>
+            <SidebarCard title={t.aboutUs.translation}>
               {languages.map((item) => (
                 <TranslationRow
                   key={item.id}
@@ -747,11 +748,11 @@ function AboutUsEditor({
               ))}
             </SidebarCard>
 
-            <SidebarCard title={ABOUT_US_LABELS.boardMembers}>
-              <p className="text-muted">{ABOUT_US_LABELS.boardMembersNote}</p>
+            <SidebarCard title={t.aboutUs.boardMembers}>
+              <p className="text-muted">{t.aboutUs.boardMembersNote}</p>
               <Button asChild variant="outline" className="w-full">
                 <Link to="/board_members">
-                  {ABOUT_US_LABELS.manageBoardMembers}
+                  {t.aboutUs.manageBoardMembers}
                   <ArrowRightIcon aria-hidden="true" className="size-4" />
                 </Link>
               </Button>
@@ -774,20 +775,19 @@ function AboutUsItemDialog({
   onOpenChange: (open: boolean) => void
   onSave: (value: ItemDialogValue) => void
 }) {
+  const { t } = useI18n()
   const [value, setValue] = useState<ItemDialogValue>(
     initialValue ?? { primary: '', description: '' },
   )
   const primaryLabel =
-    kind === 'mission'
-      ? ABOUT_US_LABELS.missionTitle
-      : ABOUT_US_LABELS.timelinePeriod
+    kind === 'mission' ? t.aboutUs.missionTitle : t.aboutUs.timelinePeriod
   const descriptionLabel =
     kind === 'mission'
-      ? ABOUT_US_LABELS.missionDescription
-      : ABOUT_US_LABELS.timelineDescription
+      ? t.aboutUs.missionDescription
+      : t.aboutUs.timelineDescription
   const dialogTitle = initialValue
-    ? ABOUT_US_LABELS.editItemTitle(kind)
-    : ABOUT_US_LABELS.addItemTitle(kind)
+    ? t.aboutUs.editItemTitle(kind)
+    : t.aboutUs.addItemTitle(kind)
 
   function submit() {
     onSave(value)
@@ -800,7 +800,7 @@ function AboutUsItemDialog({
         <DialogHeader>
           <DialogTitle>{dialogTitle}</DialogTitle>
           <p className="text-foreground/65 text-sm">
-            {ABOUT_US_LABELS.itemDialogDescription}
+            {t.aboutUs.itemDialogDescription}
           </p>
         </DialogHeader>
         <div className="flex flex-col gap-4 p-5 pt-0">
@@ -821,7 +821,7 @@ function AboutUsItemDialog({
           {kind === 'timeline' && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="about-us-item-title">
-                {ABOUT_US_LABELS.timelineTitle}
+                {t.aboutUs.timelineTitle}
               </Label>
               <Input
                 id="about-us-item-title"
@@ -859,10 +859,10 @@ function AboutUsItemDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            {ABOUT_US_LABELS.cancel}
+            {t.common.cancel}
           </Button>
           <Button type="button" onClick={submit}>
-            {ABOUT_US_LABELS.saveItem}
+            {t.common.save}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -891,11 +891,11 @@ function SidebarCard({
 
 type TranslationStatus = 'PUBLISHED' | 'UNSAVED' | 'MISSING'
 
-const TRANSLATION_STATUS_LABELS: Record<TranslationStatus, string> = {
-  PUBLISHED: ABOUT_US_LABELS.published,
-  UNSAVED: ABOUT_US_LABELS.unsaved,
-  MISSING: ABOUT_US_LABELS.missing,
-}
+const TRANSLATION_STATUS_KEYS = {
+  PUBLISHED: 'published',
+  UNSAVED: 'unsaved',
+  MISSING: 'missing',
+} as const satisfies Record<TranslationStatus, keyof Dictionary['aboutUs']>
 
 const TRANSLATION_STATUS_TONES: Record<TranslationStatus, string> = {
   PUBLISHED: 'text-success',
@@ -916,6 +916,7 @@ function TranslationRow({
   onOpen: () => void
   onAdd: () => void
 }) {
+  const { t } = useI18n()
   const name = (
     <span className="flex items-center gap-2">
       <span aria-hidden="true">{language.flag}</span>
@@ -932,7 +933,7 @@ function TranslationRow({
             type="button"
             variant="outline"
             size="icon"
-            aria-label={ABOUT_US_LABELS.addTranslation(language.language)}
+            aria-label={t.aboutUs.addTranslation(language.language)}
             onClick={onAdd}
             className="size-6"
           >
@@ -943,7 +944,7 @@ function TranslationRow({
         <button
           type="button"
           aria-current={current || undefined}
-          aria-label={ABOUT_US_LABELS.openTranslation(language.language)}
+          aria-label={t.aboutUs.openTranslation(language.language)}
           onClick={onOpen}
           className="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
         >
@@ -953,7 +954,7 @@ function TranslationRow({
             {name}
           </span>
           <span className={cn('font-medium', TRANSLATION_STATUS_TONES[status])}>
-            {TRANSLATION_STATUS_LABELS[status]}
+            {t.aboutUs[TRANSLATION_STATUS_KEYS[status]]}
           </span>
         </button>
       )}
@@ -977,6 +978,7 @@ function AboutUsPageMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="bg-primary flex min-h-full items-center justify-center p-4 lg:p-8">
       <Card className="w-full max-w-lg">
@@ -989,7 +991,7 @@ function AboutUsPageMessage({
           </p>
           {onRetry && (
             <Button type="button" variant="outline" onClick={onRetry}>
-              {ABOUT_US_LABELS.retry}
+              {t.common.retry}
             </Button>
           )}
         </CardContent>
