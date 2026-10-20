@@ -1,4 +1,3 @@
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
 import { ArticlesPage } from '@/module/article/pages/articles-page'
 import { articleSearchSchema } from '@/module/article/schemas/article-search.schema'
 import {
@@ -16,10 +15,7 @@ export const Route = createFileRoute('/_authenticated/articles')({
     ],
   },
   component: ArticlesRoute,
-  staticData: { title: ARTICLE_LABELS.pageTitle },
-  head: () => ({
-    meta: [{ title: ARTICLE_LABELS.documentTitle }],
-  }),
+  staticData: { title: (t) => t.article.pageTitle },
 })
 
 function ArticlesRoute() {

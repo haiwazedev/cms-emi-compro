@@ -5,14 +5,10 @@ import { Outlet, useMatches } from '@tanstack/react-router'
 
 function AuthenticatedLayout() {
   const { t } = useI18n()
-  const pageTitle = useMatches({
-    select: (matches) => {
-      const staticData = matches.at(-1)?.staticData as
-        { title?: unknown } | undefined
-
-      return typeof staticData?.title === 'string' ? staticData.title : ''
-    },
+  const getTitle = useMatches({
+    select: (matches) => matches.at(-1)?.staticData.title,
   })
+  const pageTitle = getTitle?.(t) ?? ''
 
   return (
     <div className="bg-primary flex min-h-screen">

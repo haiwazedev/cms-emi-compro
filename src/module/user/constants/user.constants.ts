@@ -1,13 +1,4 @@
 import { DICTIONARIES, type Locale } from '@/shared/lib/i18n/i18n-context'
-export const USER_LABELS = {
-  pageTitle: 'Pengguna & Akses',
-  documentTitle: 'Pengguna & Akses | PLN EMI CMS',
-} as const
-
-export const ROLE_LABELS = {
-  pageTitle: 'Kelola Peran',
-  documentTitle: 'Kelola Peran | PLN EMI CMS',
-} as const
 
 export const USER_DEFAULT_PAGE_SIZE = 20
 

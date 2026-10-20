@@ -41,7 +41,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **20. Module: user** (users & roles)
 - [x] **21. Module: activity_log** (API and queries only, no UI text; its feed is translated in step 8)
 - [x] **22. Module: language** (no UI text; select label comes from callers, language names from the API)
-- [ ] **23. Route titles** in `src/routes/*`
+- [x] **23. Route titles** in `src/routes/*`: `staticData.title` is `(t) => string`, resolved in `AuthenticatedLayout`; removed unused `head()` meta titles (no `<HeadContent />` renders them) and the leftover `*_LABELS` constants
 - [ ] **24. Sweep**: grep for leftover hardcoded Indonesian strings; decide on API error messages (show as-is or map by code); remove `PERMISSION_HINTS` once every user reads `t.auth.draftOnly`
 
 ## Per-module definition of done
