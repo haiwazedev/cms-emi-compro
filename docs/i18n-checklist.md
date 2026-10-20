@@ -39,7 +39,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **18. Module: inbox**
 - [x] **19. Module: site_settings**
 - [x] **20. Module: user** (users & roles)
-- [ ] **21. Module: activity_log**
+- [x] **21. Module: activity_log** (API and queries only, no UI text; its feed is translated in step 8)
 - [ ] **22. Module: language**
 - [ ] **23. Route titles** in `src/routes/*`
 - [ ] **24. Sweep**: grep for leftover hardcoded Indonesian strings; decide on API error messages (show as-is or map by code); remove `PERMISSION_HINTS` once every user reads `t.auth.draftOnly`
