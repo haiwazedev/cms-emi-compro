@@ -210,6 +210,9 @@ function ServiceFormFields({
                   value={name}
                   onChange={(event) => setName(event.currentTarget.value)}
                 />
+                <p className="text-foreground/55 text-xs">
+                  {name.length + ' / 200 karakter'}
+                </p>
               </div>
 
               <div className="flex flex-col gap-2">

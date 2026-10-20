@@ -88,6 +88,9 @@ function ArticleCategoryFormDialog({
               aria-describedby="article-category-slug"
               {...register('name')}
             />
+            <p className="text-foreground/55 text-xs">
+              {name.length + ' / 100 karakter'}
+            </p>
             <p
               id="article-category-slug"
               className="text-foreground/60 text-sm break-all"

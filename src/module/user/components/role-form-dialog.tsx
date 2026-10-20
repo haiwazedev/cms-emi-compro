@@ -16,7 +16,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 interface RoleFormDialogProps {
   open: boolean
@@ -38,6 +38,7 @@ function RoleFormDialog({
 }: RoleFormDialogProps) {
   const { t } = useI18n()
   const {
+    control,
     formState: { errors },
     handleSubmit,
     register,
@@ -49,6 +50,7 @@ function RoleFormDialog({
     },
   })
   const nameError = errors.name?.message ?? serverError
+  const nameValue = useWatch({ control, name: 'name' })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -81,6 +83,9 @@ function RoleFormDialog({
                 aria-invalid={Boolean(nameError)}
                 {...register('name')}
               />
+              <p className="text-foreground/55 text-xs">
+                {nameValue.length + ' / 100 karakter'}
+              </p>
               {nameError && (
                 <p role="alert" className="text-danger text-sm">
                   {nameError}

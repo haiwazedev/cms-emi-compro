@@ -31,7 +31,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon, UploadIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
 interface BoardMemberFormDialogProps {
   open: boolean
@@ -91,6 +91,9 @@ function BoardMemberFormDialog({
       board_member_type_id: content?.board_member_type_id ?? types[0]?.id ?? 0,
     },
   })
+  const nameValue = useWatch({ control, name: 'name' })
+  const companyNameValue = useWatch({ control, name: 'company_name' })
+  const roleValue = useWatch({ control, name: 'role' })
 
   function handlePhotoChange(file: File | undefined) {
     setSelectedPhoto(undefined)
@@ -160,6 +163,9 @@ function BoardMemberFormDialog({
                 aria-invalid={Boolean(errors.name)}
                 {...register('name')}
               />
+              <p className="text-foreground/55 text-xs">
+                {nameValue.length + ' / 200 karakter'}
+              </p>
               {errors.name?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.name.message}
@@ -178,6 +184,9 @@ function BoardMemberFormDialog({
                 aria-invalid={Boolean(errors.company_name)}
                 {...register('company_name')}
               />
+              <p className="text-foreground/55 text-xs">
+                {companyNameValue.length + ' / 100 karakter'}
+              </p>
               {errors.company_name?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.company_name.message}
@@ -197,6 +206,9 @@ function BoardMemberFormDialog({
                 aria-invalid={Boolean(errors.role)}
                 {...register('role')}
               />
+              <p className="text-foreground/55 text-xs">
+                {roleValue.length + ' / 100 karakter'}
+              </p>
               {errors.role?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.role.message}

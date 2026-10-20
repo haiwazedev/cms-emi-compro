@@ -31,7 +31,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { DownloadIcon, LoaderCircleIcon } from 'lucide-react'
 import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
 interface DocumentCommitmentFormDialogProps {
   open: boolean
@@ -68,6 +68,7 @@ function DocumentCommitmentFormDialog({
       status: document?.status ?? 'DRAFT',
     },
   })
+  const titleValue = useWatch({ control, name: 'title' })
 
   function handleFileChange(file: File | undefined) {
     setSelectedFile(undefined)
@@ -190,6 +191,9 @@ function DocumentCommitmentFormDialog({
                 aria-invalid={Boolean(errors.title)}
                 {...register('title')}
               />
+              <p className="text-foreground/55 text-xs">
+                {titleValue.length + ' / 200 karakter'}
+              </p>
               {errors.title?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.title.message}

@@ -16,7 +16,7 @@ import { Label } from '@/shared/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 interface DocumentCommitmentCategoryFormDialogProps {
   open: boolean
@@ -35,6 +35,7 @@ function DocumentCommitmentCategoryFormDialog({
 }: DocumentCommitmentCategoryFormDialogProps) {
   const { t } = useI18n()
   const {
+    control,
     formState: { errors },
     handleSubmit,
     register,
@@ -43,6 +44,7 @@ function DocumentCommitmentCategoryFormDialog({
     resolver: zodResolver(createDocumentCommitmentCategoryFormSchema(t)),
     defaultValues: { name: category?.name ?? '' },
   })
+  const nameValue = useWatch({ control, name: 'name' })
 
   useEffect(() => {
     if (open) reset({ name: category?.name ?? '' })
@@ -78,6 +80,9 @@ function DocumentCommitmentCategoryFormDialog({
               aria-invalid={Boolean(errors.name)}
               {...register('name')}
             />
+            <p className="text-foreground/55 text-xs">
+              {nameValue.length + ' / 100 karakter'}
+            </p>
             {errors.name?.message && (
               <p role="alert" className="text-danger text-sm">
                 {errors.name.message}

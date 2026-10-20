@@ -16,7 +16,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon } from 'lucide-react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 interface BoardMemberTypeFormDialogProps {
   open: boolean
@@ -37,6 +37,7 @@ function BoardMemberTypeFormDialog({
 }: BoardMemberTypeFormDialogProps) {
   const { t } = useI18n()
   const {
+    control,
     formState: { errors },
     handleSubmit,
     register,
@@ -44,6 +45,7 @@ function BoardMemberTypeFormDialog({
     resolver: zodResolver(createBoardMemberTypeFormSchema(t)),
     defaultValues: { type: memberType?.type ?? '' },
   })
+  const typeValue = useWatch({ control, name: 'type' })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,6 +77,9 @@ function BoardMemberTypeFormDialog({
               aria-invalid={Boolean(errors.type)}
               {...register('type')}
             />
+            <p className="text-foreground/55 text-xs">
+              {typeValue.length + ' / 100 karakter'}
+            </p>
             {errors.type?.message && (
               <p role="alert" className="text-danger text-sm">
                 {errors.type.message}

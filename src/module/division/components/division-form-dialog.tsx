@@ -143,6 +143,9 @@ function DivisionFormDialog({
                 value={name}
                 onChange={(event) => setName(event.currentTarget.value)}
               />
+              <p className="text-foreground/55 text-xs">
+                {name.length + ' / 200 karakter'}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -157,6 +160,9 @@ function DivisionFormDialog({
                 value={abbreviation}
                 onChange={(event) => setAbbreviation(event.currentTarget.value)}
               />
+              <p className="text-foreground/55 text-xs">
+                {abbreviation.length + ' / 50 karakter'}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
