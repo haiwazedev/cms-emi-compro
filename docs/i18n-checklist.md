@@ -31,7 +31,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **10. Module: client**
 - [x] **11. Module: division**
 - [x] **12. Module: board_member** (incl. types)
-- [ ] **13. Module: document_commitment** (incl. categories, upload dialog)
+- [x] **13. Module: document_commitment** (incl. categories, upload dialog)
 - [ ] **14. Module: article** (incl. categories)
 - [ ] **15. Module: home**
 - [ ] **16. Module: about-us**
@@ -42,7 +42,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [ ] **21. Module: activity_log**
 - [ ] **22. Module: language**
 - [ ] **23. Route titles** in `src/routes/*`
-- [ ] **24. Sweep**: grep for leftover hardcoded Indonesian strings; decide on API error messages (show as-is or map by code)
+- [ ] **24. Sweep**: grep for leftover hardcoded Indonesian strings; decide on API error messages (show as-is or map by code); remove `PERMISSION_HINTS` once every user reads `t.auth.draftOnly`
 
 ## Per-module definition of done
 

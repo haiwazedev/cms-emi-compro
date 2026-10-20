@@ -1,4 +1,3 @@
-import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   Division,
@@ -190,9 +189,7 @@ function DivisionFormDialog({
                 </SelectContent>
               </Select>
               {!canPublish && (
-                <p className="text-foreground/60 text-xs">
-                  {PERMISSION_HINTS.draftOnly}
-                </p>
+                <p className="text-foreground/60 text-xs">{t.auth.draftOnly}</p>
               )}
             </div>
 

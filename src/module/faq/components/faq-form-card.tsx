@@ -1,4 +1,3 @@
-import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
@@ -131,7 +130,7 @@ function FaqFormCard({
               </SelectContent>
             </Select>
             {!canPublish && (
-              <p className="text-muted text-xs">{PERMISSION_HINTS.draftOnly}</p>
+              <p className="text-muted text-xs">{t.auth.draftOnly}</p>
             )}
           </div>
 

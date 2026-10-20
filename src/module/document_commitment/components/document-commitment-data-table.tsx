@@ -1,7 +1,8 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { DocumentCommitment } from '@/module/document_commitment/api/document-commitment.api'
 import { getDocumentCommitmentAssetUrl } from '@/module/document_commitment/api/document-commitment.api'
-import { DOCUMENT_COMMITMENT_LABELS } from '@/module/document_commitment/constants/document-commitment.constants'
+import type { Dictionary } from '@/shared/lib/i18n/id'
+import { useI18n, type Locale } from '@/shared/lib/i18n/i18n-context'
 import { DOCUMENT_COMMITMENT_PAGE_SIZES } from '@/module/document_commitment/constants/document-commitment.constants'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -37,6 +38,8 @@ import {
 import { useMemo } from 'react'
 
 function createColumns(
+  t: Dictionary,
+  locale: Locale,
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
   onEdit: (document: DocumentCommitment) => void,
   onDelete: (document: DocumentCommitment) => void,
@@ -48,16 +51,14 @@ function createColumns(
       id: 'select',
       header: ({ table }) => (
         <TableCheckbox
-          aria-label={DOCUMENT_COMMITMENT_LABELS.selectAllDocuments}
+          aria-label={t.documentCommitment.selectAllDocuments}
           checked={table.getIsAllRowsSelected()}
           onChange={table.getToggleAllRowsSelectedHandler()}
         />
       ),
       cell: ({ row }) => (
         <TableCheckbox
-          aria-label={DOCUMENT_COMMITMENT_LABELS.selectDocument(
-            row.original.title,
-          )}
+          aria-label={t.documentCommitment.selectDocument(row.original.title)}
           checked={row.getIsSelected()}
           onChange={row.getToggleSelectedHandler()}
         />
@@ -65,7 +66,7 @@ function createColumns(
     },
     {
       id: 'cover',
-      header: DOCUMENT_COMMITMENT_LABELS.cover,
+      header: t.documentCommitment.cover,
       cell: () => (
         <span className="bg-accent inline-flex h-14 w-10 items-end rounded-md p-1 text-xs font-semibold text-white">
           PDF
@@ -74,7 +75,7 @@ function createColumns(
     },
     {
       accessorKey: 'title',
-      header: DOCUMENT_COMMITMENT_LABELS.title,
+      header: t.documentCommitment.title,
       cell: ({ row }) => (
         <div className="flex min-w-64 flex-col gap-1 whitespace-normal">
           <span className="text-accent font-semibold">
@@ -94,7 +95,7 @@ function createColumns(
     {
       accessorFn: (document) => document.document_commitment_category.name,
       id: 'category',
-      header: DOCUMENT_COMMITMENT_LABELS.category,
+      header: t.documentCommitment.category,
       cell: ({ row }) => (
         <span className="bg-secondary/10 text-accent inline-flex max-w-40 rounded-full px-3 py-1 text-xs font-semibold whitespace-normal">
           {row.original.document_commitment_category.name}
@@ -103,31 +104,31 @@ function createColumns(
     },
     {
       accessorKey: 'size',
-      header: DOCUMENT_COMMITMENT_LABELS.size,
+      header: t.documentCommitment.size,
       cell: ({ row }) => (
         <span className="text-foreground/70 whitespace-nowrap">
-          {formatDocumentSize(row.original.size)}
+          {formatDocumentSize(row.original.size, locale)}
         </span>
       ),
     },
     {
       accessorKey: 'uploaded_at',
-      header: DOCUMENT_COMMITMENT_LABELS.uploaded,
+      header: t.documentCommitment.uploaded,
       cell: ({ row }) => (
         <span className="text-foreground/70 whitespace-nowrap">
-          {formatUploadDate(row.original.uploaded_at)}
+          {formatUploadDate(row.original.uploaded_at, locale)}
         </span>
       ),
     },
     {
       accessorKey: 'status',
-      header: DOCUMENT_COMMITMENT_LABELS.status,
+      header: t.documentCommitment.status,
       cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
     },
     {
       id: 'actions',
       header: () => (
-        <span className="sr-only">{DOCUMENT_COMMITMENT_LABELS.actions}</span>
+        <span className="sr-only">{t.documentCommitment.actions}</span>
       ),
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
@@ -137,7 +138,7 @@ function createColumns(
               variant="outline"
               size="icon"
               className="size-8"
-              aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${row.original.title}`}
+              aria-label={`${t.common.edit} ${row.original.title}`}
               onClick={() => onEdit(row.original)}
             >
               <PencilIcon aria-hidden="true" className="size-4" />
@@ -150,7 +151,7 @@ function createColumns(
               size="icon"
               className="size-8"
               disabled={deletePending}
-              aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${row.original.title}`}
+              aria-label={`${t.common.delete} ${row.original.title}`}
               onClick={() => onDelete(row.original)}
             >
               <Trash2Icon aria-hidden="true" className="size-4" />
@@ -188,10 +189,18 @@ function DocumentCommitmentDataTable({
   onPageSizeChange,
 }: DocumentCommitmentDataTableProps) {
   const { canWrite, canDelete } = usePermissions()
+  const { locale, t } = useI18n()
   const columns = useMemo(
     () =>
-      createColumns({ canWrite, canDelete }, onEdit, onDelete, deletePending),
-    [canDelete, canWrite, deletePending, onDelete, onEdit],
+      createColumns(
+        t,
+        locale,
+        { canWrite, canDelete },
+        onEdit,
+        onDelete,
+        deletePending,
+      ),
+    [t, locale, canDelete, canWrite, deletePending, onDelete, onEdit],
   )
   const table = useReactTable({
     data: documents,
@@ -252,14 +261,14 @@ function DocumentCommitmentDataTable({
 
       <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
         <p className="text-muted text-sm">
-          {DOCUMENT_COMMITMENT_LABELS.showingEntries(start, end, totalItems)}
+          {t.documentCommitment.showingEntries(start, end, totalItems)}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="icon"
-            aria-label={DOCUMENT_COMMITMENT_LABELS.previousPage}
+            aria-label={t.documentCommitment.previousPage}
             disabled={pageIndex === 0}
             onClick={() => onPageIndexChange(pageIndex - 1)}
           >
@@ -281,7 +290,7 @@ function DocumentCommitmentDataTable({
             type="button"
             variant="outline"
             size="icon"
-            aria-label={DOCUMENT_COMMITMENT_LABELS.nextPage}
+            aria-label={t.documentCommitment.nextPage}
             disabled={pageIndex + 1 >= pageCount}
             onClick={() => onPageIndexChange(pageIndex + 1)}
           >
@@ -292,7 +301,7 @@ function DocumentCommitmentDataTable({
             onValueChange={(value) => onPageSizeChange(Number(value))}
           >
             <SelectTrigger
-              aria-label={DOCUMENT_COMMITMENT_LABELS.pageSize}
+              aria-label={t.documentCommitment.pageSize}
               className="w-36"
             >
               <SelectValue />
@@ -300,7 +309,7 @@ function DocumentCommitmentDataTable({
             <SelectContent>
               {DOCUMENT_COMMITMENT_PAGE_SIZES.map((size) => (
                 <SelectItem key={size} value={String(size)}>
-                  {DOCUMENT_COMMITMENT_LABELS.pageSizeOption(size)}
+                  {t.documentCommitment.pageSizeOption(size)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -324,17 +333,17 @@ function getVisiblePages(currentPage: number, pageCount: number) {
   )
 }
 
-function formatDocumentSize(sizeInKilobytes: number) {
+function formatDocumentSize(sizeInKilobytes: number, locale: Locale) {
   if (sizeInKilobytes < 1024) {
-    return `${sizeInKilobytes.toLocaleString('id-ID')} KB`
+    return `${sizeInKilobytes.toLocaleString(locale)} KB`
   }
 
   const megabytes = sizeInKilobytes / 1024
-  return `${megabytes.toLocaleString('id-ID', { maximumFractionDigits: 1 })} MB`
+  return `${megabytes.toLocaleString(locale, { maximumFractionDigits: 1 })} MB`
 }
 
-function formatUploadDate(value: string) {
-  return new Date(value).toLocaleDateString('id-ID', {
+function formatUploadDate(value: string, locale: Locale) {
+  return new Date(value).toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

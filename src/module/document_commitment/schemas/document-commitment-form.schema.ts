@@ -1,30 +1,34 @@
-import { DOCUMENT_COMMITMENT_LABELS } from '../constants/document-commitment.constants'
 import { z } from 'zod'
+import type { Dictionary } from '@/shared/lib/i18n/id'
 
-export const documentCommitmentFormSchema = z.object({
-  document_commitment_category_id: z
-    .number()
-    .positive({ error: DOCUMENT_COMMITMENT_LABELS.categoryRequired }),
-  title: z
-    .string()
-    .trim()
-    .min(1, { error: DOCUMENT_COMMITMENT_LABELS.titleRequired })
-    .max(200, { error: 'Judul dokumen maksimal 200 karakter.' }),
-  status: z.enum(['DRAFT', 'PUBLISHED']),
-})
+export function createDocumentCommitmentFormSchema(t: Dictionary) {
+  return z.object({
+    document_commitment_category_id: z
+      .number()
+      .positive({ error: t.documentCommitment.categoryRequired }),
+    title: z
+      .string()
+      .trim()
+      .min(1, { error: t.documentCommitment.titleRequired })
+      .max(200, { error: t.documentCommitment.titleTooLong }),
+    status: z.enum(['DRAFT', 'PUBLISHED']),
+  })
+}
 
 export type DocumentCommitmentFormValues = z.infer<
-  typeof documentCommitmentFormSchema
+  ReturnType<typeof createDocumentCommitmentFormSchema>
 >
 
-export const documentCommitmentCategoryFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, { error: DOCUMENT_COMMITMENT_LABELS.categoryNameRequired })
-    .max(100, { error: DOCUMENT_COMMITMENT_LABELS.categoryNameTooLong }),
-})
+export function createDocumentCommitmentCategoryFormSchema(t: Dictionary) {
+  return z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, { error: t.documentCommitment.categoryNameRequired })
+      .max(100, { error: t.documentCommitment.categoryNameTooLong }),
+  })
+}
 
 export type DocumentCommitmentCategoryFormValues = z.infer<
-  typeof documentCommitmentCategoryFormSchema
+  ReturnType<typeof createDocumentCommitmentCategoryFormSchema>
 >

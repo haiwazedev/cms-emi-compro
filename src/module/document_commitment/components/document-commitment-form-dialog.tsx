@@ -1,15 +1,12 @@
-import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   DocumentCommitment,
   DocumentCommitmentCategory,
 } from '@/module/document_commitment/api/document-commitment.api'
-import {
-  DOCUMENT_COMMITMENT_LABELS,
-  DOCUMENT_COMMITMENT_MAX_FILE_SIZE,
-} from '@/module/document_commitment/constants/document-commitment.constants'
+import { DOCUMENT_COMMITMENT_MAX_FILE_SIZE } from '@/module/document_commitment/constants/document-commitment.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { DocumentCommitmentFormValues } from '@/module/document_commitment/schemas/document-commitment-form.schema'
-import { documentCommitmentFormSchema } from '@/module/document_commitment/schemas/document-commitment-form.schema'
+import { createDocumentCommitmentFormSchema } from '@/module/document_commitment/schemas/document-commitment-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -51,6 +48,7 @@ function DocumentCommitmentFormDialog({
   pending,
   onSubmit,
 }: DocumentCommitmentFormDialogProps) {
+  const { t } = useI18n()
   const { canPublish } = usePermissions()
   const isEditing = document !== undefined
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
@@ -62,7 +60,7 @@ function DocumentCommitmentFormDialog({
     handleSubmit,
     register,
   } = useForm<DocumentCommitmentFormValues>({
-    resolver: zodResolver(documentCommitmentFormSchema),
+    resolver: zodResolver(createDocumentCommitmentFormSchema(t)),
     defaultValues: {
       document_commitment_category_id:
         document?.document_commitment_category_id ?? 0,
@@ -81,12 +79,12 @@ function DocumentCommitmentFormDialog({
       file.name.toLowerCase().endsWith('.pdf') &&
       (!file.type || file.type === 'application/pdf')
     if (!isPdf) {
-      setFileError(DOCUMENT_COMMITMENT_LABELS.pdfInvalid)
+      setFileError(t.documentCommitment.pdfInvalid)
       return
     }
 
     if (file.size > DOCUMENT_COMMITMENT_MAX_FILE_SIZE) {
-      setFileError(DOCUMENT_COMMITMENT_LABELS.pdfTooLarge)
+      setFileError(t.documentCommitment.pdfTooLarge)
       return
     }
 
@@ -96,7 +94,7 @@ function DocumentCommitmentFormDialog({
   function submitForm(values: DocumentCommitmentFormValues) {
     setFileError(undefined)
     if (!isEditing && !selectedFile) {
-      setFileError(DOCUMENT_COMMITMENT_LABELS.pdfRequired)
+      setFileError(t.documentCommitment.pdfRequired)
       return
     }
 
@@ -109,11 +107,11 @@ function DocumentCommitmentFormDialog({
         <DialogHeader className="border-border border-b">
           <DialogTitle>
             {isEditing
-              ? DOCUMENT_COMMITMENT_LABELS.editTitle
-              : DOCUMENT_COMMITMENT_LABELS.uploadTitle}
+              ? t.documentCommitment.editTitle
+              : t.documentCommitment.uploadTitle}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            {DOCUMENT_COMMITMENT_LABELS.formDescription}
+            {t.documentCommitment.formDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -124,12 +122,12 @@ function DocumentCommitmentFormDialog({
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 py-5">
             <div className="flex flex-col gap-2">
               <Label htmlFor="document-commitment-file">
-                {DOCUMENT_COMMITMENT_LABELS.pdfField}
+                {t.documentCommitment.pdfField}
                 {!isEditing && <RequiredMark />}
               </Label>
               {document && (
                 <p className="text-muted text-sm">
-                  {DOCUMENT_COMMITMENT_LABELS.currentFile}: {document.filename}
+                  {t.documentCommitment.currentFile}: {document.filename}
                 </p>
               )}
               <label
@@ -146,15 +144,15 @@ function DocumentCommitmentFormDialog({
                   className="text-accent size-5"
                 />
                 <span>
-                  {DOCUMENT_COMMITMENT_LABELS.dropzoneText}
+                  {t.documentCommitment.dropzoneText}
                   <span className="text-secondary font-semibold">
-                    {DOCUMENT_COMMITMENT_LABELS.dropzoneAction}
+                    {t.documentCommitment.dropzoneAction}
                   </span>
                 </span>
                 <span className="text-xs">
                   {isEditing
-                    ? DOCUMENT_COMMITMENT_LABELS.keepCurrentPdf
-                    : DOCUMENT_COMMITMENT_LABELS.pdfHelp}
+                    ? t.documentCommitment.keepCurrentPdf
+                    : t.documentCommitment.pdfHelp}
                 </span>
                 {selectedFile && (
                   <span className="text-accent font-semibold">
@@ -181,7 +179,7 @@ function DocumentCommitmentFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="document-commitment-title">
-                {DOCUMENT_COMMITMENT_LABELS.titleField}
+                {t.documentCommitment.titleField}
                 <RequiredMark />
               </Label>
               <Input
@@ -202,7 +200,7 @@ function DocumentCommitmentFormDialog({
             <div className="flex flex-col gap-4 lg:flex-row">
               <div className="flex flex-1 flex-col gap-2">
                 <Label htmlFor="document-commitment-category">
-                  {DOCUMENT_COMMITMENT_LABELS.categoryField}
+                  {t.documentCommitment.categoryField}
                   <RequiredMark />
                 </Label>
                 <Controller
@@ -225,9 +223,7 @@ function DocumentCommitmentFormDialog({
                         )}
                       >
                         <SelectValue
-                          placeholder={
-                            DOCUMENT_COMMITMENT_LABELS.chooseCategory
-                          }
+                          placeholder={t.documentCommitment.chooseCategory}
                         />
                       </SelectTrigger>
                       <SelectContent>
@@ -252,7 +248,7 @@ function DocumentCommitmentFormDialog({
                 )}
                 {categoriesQuery.isError && (
                   <p role="alert" className="text-danger text-sm">
-                    {DOCUMENT_COMMITMENT_LABELS.categoriesFailed}
+                    {t.documentCommitment.categoriesFailed}
                   </p>
                 )}
                 {categoriesQuery.data?.length === 0 && (
@@ -262,7 +258,7 @@ function DocumentCommitmentFormDialog({
                       to="/document_commitment_categories"
                       className="text-secondary underline"
                     >
-                      {DOCUMENT_COMMITMENT_LABELS.manageCategories}
+                      {t.documentCommitment.manageCategories}
                     </Link>
                   </p>
                 )}
@@ -270,7 +266,7 @@ function DocumentCommitmentFormDialog({
 
               <div className="flex flex-1 flex-col gap-2">
                 <Label htmlFor="document-commitment-status">
-                  {DOCUMENT_COMMITMENT_LABELS.statusField}
+                  {t.documentCommitment.statusField}
                 </Label>
                 <Controller
                   control={control}
@@ -286,19 +282,17 @@ function DocumentCommitmentFormDialog({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="PUBLISHED">
-                          {DOCUMENT_COMMITMENT_LABELS.published}
+                          {t.documentCommitment.published}
                         </SelectItem>
                         <SelectItem value="DRAFT">
-                          {DOCUMENT_COMMITMENT_LABELS.draft}
+                          {t.documentCommitment.draft}
                         </SelectItem>
                       </SelectContent>
                     </Select>
                   )}
                 />
                 {!canPublish && (
-                  <p className="text-muted text-xs">
-                    {PERMISSION_HINTS.draftOnly}
-                  </p>
+                  <p className="text-muted text-xs">{t.auth.draftOnly}</p>
                 )}
               </div>
             </div>
@@ -311,7 +305,7 @@ function DocumentCommitmentFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {DOCUMENT_COMMITMENT_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="submit"
@@ -328,10 +322,10 @@ function DocumentCommitmentFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {DOCUMENT_COMMITMENT_LABELS.saving}
+                  {t.documentCommitment.saving}
                 </>
               ) : (
-                DOCUMENT_COMMITMENT_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>
