@@ -1,26 +1,30 @@
-import { LOGIN_LABELS } from '@/module/auth/constants/login.constants'
 import { login } from '@/module/auth/api/auth.api'
 import { authQueryKey } from '@/module/auth/queries/auth.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { toast } from '@/shared/lib/toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowRightIcon, LoaderCircleIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { loginSchema, type LoginFormValues } from '../schemas/login.schema'
+import {
+  createLoginSchema,
+  type LoginFormValues,
+} from '../schemas/login.schema'
 
 function LoginForm() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (user) => {
       toast.add({
-        title: 'Success',
-        description: LOGIN_LABELS.loginSuccess,
+        title: t.common.success,
+        description: t.auth.loginSuccess,
         type: 'success',
       })
       queryClient.setQueryData(authQueryKey, user)
@@ -28,9 +32,9 @@ function LoginForm() {
     },
     onError: (error) => {
       toast.add({
-        title: 'Error',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : LOGIN_LABELS.loginFailed,
+          error instanceof Error ? error.message : t.auth.loginFailed,
         type: 'error',
       })
     },
@@ -40,7 +44,7 @@ function LoginForm() {
     handleSubmit,
     register,
   } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(createLoginSchema(t)),
     defaultValues: {
       email: '',
       password: '',
@@ -57,7 +61,7 @@ function LoginForm() {
     >
       <div className="space-y-2">
         <Label htmlFor="email" className="text-accent">
-          {LOGIN_LABELS.email} <span className="text-danger">*</span>
+          {t.auth.email} <span className="text-danger">*</span>
         </Label>
         <Input
           id="email"
@@ -78,7 +82,7 @@ function LoginForm() {
 
       <div className="space-y-2">
         <Label htmlFor="password" className="text-accent">
-          {LOGIN_LABELS.password} <span className="text-danger">*</span>
+          {t.auth.password} <span className="text-danger">*</span>
         </Label>
         <Input
           id="password"
@@ -99,7 +103,7 @@ function LoginForm() {
 
       <div className="flex justify-end">
         <span className="text-secondary text-sm font-medium">
-          {LOGIN_LABELS.forgotPassword}
+          {t.auth.forgotPassword}
         </span>
       </div>
 
@@ -111,7 +115,7 @@ function LoginForm() {
       >
         {loginMutation.isPending ? (
           <>
-            {LOGIN_LABELS.submitting}
+            {t.auth.submitting}
             <LoaderCircleIcon
               aria-hidden="true"
               className="size-4 animate-spin"
@@ -119,7 +123,7 @@ function LoginForm() {
           </>
         ) : (
           <>
-            {LOGIN_LABELS.submit}
+            {t.auth.submit}
             <ArrowRightIcon aria-hidden="true" className="size-4" />
           </>
         )}

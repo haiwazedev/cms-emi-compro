@@ -1,13 +1,15 @@
 import { z } from 'zod'
-import { LOGIN_LABELS } from '../constants/login.constants'
+import type { Dictionary } from '@/shared/lib/i18n/id'
 
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, { error: LOGIN_LABELS.emailRequired })
-    .pipe(z.email({ error: LOGIN_LABELS.emailInvalid })),
-  password: z.string().min(1, { error: LOGIN_LABELS.passwordRequired }),
-})
+export function createLoginSchema(t: Dictionary) {
+  return z.object({
+    email: z
+      .string()
+      .trim()
+      .min(1, { error: t.auth.emailRequired })
+      .pipe(z.email({ error: t.auth.emailInvalid })),
+    password: z.string().min(1, { error: t.auth.passwordRequired }),
+  })
+}
 
-export type LoginFormValues = z.infer<typeof loginSchema>
+export type LoginFormValues = z.infer<ReturnType<typeof createLoginSchema>>

@@ -2,6 +2,8 @@ import type { Dictionary } from './id'
 
 const en: Dictionary = {
   common: {
+    success: 'Success',
+    error: 'Error',
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
@@ -10,6 +12,27 @@ const en: Dictionary = {
     closeNotification: 'Close notification',
     loading: 'Loading...',
     justNow: 'just now',
+  },
+  auth: {
+    brandTitle: 'Content',
+    brandTitleAccent: 'Management System',
+    brandDescription:
+      'Manage news, commitment documents, services, and the company profile of PT Energy Management Indonesia (Persero) in one place.',
+    copyright: (year: number) =>
+      `© ${year} PT Energy Management Indonesia (Persero)`,
+    eyebrow: 'Administrator Panel',
+    title: 'Sign in to CMS',
+    description: 'Use the account registered by your administrator.',
+    email: 'Email',
+    emailRequired: 'Email is required.',
+    emailInvalid: 'Invalid email format.',
+    password: 'Password',
+    passwordRequired: 'Password is required.',
+    forgotPassword: 'Forgot password?',
+    submit: 'Sign in',
+    submitting: 'Processing...',
+    loginSuccess: 'Signed in successfully.',
+    loginFailed: 'Failed to sign in. Please try again.',
   },
 }
 

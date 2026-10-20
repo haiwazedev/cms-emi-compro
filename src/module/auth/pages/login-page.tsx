@@ -1,11 +1,8 @@
-import { LOGIN_LABELS } from '@/module/auth/constants/login.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { LoginForm } from '../components/login-form'
 
 function LoginPage() {
-  const copyright = LOGIN_LABELS.copyright.replace(
-    '{year}',
-    String(new Date().getFullYear()),
-  )
+  const { t } = useI18n()
 
   return (
     <main className="flex min-h-screen flex-col lg:flex-row">
@@ -18,18 +15,18 @@ function LoginPage() {
             id="brand-heading"
             className="max-w-xl text-4xl leading-tight font-semibold tracking-tight lg:text-5xl"
           >
-            {LOGIN_LABELS.brandTitle}
+            {t.auth.brandTitle}
             <br />
             <span className="font-serif font-normal text-white/75 italic">
-              {LOGIN_LABELS.brandTitleAccent}
+              {t.auth.brandTitleAccent}
             </span>
           </h2>
           <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/80 lg:text-base">
-            {LOGIN_LABELS.brandDescription}
+            {t.auth.brandDescription}
           </p>
         </div>
         <footer className="relative z-10 text-xs text-white/60">
-          {copyright}
+          {t.auth.copyright(new Date().getFullYear())}
         </footer>
       </section>
 
@@ -37,14 +34,12 @@ function LoginPage() {
         <div className="w-full max-w-xl">
           <header className="mb-10 space-y-4">
             <p className="text-secondary text-sm font-semibold tracking-widest uppercase">
-              {LOGIN_LABELS.eyebrow}
+              {t.auth.eyebrow}
             </p>
             <h1 className="text-accent text-4xl font-bold tracking-tight">
-              {LOGIN_LABELS.title}
+              {t.auth.title}
             </h1>
-            <p className="text-foreground/60 text-lg">
-              {LOGIN_LABELS.description}
-            </p>
+            <p className="text-foreground/60 text-lg">{t.auth.description}</p>
           </header>
           <LoginForm />
         </div>

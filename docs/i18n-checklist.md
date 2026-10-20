@@ -20,9 +20,12 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **3. Shared components**: close labels in `src/shared/components/ui` (`dialog`, `sheet`, `toast`). Empty states, confirm dialogs and toast messages live in module constants, so they move with each module step
 - [x] **4. Dates & formatting**: `formatRelativeTime` (shared + `user.constants`) and `formatDateTime` take `locale`; `Calendar` follows the UI locale
   - Module-specific `Intl`/`toLocale*('id-ID')` calls move with their module step (inbox, dashboard, document_commitment, article)
-- [ ] **5. Validation pattern**: convert Zod schemas to receive `t` (pilot on one module, then reuse)
+- [x] **5. Validation pattern**: piloted on `auth/schemas/login.schema.ts`
+  - Schema becomes a factory `createXSchema(t: Dictionary)`; form type is `z.infer<ReturnType<typeof createXSchema>>`
+  - Component: `const { t } = useI18n()` then `zodResolver(createXSchema(t))`
+  - Messages move from module constants to `t.<module>.*`
 - [ ] **6. Module: nav**
-- [ ] **7. Module: auth** (login)
+- [x] **7. Module: auth** (login), done together with step 5; route `pageTitle` stays for step 23
 - [ ] **8. Module: dashboard**
 - [ ] **9. Module: faq**
 - [ ] **10. Module: client**
@@ -47,4 +50,5 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - Keys grouped under the module name (`t.faq.*`); shared words reuse `t.common.*`
 - `en` translations filled in
 - Form validation messages follow the active locale
+- Toast titles use `t.common.success` / `t.common.error` instead of hardcoded `'Success'` / `'Error'`
 - Dates and numbers use `locale` from `useI18n()` instead of `'id-ID'`
