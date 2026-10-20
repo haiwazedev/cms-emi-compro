@@ -3,7 +3,7 @@ import type {
   Division,
   DivisionContent,
 } from '@/module/division/api/division.api'
-import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
 import { ArticleStatusPill } from '@/module/article/components/article-language-pills'
@@ -33,9 +33,10 @@ function SortableDivisionRow({
   onEdit,
   onDelete,
 }: SortableDivisionRowProps) {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
-  const name = content?.name ?? DIVISION_LABELS.missingTranslation
-  const abbreviation = content?.abbr ?? DIVISION_LABELS.missingTranslation
+  const name = content?.name ?? t.division.missingTranslation
+  const abbreviation = content?.abbr ?? t.division.missingTranslation
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `division:${division.id}`,
     index,
@@ -56,7 +57,7 @@ function SortableDivisionRow({
           <button
             ref={dragHandleRef}
             type="button"
-            aria-label={DIVISION_LABELS.dragDivision(index + 1)}
+            aria-label={t.division.dragDivision(index + 1)}
             disabled={disabled}
             className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -88,7 +89,7 @@ function SortableDivisionRow({
           <span className="text-muted text-sm">
             {content?.abbr
               ? `/layanan#${content.abbr.toLowerCase()}`
-              : DIVISION_LABELS.missingTranslation}
+              : t.division.missingTranslation}
           </span>
         </button>
       </TableCell>
@@ -119,7 +120,7 @@ function SortableDivisionRow({
               size="icon"
               className="size-8"
               disabled={disabled}
-              aria-label={DIVISION_LABELS.editDivisionAction(name)}
+              aria-label={t.division.editDivisionAction(name)}
               onClick={onEdit}
             >
               <PencilIcon aria-hidden="true" className="size-4" />
@@ -132,7 +133,7 @@ function SortableDivisionRow({
               size="icon"
               className="size-8"
               disabled={disabled}
-              aria-label={DIVISION_LABELS.deleteDivisionAction(name)}
+              aria-label={t.division.deleteDivisionAction(name)}
               onClick={onDelete}
             >
               <Trash2Icon aria-hidden="true" className="size-4" />

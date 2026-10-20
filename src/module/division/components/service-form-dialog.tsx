@@ -4,7 +4,7 @@ import type {
   ServiceWriteFields,
 } from '@/module/division/api/division.api'
 import { serviceQueryOptions } from '@/module/division/queries/division.queries'
-import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import type { Media } from '@/module/media/api/media.api'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
@@ -52,6 +52,7 @@ interface ServiceFormDialogProps {
 }
 
 function ServiceFormDialog(props: ServiceFormDialogProps) {
+  const { t } = useI18n()
   const detailQuery = useQuery({
     ...serviceQueryOptions(props.service?.id ?? 0),
     enabled: props.service !== undefined,
@@ -61,7 +62,7 @@ function ServiceFormDialog(props: ServiceFormDialogProps) {
     return (
       <ServiceDialogMessage
         {...props}
-        message={DIVISION_LABELS.serviceDetailsLoading}
+        message={t.division.serviceDetailsLoading}
       />
     )
   }
@@ -70,9 +71,7 @@ function ServiceFormDialog(props: ServiceFormDialogProps) {
     return (
       <ServiceDialogMessage
         {...props}
-        message={
-          detailQuery.error.message || DIVISION_LABELS.serviceDetailsFailed
-        }
+        message={detailQuery.error.message || t.division.serviceDetailsFailed}
         onRetry={() => void detailQuery.refetch()}
       />
     )
@@ -93,16 +92,15 @@ function ServiceDialogMessage({
   message,
   onRetry,
 }: ServiceFormDialogProps & { message: string; onRetry?: () => void }) {
+  const { t } = useI18n()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {service
-              ? DIVISION_LABELS.editService
-              : DIVISION_LABELS.createService}
+            {service ? t.division.editService : t.division.createService}
           </DialogTitle>
-          <DialogDescription>{DIVISION_LABELS.description}</DialogDescription>
+          <DialogDescription>{t.division.description}</DialogDescription>
         </DialogHeader>
         <p
           role={onRetry ? 'alert' : 'status'}
@@ -116,11 +114,11 @@ function ServiceDialogMessage({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            {DIVISION_LABELS.cancel}
+            {t.common.cancel}
           </Button>
           {onRetry && (
             <Button type="button" variant="outline" onClick={onRetry}>
-              {DIVISION_LABELS.retry}
+              {t.common.retry}
             </Button>
           )}
         </DialogFooter>
@@ -139,6 +137,7 @@ function ServiceFormFields({
   pending,
   onSubmit,
 }: ServiceFormDialogProps) {
+  const { t } = useI18n()
   const content = service?.contents.find(
     (item) => item.language_id === languageId,
   )
@@ -158,12 +157,12 @@ function ServiceFormFields({
     setFormError(undefined)
 
     if (!name.trim()) {
-      setFormError(DIVISION_LABELS.requiredName)
+      setFormError(t.division.requiredName)
       return
     }
 
     if (divisionId === undefined) {
-      setFormError(DIVISION_LABELS.requiredDivision)
+      setFormError(t.division.requiredDivision)
       return
     }
 
@@ -193,19 +192,15 @@ function ServiceFormFields({
         <DialogContent className="max-w-2xl">
           <DialogHeader className="border-border border-b">
             <DialogTitle>
-              {isEditing
-                ? DIVISION_LABELS.editService
-                : DIVISION_LABELS.createService}
+              {isEditing ? t.division.editService : t.division.createService}
             </DialogTitle>
-            <DialogDescription>{DIVISION_LABELS.description}</DialogDescription>
+            <DialogDescription>{t.division.description}</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
             <div className="flex flex-col gap-4 overflow-y-auto px-5 py-5">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="service-name">
-                  {DIVISION_LABELS.serviceName}
-                </Label>
+                <Label htmlFor="service-name">{t.division.serviceName}</Label>
                 <Input
                   id="service-name"
                   autoFocus
@@ -219,7 +214,7 @@ function ServiceFormFields({
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="service-description">
-                  {DIVISION_LABELS.serviceDescription}
+                  {t.division.serviceDescription}
                 </Label>
                 <Textarea
                   id="service-description"
@@ -232,16 +227,14 @@ function ServiceFormFields({
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="service-division">
-                  {DIVISION_LABELS.division}
-                </Label>
+                <Label htmlFor="service-division">{t.division.division}</Label>
                 <Select
                   value={divisionId === undefined ? '' : String(divisionId)}
                   onValueChange={(value) => setDivisionId(Number(value))}
                   disabled={pending}
                 >
                   <SelectTrigger id="service-division">
-                    <SelectValue placeholder={DIVISION_LABELS.selectDivision} />
+                    <SelectValue placeholder={t.division.selectDivision} />
                   </SelectTrigger>
                   <SelectContent>
                     {divisions.map((division) => {
@@ -250,7 +243,7 @@ function ServiceFormFields({
                       )
                       const label = divisionContent
                         ? `${divisionContent.abbr} — ${divisionContent.name}`
-                        : `${DIVISION_LABELS.missingTranslation} (#${division.id})`
+                        : `${t.division.missingTranslation} (#${division.id})`
 
                       return (
                         <SelectItem
@@ -267,7 +260,7 @@ function ServiceFormFields({
 
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                  <Label>{DIVISION_LABELS.serviceImages}</Label>
+                  <Label>{t.division.serviceImages}</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -275,13 +268,13 @@ function ServiceFormFields({
                     onClick={() => setPickerOpen(true)}
                   >
                     <ImagePlusIcon aria-hidden="true" className="size-4" />
-                    {DIVISION_LABELS.addServiceImages}
+                    {t.division.addServiceImages}
                   </Button>
                 </div>
 
                 {media.length === 0 ? (
                   <p className="text-foreground/55 rounded-md border border-dashed p-5 text-center text-sm">
-                    {DIVISION_LABELS.noServiceImages}
+                    {t.division.noServiceImages}
                   </p>
                 ) : (
                   <DragDropProvider onDragEnd={handleGalleryDragEnd}>
@@ -305,7 +298,7 @@ function ServiceFormFields({
                   </DragDropProvider>
                 )}
                 <p className="text-foreground/55 text-xs">
-                  {DIVISION_LABELS.dragHint}
+                  {t.division.dragHint}
                 </p>
               </div>
 
@@ -323,7 +316,7 @@ function ServiceFormFields({
                 disabled={pending}
                 onClick={() => onOpenChange(false)}
               >
-                {DIVISION_LABELS.cancel}
+                {t.common.cancel}
               </Button>
               <Button
                 type="submit"
@@ -335,10 +328,10 @@ function ServiceFormFields({
                       aria-hidden="true"
                       className="size-4 animate-spin"
                     />
-                    {DIVISION_LABELS.saving}
+                    {t.division.saving}
                   </>
                 ) : (
-                  DIVISION_LABELS.save
+                  t.common.save
                 )}
               </Button>
             </DialogFooter>
@@ -370,6 +363,7 @@ function SortableServiceImage({
   disabled: boolean
   onRemove: () => void
 }) {
+  const { t } = useI18n()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `service-media:${media.id}`,
     index,
@@ -389,7 +383,7 @@ function SortableServiceImage({
       <button
         ref={dragHandleRef}
         type="button"
-        aria-label={DIVISION_LABELS.dragServiceImage(index + 1)}
+        aria-label={t.division.dragServiceImage(index + 1)}
         disabled={disabled}
         className="bg-background/90 text-secondary absolute top-2 left-2 cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
       >
@@ -401,7 +395,7 @@ function SortableServiceImage({
         size="icon"
         className="bg-background/90 absolute top-2 right-2 size-7"
         disabled={disabled}
-        aria-label={DIVISION_LABELS.removeServiceImage(media.filename)}
+        aria-label={t.division.removeServiceImage(media.filename)}
         onClick={onRemove}
       >
         <Trash2Icon aria-hidden="true" className="size-3.5" />
