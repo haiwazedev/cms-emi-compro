@@ -62,6 +62,39 @@ const id = {
     logoutSuccess: 'Berhasil keluar.',
     logoutFailed: 'Gagal keluar. Silakan coba lagi.',
   },
+  dashboard: {
+    greeting: (name: string) => `Selamat datang, ${name} 👋`,
+    description: (time: string) =>
+      `Ringkasan konten situs PT Energy Management Indonesia (Persero) — diperbarui hari ini, ${time} WIB.`,
+    viewSite: 'Lihat Situs',
+    newArticle: 'Artikel Baru',
+    latestArticles: 'Artikel Terbaru',
+    viewAll: 'Lihat semua',
+    recentActivity: 'Aktivitas Terakhir',
+    loadingActivity: 'Memuat aktivitas…',
+    activityFailed: 'Gagal memuat aktivitas',
+    noActivity: 'Belum ada aktivitas.',
+    quickAccess: 'Akses Cepat',
+    quickLinks: {
+      article: 'Tulis artikel baru',
+      document: 'Unggah dokumen',
+      home: 'Atur slide beranda',
+      inbox: 'Baca pesan masuk',
+    },
+    articles: 'Artikel',
+    languageCount: (languageId: string, published: number, draft: number) =>
+      `${languageId.toUpperCase()} - ${published} terbit · ${draft} draf`,
+    loadingArticleCounts: 'Memuat jumlah artikel…',
+    articleCountsFailed: 'Gagal memuat jumlah artikel',
+    documents: 'Dokumen',
+    categoryCount: (count: number) => `${count} kategori`,
+    services: 'Layanan',
+    divisionCount: (count: number) => `dalam ${count} divisi`,
+    inbox: 'Pesan Masuk',
+    unread: 'belum dibaca',
+    loadingCount: 'Memuat jumlah…',
+    countFailed: 'Gagal memuat jumlah',
+  },
 }
 
 type Dictionary = typeof id

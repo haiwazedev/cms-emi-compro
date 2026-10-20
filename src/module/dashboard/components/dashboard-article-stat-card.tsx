@@ -1,16 +1,17 @@
 import { articleCountsQueryOptions } from '@/module/article/queries/article.queries'
 import { DashboardStatCard } from '@/module/dashboard/components/dashboard-stat-card'
-import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { useQuery } from '@tanstack/react-query'
 import { NewspaperIcon } from 'lucide-react'
 
 function DashboardArticleStatCard() {
+  const { t } = useI18n()
   const countsQuery = useQuery(articleCountsQueryOptions())
 
   return (
     <DashboardStatCard
-      label={DASHBOARD_LABELS.articles}
+      label={t.dashboard.articles}
       icon={NewspaperIcon}
       iconClassName="bg-secondary/10 text-secondary"
       value={
@@ -28,7 +29,7 @@ function DashboardArticleStatCard() {
             {countsQuery.data.languages.map((language) => (
               <li key={language.id}>
                 <span aria-hidden="true">{language.flag}</span>{' '}
-                {DASHBOARD_LABELS.languageCount(
+                {t.dashboard.languageCount(
                   language.id,
                   language.count.published,
                   language.count.draft,
@@ -40,13 +41,11 @@ function DashboardArticleStatCard() {
           <p role="alert" className="text-danger">
             {countsQuery.error instanceof Error
               ? countsQuery.error.message
-              : DASHBOARD_LABELS.articleCountsFailed}
+              : t.dashboard.articleCountsFailed}
           </p>
         ) : (
           <div role="status" className="flex flex-col gap-1">
-            <span className="sr-only">
-              {DASHBOARD_LABELS.loadingArticleCounts}
-            </span>
+            <span className="sr-only">{t.dashboard.loadingArticleCounts}</span>
             <Skeleton className="h-4 w-40" />
             <Skeleton className="h-4 w-40" />
           </div>

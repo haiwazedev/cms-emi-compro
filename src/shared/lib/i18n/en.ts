@@ -64,6 +64,41 @@ const en: Dictionary = {
     logoutSuccess: 'Logged out successfully.',
     logoutFailed: 'Failed to log out. Please try again.',
   },
+  dashboard: {
+    greeting: (name: string) => `Welcome, ${name} 👋`,
+    description: (time: string) =>
+      `Content overview for PT Energy Management Indonesia (Persero) — updated today, ${time} WIB.`,
+    viewSite: 'View Site',
+    newArticle: 'New Article',
+    latestArticles: 'Latest Articles',
+    viewAll: 'View all',
+    recentActivity: 'Recent Activity',
+    loadingActivity: 'Loading activity…',
+    activityFailed: 'Failed to load activity',
+    noActivity: 'No activity yet.',
+    quickAccess: 'Quick Access',
+    quickLinks: {
+      article: 'Write a new article',
+      document: 'Upload a document',
+      home: 'Manage home slides',
+      inbox: 'Read inbox messages',
+    },
+    articles: 'Articles',
+    languageCount: (languageId: string, published: number, draft: number) =>
+      `${languageId.toUpperCase()} - ${published} published · ${draft} ${draft === 1 ? 'draft' : 'drafts'}`,
+    loadingArticleCounts: 'Loading article counts…',
+    articleCountsFailed: 'Failed to load article counts',
+    documents: 'Documents',
+    categoryCount: (count: number) =>
+      `${count} ${count === 1 ? 'category' : 'categories'}`,
+    services: 'Services',
+    divisionCount: (count: number) =>
+      `in ${count} ${count === 1 ? 'division' : 'divisions'}`,
+    inbox: 'Inbox',
+    unread: 'unread',
+    loadingCount: 'Loading count…',
+    countFailed: 'Failed to load count',
+  },
 }
 
 export { en }
