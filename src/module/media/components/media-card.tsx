@@ -1,6 +1,6 @@
 import type { Media } from '@/module/media/api/media.api'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
-import { MEDIA_LABELS } from '@/module/media/constants/media.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { cn } from '@/shared/lib/utils'
 import { FileTextIcon } from 'lucide-react'
@@ -18,6 +18,7 @@ function MediaCard({
   selected,
   onSelectionChange,
 }: MediaCardProps) {
+  const { t } = useI18n()
   const isPicture = media.type === 'PICTURE'
 
   return (
@@ -52,7 +53,7 @@ function MediaCard({
         <label className="absolute top-2 right-2 flex size-7 cursor-pointer items-center justify-center rounded-full bg-transparent">
           <Checkbox
             checked={selected}
-            aria-label={MEDIA_LABELS.selectFile(media.filename)}
+            aria-label={t.media.selectFile(media.filename)}
             onChange={(event) =>
               onSelectionChange(media.id, event.currentTarget.checked)
             }

@@ -4,11 +4,8 @@ import {
   uploadMedia,
 } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
-import {
-  MEDIA_LABELS,
-  MEDIA_PICKER_LABELS,
-  MEDIA_PICTURE_MAX_SIZE,
-} from '@/module/media/constants/media.constants'
+import { MEDIA_PICTURE_MAX_SIZE } from '@/module/media/constants/media.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   mediaQueryKeys,
   mediaQueryOptions,
@@ -66,6 +63,7 @@ function MediaPickerDialog({
   onOpenChange,
   ...selectionProps
 }: MediaPickerDialogProps) {
+  const { t } = useI18n()
   const selectionMode = selectionProps.selectionMode ?? 'single'
   const multipleSelectedMediaIds =
     selectionProps.selectionMode === 'multiple'
@@ -116,16 +114,16 @@ function MediaPickerDialog({
       )
       await queryClient.invalidateQueries({ queryKey: mediaQueryKeys.all })
       toast.add({
-        title: 'Berhasil',
-        description: MEDIA_LABELS.uploadSuccess,
+        title: t.common.success,
+        description: t.media.uploadSuccess,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : MEDIA_LABELS.uploadFailed,
+          error instanceof Error ? error.message : t.media.uploadFailed,
         type: 'error',
       })
     },
@@ -139,8 +137,8 @@ function MediaPickerDialog({
 
     if (getMediaTypeFromFilename(file.name) !== 'PICTURE') {
       toast.add({
-        title: 'Gagal',
-        description: MEDIA_PICKER_LABELS.unsupportedFile,
+        title: t.common.error,
+        description: t.mediaPicker.unsupportedFile,
         type: 'error',
       })
       return
@@ -148,8 +146,8 @@ function MediaPickerDialog({
 
     if (file.size > MEDIA_PICTURE_MAX_SIZE) {
       toast.add({
-        title: 'Gagal',
-        description: MEDIA_LABELS.fileTooLarge('PICTURE'),
+        title: t.common.error,
+        description: t.media.fileTooLarge('PICTURE'),
         type: 'error',
       })
       return
@@ -174,30 +172,27 @@ function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-5xl"
-        closeLabel={MEDIA_PICKER_LABELS.close}
-      >
+      <DialogContent className="max-w-5xl" closeLabel={t.mediaPicker.close}>
         <DialogHeader className="border-border border-b">
-          <DialogTitle>{MEDIA_PICKER_LABELS.title}</DialogTitle>
+          <DialogTitle>{t.mediaPicker.title}</DialogTitle>
           <DialogDescription>
             {selectionMode === 'multiple'
-              ? MEDIA_PICKER_LABELS.multipleDescription
-              : MEDIA_PICKER_LABELS.description}
+              ? t.mediaPicker.multipleDescription
+              : t.mediaPicker.description}
           </DialogDescription>
         </DialogHeader>
 
         <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
           <label className="relative flex-1">
-            <span className="sr-only">{MEDIA_PICKER_LABELS.searchLabel}</span>
+            <span className="sr-only">{t.mediaPicker.searchLabel}</span>
             <SearchIcon
               aria-hidden="true"
               className="text-foreground/45 absolute top-1/2 left-3 size-4 -translate-y-1/2"
             />
             <Input
               type="search"
-              aria-label={MEDIA_PICKER_LABELS.searchLabel}
-              placeholder={MEDIA_PICKER_LABELS.searchPlaceholder}
+              aria-label={t.mediaPicker.searchLabel}
+              placeholder={t.mediaPicker.searchPlaceholder}
               value={search}
               onChange={(event) => setSearch(event.currentTarget.value)}
               className="pl-9"
@@ -209,7 +204,7 @@ function MediaPickerDialog({
             type="file"
             accept=".png,.jpg,.jpeg,image/png,image/jpeg"
             className="hidden"
-            aria-label={MEDIA_PICKER_LABELS.upload}
+            aria-label={t.mediaPicker.upload}
             onChange={handleFileChange}
           />
           <Button
@@ -227,8 +222,8 @@ function MediaPickerDialog({
               <UploadIcon aria-hidden="true" className="size-4" />
             )}
             {uploadMutation.isPending
-              ? MEDIA_PICKER_LABELS.uploading
-              : MEDIA_PICKER_LABELS.upload}
+              ? t.mediaPicker.uploading
+              : t.mediaPicker.upload}
           </Button>
         </div>
 
@@ -238,19 +233,19 @@ function MediaPickerDialog({
               role="status"
               className="text-foreground/55 p-8 text-center text-sm"
             >
-              {MEDIA_LABELS.loading}
+              {t.media.loading}
             </p>
           ) : mediaQuery.isError ? (
             <div className="flex flex-col items-center gap-3 p-8 text-center">
               <p role="alert" className="text-danger text-sm">
-                {MEDIA_LABELS.loadFailed}
+                {t.media.loadFailed}
               </p>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => void mediaQuery.refetch()}
               >
-                {MEDIA_LABELS.retry}
+                {t.common.retry}
               </Button>
             </div>
           ) : mediaQuery.data?.length === 0 ? (
@@ -258,14 +253,14 @@ function MediaPickerDialog({
               role="status"
               className="text-foreground/55 p-8 text-center text-sm"
             >
-              {MEDIA_PICKER_LABELS.noPictures}
+              {t.mediaPicker.noPictures}
             </p>
           ) : visibleMedia.length === 0 ? (
             <p
               role="status"
               className="text-foreground/55 p-8 text-center text-sm"
             >
-              {MEDIA_PICKER_LABELS.noSearchResults}
+              {t.mediaPicker.noSearchResults}
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -293,7 +288,7 @@ function MediaPickerDialog({
 
         <DialogFooter className="lg:items-center lg:justify-between">
           <span className="text-foreground/55 text-sm">
-            {MEDIA_PICKER_LABELS.selectedCount(pendingMediaIds.length)}
+            {t.mediaPicker.selectedCount(pendingMediaIds.length)}
           </span>
           <div className="flex flex-col-reverse gap-2 lg:flex-row">
             <Button
@@ -301,7 +296,7 @@ function MediaPickerDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              {MEDIA_PICKER_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -309,8 +304,8 @@ function MediaPickerDialog({
               onClick={useSelectedMedia}
             >
               {selectionMode === 'multiple'
-                ? MEDIA_PICKER_LABELS.useFiles
-                : MEDIA_PICKER_LABELS.useFile}
+                ? t.mediaPicker.useFiles
+                : t.mediaPicker.useFile}
             </Button>
           </div>
         </DialogFooter>
@@ -328,10 +323,11 @@ function MediaPickerCard({
   selected: boolean
   onSelect: () => void
 }) {
+  const { t } = useI18n()
   return (
     <button
       type="button"
-      aria-label={MEDIA_LABELS.selectFile(media.filename)}
+      aria-label={t.media.selectFile(media.filename)}
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(

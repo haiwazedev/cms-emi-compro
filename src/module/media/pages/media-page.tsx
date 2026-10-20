@@ -11,10 +11,10 @@ import type {
 } from '@/module/media/api/media.api'
 import {
   MEDIA_DOCUMENT_MAX_SIZE,
-  MEDIA_LABELS,
   MEDIA_ACCEPTED_EXTENSIONS,
   MEDIA_PICTURE_MAX_SIZE,
 } from '@/module/media/constants/media.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { MediaCard } from '@/module/media/components/media-card'
 import {
   mediaQueryKeys,
@@ -55,6 +55,7 @@ type TypeFilter = 'ALL' | MediaType
 type ViewMode = 'grid' | 'list'
 
 function MediaPage() {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const navigate = useNavigate({ from: '/media' })
   const {
@@ -98,16 +99,16 @@ function MediaPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: mediaQueryKeys.all })
       toast.add({
-        title: 'Berhasil',
-        description: MEDIA_LABELS.uploadSuccess,
+        title: t.common.success,
+        description: t.media.uploadSuccess,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : MEDIA_LABELS.uploadFailed,
+          error instanceof Error ? error.message : t.media.uploadFailed,
         type: 'error',
       })
     },
@@ -120,16 +121,16 @@ function MediaPage() {
       setDeleteDialogOpen(false)
       await queryClient.invalidateQueries({ queryKey: mediaQueryKeys.all })
       toast.add({
-        title: 'Berhasil',
-        description: MEDIA_LABELS.deleteSuccess(deletedCount),
+        title: t.common.success,
+        description: t.media.deleteSuccess(deletedCount),
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : MEDIA_LABELS.deleteFailed,
+          error instanceof Error ? error.message : t.media.deleteFailed,
         type: 'error',
       })
     },
@@ -143,14 +144,14 @@ function MediaPage() {
 
     const type = getMediaTypeFromFilename(file.name)
     if (!type) {
-      showError(MEDIA_LABELS.unsupportedFile)
+      showError(t.media.unsupportedFile)
       return
     }
 
     const maxSize =
       type === 'PICTURE' ? MEDIA_PICTURE_MAX_SIZE : MEDIA_DOCUMENT_MAX_SIZE
     if (file.size > maxSize) {
-      showError(MEDIA_LABELS.fileTooLarge(type))
+      showError(t.media.fileTooLarge(type))
       return
     }
 
@@ -177,7 +178,7 @@ function MediaPage() {
   }
 
   function showError(description: string) {
-    toast.add({ title: 'Gagal', description, type: 'error' })
+    toast.add({ title: t.common.error, description, type: 'error' })
   }
 
   const selectedCount = selectedIds.size
@@ -188,10 +189,10 @@ function MediaPage() {
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {MEDIA_LABELS.pageTitle}
+            {t.media.pageTitle}
           </h1>
           <p className="text-foreground/60 text-sm lg:text-base">
-            {MEDIA_LABELS.description}
+            {t.media.description}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +204,7 @@ function MediaPage() {
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2Icon aria-hidden="true" className="size-4" />
-              {MEDIA_LABELS.deleteSelected(selectedCount)}
+              {t.media.deleteSelected(selectedCount)}
             </Button>
           )}
           <input
@@ -211,7 +212,7 @@ function MediaPage() {
             type="file"
             accept={MEDIA_ACCEPTED_EXTENSIONS}
             className="hidden"
-            aria-label={MEDIA_LABELS.upload}
+            aria-label={t.media.upload}
             onChange={handleFileChange}
           />
           {canWrite && (
@@ -221,16 +222,14 @@ function MediaPage() {
               onClick={() => fileInputRef.current?.click()}
             >
               <UploadIcon aria-hidden="true" className="size-4" />
-              {uploadMutation.isPending
-                ? MEDIA_LABELS.uploading
-                : MEDIA_LABELS.upload}
+              {uploadMutation.isPending ? t.media.uploading : t.media.upload}
             </Button>
           )}
         </div>
       </header>
 
       <section
-        aria-label={MEDIA_LABELS.pageTitle}
+        aria-label={t.media.pageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
@@ -245,20 +244,20 @@ function MediaPage() {
             onValueChange={(value) => updateTypeFilter(value as TypeFilter)}
           >
             <SelectTrigger
-              aria-label={MEDIA_LABELS.typeFilterLabel}
+              aria-label={t.media.typeFilterLabel}
               className="lg:w-36"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">{MEDIA_LABELS.allTypes}</SelectItem>
-              <SelectItem value="PICTURE">{MEDIA_LABELS.pictures}</SelectItem>
-              <SelectItem value="DOCUMENT">{MEDIA_LABELS.documents}</SelectItem>
+              <SelectItem value="ALL">{t.media.allTypes}</SelectItem>
+              <SelectItem value="PICTURE">{t.media.pictures}</SelectItem>
+              <SelectItem value="DOCUMENT">{t.media.documents}</SelectItem>
             </SelectContent>
           </Select>
 
           <label className="sr-only" htmlFor="media-sort-order">
-            {MEDIA_LABELS.sortLabel}
+            {t.media.sortLabel}
           </label>
           <Select
             value={sortOrder}
@@ -275,13 +274,13 @@ function MediaPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">{MEDIA_LABELS.newest}</SelectItem>
-              <SelectItem value="asc">{MEDIA_LABELS.oldest}</SelectItem>
+              <SelectItem value="desc">{t.media.newest}</SelectItem>
+              <SelectItem value="asc">{t.media.oldest}</SelectItem>
             </SelectContent>
           </Select>
 
           <div
-            aria-label="Tampilan media"
+            aria-label={t.media.viewMode}
             className="flex items-center gap-1 lg:ml-auto"
             role="group"
           >
@@ -289,7 +288,7 @@ function MediaPage() {
               type="button"
               variant={view === 'grid' ? 'default' : 'outline'}
               size="icon"
-              aria-label={MEDIA_LABELS.gridView}
+              aria-label={t.media.gridView}
               aria-pressed={view === 'grid'}
               onClick={() => setView('grid')}
             >
@@ -299,7 +298,7 @@ function MediaPage() {
               type="button"
               variant={view === 'list' ? 'default' : 'outline'}
               size="icon"
-              aria-label={MEDIA_LABELS.listView}
+              aria-label={t.media.listView}
               aria-pressed={view === 'list'}
               onClick={() => setView('list')}
             >
@@ -309,29 +308,29 @@ function MediaPage() {
         </div>
 
         {mediaQuery.isPending ? (
-          <MediaMessage role="status" message={MEDIA_LABELS.loading} />
+          <MediaMessage role="status" message={t.media.loading} />
         ) : mediaQuery.isError ? (
           <div className="flex flex-col items-center gap-3 p-10 text-center">
             <p role="alert" className="text-danger text-sm">
-              {MEDIA_LABELS.loadFailed}
+              {t.media.loadFailed}
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => void mediaQuery.refetch()}
             >
-              {MEDIA_LABELS.retry}
+              {t.common.retry}
             </Button>
           </div>
         ) : visibleMedia.length === 0 ? (
           <MediaMessage
-            message={search ? MEDIA_LABELS.noSearchResults : MEDIA_LABELS.empty}
+            message={search ? t.media.noSearchResults : t.media.empty}
           />
         ) : (
           <div className="flex flex-col gap-8 p-4 lg:p-5">
             {pictures.length > 0 && (
               <MediaGroup
-                title={MEDIA_LABELS.pictureType}
+                title={t.media.pictureType}
                 items={pictures}
                 view={view}
                 selectedIds={selectedIds}
@@ -340,7 +339,7 @@ function MediaPage() {
             )}
             {documents.length > 0 && (
               <MediaGroup
-                title={MEDIA_LABELS.documentType}
+                title={t.media.documentType}
                 items={documents}
                 view={view}
                 selectedIds={selectedIds}
@@ -351,10 +350,7 @@ function MediaPage() {
         )}
 
         <footer className="border-border text-foreground/55 border-t px-4 py-3 text-sm">
-          {MEDIA_LABELS.summary(
-            visibleMedia.length,
-            formatTotalSize(totalSize),
-          )}
+          {t.media.summary(visibleMedia.length, formatTotalSize(totalSize))}
         </footer>
       </section>
 
@@ -366,17 +362,17 @@ function MediaPage() {
       >
         <DialogContent
           className="max-w-xl"
-          closeLabel={MEDIA_LABELS.closeDeleteDialog}
+          closeLabel={t.media.closeDeleteDialog}
         >
           <DialogHeader className="border-border border-b">
-            <DialogTitle>{MEDIA_LABELS.deleteTitle}</DialogTitle>
+            <DialogTitle>{t.media.deleteTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 px-5 py-6">
             <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
               <Trash2Icon aria-hidden="true" className="size-5" />
             </span>
             <DialogDescription>
-              {MEDIA_LABELS.deleteDescription(selectedCount)}
+              {t.media.deleteDescription(selectedCount)}
             </DialogDescription>
           </div>
           <DialogFooter className="bg-primary">
@@ -386,7 +382,7 @@ function MediaPage() {
               disabled={deleteMutation.isPending}
               onClick={() => setDeleteDialogOpen(false)}
             >
-              {MEDIA_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -395,8 +391,8 @@ function MediaPage() {
               onClick={() => deleteMutation.mutate([...selectedIds])}
             >
               {deleteMutation.isPending
-                ? MEDIA_LABELS.deleting
-                : MEDIA_LABELS.confirmDelete(selectedCount)}
+                ? t.media.deleting
+                : t.media.confirmDelete(selectedCount)}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -418,10 +414,11 @@ function MediaGroup({
   selectedIds: Set<number>
   onSelectionChange: (mediaId: number, selected: boolean) => void
 }) {
+  const { t } = useI18n()
   return (
     <section aria-label={title} className="flex flex-col gap-3">
       <h2 className="text-secondary text-xs font-semibold tracking-widest">
-        {title} · {MEDIA_LABELS.fileCount(items.length)}
+        {title} · {t.media.fileCount(items.length)}
       </h2>
       <div
         className={
@@ -459,6 +456,7 @@ function MediaSearchInput({
   search: MediaSearch['search']
   onValueChange: () => void
 }) {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/media' })
   const [value, setValue] = useState(search ?? '')
 
@@ -484,8 +482,8 @@ function MediaSearchInput({
       />
       <Input
         type="search"
-        aria-label={MEDIA_LABELS.searchLabel}
-        placeholder={MEDIA_LABELS.searchPlaceholder}
+        aria-label={t.media.searchLabel}
+        placeholder={t.media.searchPlaceholder}
         value={value}
         onChange={(event) => {
           setValue(event.currentTarget.value)

@@ -726,6 +726,69 @@ const en: Dictionary = {
       'The Board of Commissioners & Directors are managed in a separate collection.',
     manageBoardMembers: 'Manage Management',
   },
+  media: {
+    pageTitle: 'Media Library',
+    description: 'Manage photos and documents used on the site.',
+    upload: 'Upload Files',
+    uploading: 'Uploading...',
+    deleteSelected: (count: number) => `Delete (${count})`,
+    searchLabel: 'Search files',
+    searchPlaceholder: 'Search files...',
+    typeFilterLabel: 'Filter media type',
+    allTypes: 'All types',
+    pictures: 'Pictures',
+    documents: 'Documents',
+    newest: 'Newest uploaded',
+    oldest: 'Oldest uploaded',
+    sortLabel: 'Sort media',
+    gridView: 'Grid view',
+    listView: 'List view',
+    loading: 'Loading media...',
+    loadFailed: 'Failed to load media.',
+    empty: 'No media files yet.',
+    noSearchResults: 'No files match your search.',
+    fileCount: (count: number) => `${count} ${count === 1 ? 'file' : 'files'}`,
+    summary: (count: number, size: string) =>
+      `${count} ${count === 1 ? 'file' : 'files'} total · ${size} used`,
+    uploadSuccess: 'File uploaded successfully.',
+    uploadFailed: 'Failed to upload file.',
+    unsupportedFile: 'File must be PNG, JPG, JPEG, or PDF.',
+    fileTooLarge: (type: 'PICTURE' | 'DOCUMENT') =>
+      type === 'PICTURE'
+        ? 'Image size must be at most 2 MiB.'
+        : 'Document size must be at most 5 MiB.',
+    deleteTitle: 'Delete selected files?',
+    deleteDescription: (count: number) =>
+      `${count} ${count === 1 ? 'file' : 'files'} will be permanently deleted. This action cannot be undone.`,
+    confirmDelete: (count: number) =>
+      `Yes, delete ${count} ${count === 1 ? 'file' : 'files'}`,
+    deleting: 'Deleting...',
+    deleteSuccess: (count: number) =>
+      `${count} ${count === 1 ? 'file' : 'files'} deleted successfully.`,
+    deleteFailed: 'Failed to delete files.',
+    closeDeleteDialog: 'Close delete files dialog',
+    selectFile: (filename: string) => `Select ${filename}`,
+    pictureType: 'IMAGE',
+    documentType: 'DOCUMENT',
+    viewMode: 'Media view',
+  },
+  mediaPicker: {
+    title: 'Choose from Media Library',
+    description: 'Choose one image to use as the main photo.',
+    multipleDescription: 'Choose one or more images for the service gallery.',
+    searchLabel: 'Search images',
+    searchPlaceholder: 'Search files...',
+    upload: 'Upload new file',
+    uploading: 'Uploading...',
+    noPictures: 'No images in the Media Library yet.',
+    noSearchResults: 'No images match your search.',
+    selectedCount: (count: number) =>
+      `${count} ${count === 1 ? 'file' : 'files'} selected`,
+    useFile: 'Use file',
+    useFiles: 'Use selected images',
+    close: 'Close media picker dialog',
+    unsupportedFile: 'Choose a PNG, JPG, or JPEG image.',
+  },
 }
 
 export { en }
