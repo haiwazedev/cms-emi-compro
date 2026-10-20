@@ -1,5 +1,5 @@
 import type { Language } from '@/module/language/api/language.api'
-import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   Select,
   SelectContent,
@@ -19,10 +19,11 @@ function BoardMemberLanguageSelect({
   languageId,
   onLanguageChange,
 }: BoardMemberLanguageSelectProps) {
+  const { t } = useI18n()
   return (
     <Select value={languageId} onValueChange={onLanguageChange}>
       <SelectTrigger
-        aria-label={BOARD_MEMBER_LABELS.language}
+        aria-label={t.boardMember.language}
         className="w-full lg:w-64"
       >
         <SelectValue />

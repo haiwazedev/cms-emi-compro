@@ -1,14 +1,16 @@
 import { z } from 'zod'
+import type { Dictionary } from '@/shared/lib/i18n/id'
 
-export const boardMemberFormSchema = z.object({
-  name: z.string().trim().min(1, 'Nama wajib diisi.').max(200),
-  company_name: z.string().trim().max(100, 'Maksimal 100 karakter.'),
-  role: z.string().trim().min(1, 'Jabatan wajib diisi.').max(100),
-  description: z.string().trim(),
-  board_member_type_id: z
-    .number()
-    .int()
-    .positive('Tipe pengurus wajib dipilih.'),
-})
+export function createBoardMemberFormSchema(t: Dictionary) {
+  return z.object({
+    name: z.string().trim().min(1, t.boardMember.requiredName).max(200),
+    company_name: z.string().trim().max(100, t.boardMember.max100Chars),
+    role: z.string().trim().min(1, t.boardMember.requiredRole).max(100),
+    description: z.string().trim(),
+    board_member_type_id: z.number().int().positive(t.boardMember.requiredType),
+  })
+}
 
-export type BoardMemberFormValues = z.infer<typeof boardMemberFormSchema>
+export type BoardMemberFormValues = z.infer<
+  ReturnType<typeof createBoardMemberFormSchema>
+>

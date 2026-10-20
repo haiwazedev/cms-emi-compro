@@ -4,7 +4,7 @@ import type {
   BoardMemberContent,
 } from '@/module/board_member/api/board-member.api'
 import { getBoardMemberAssetUrl } from '@/module/board_member/api/board-member.api'
-import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import { TableCell, TableRow } from '@/shared/components/ui/table'
 import { cn } from '@/shared/lib/utils'
@@ -30,6 +30,7 @@ function SortableBoardMemberRow({
   onEdit,
   onDelete,
 }: SortableBoardMemberRowProps) {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: `board-member:${member.id}`,
@@ -56,7 +57,7 @@ function SortableBoardMemberRow({
           <button
             ref={dragHandleRef}
             type="button"
-            aria-label={BOARD_MEMBER_LABELS.dragMember(index + 1)}
+            aria-label={t.boardMember.dragMember(index + 1)}
             disabled={disabled}
             onClick={(event) => event.stopPropagation()}
             className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
@@ -85,14 +86,13 @@ function SortableBoardMemberRow({
         <div className="flex flex-col items-start gap-1 text-left">
           <span className="text-accent font-semibold">{member.name}</span>
           <span className="text-muted text-sm">
-            {content?.role ?? BOARD_MEMBER_LABELS.missingTranslation}
+            {content?.role ?? t.boardMember.missingTranslation}
           </span>
         </div>
       </TableCell>
       <TableCell className="min-w-32">
         <span className="bg-secondary/10 text-accent inline-flex max-w-32 rounded-full px-3 py-1 text-xs font-semibold whitespace-normal">
-          {content?.board_member_type.type ??
-            BOARD_MEMBER_LABELS.missingTranslation}
+          {content?.board_member_type.type ?? t.boardMember.missingTranslation}
         </span>
       </TableCell>
       <TableCell className="text-foreground/70">{member.sort_order}</TableCell>
@@ -112,9 +112,7 @@ function SortableBoardMemberRow({
               member.photo ? 'bg-success' : 'bg-warning',
             )}
           />
-          {member.photo
-            ? BOARD_MEMBER_LABELS.hasPhoto
-            : BOARD_MEMBER_LABELS.noPhoto}
+          {member.photo ? t.boardMember.hasPhoto : t.boardMember.noPhoto}
         </span>
       </TableCell>
       <TableCell className="min-w-24 text-right">
@@ -125,7 +123,7 @@ function SortableBoardMemberRow({
               variant="outline"
               size="icon"
               className="size-8"
-              aria-label={BOARD_MEMBER_LABELS.editMemberAction(member.name)}
+              aria-label={t.boardMember.editMemberAction(member.name)}
               onClick={(event) => {
                 event.stopPropagation()
                 onEdit()
@@ -140,7 +138,7 @@ function SortableBoardMemberRow({
               variant="outline"
               size="icon"
               className="size-8"
-              aria-label={BOARD_MEMBER_LABELS.deleteMemberAction(member.name)}
+              aria-label={t.boardMember.deleteMemberAction(member.name)}
               onClick={(event) => {
                 event.stopPropagation()
                 onDelete()

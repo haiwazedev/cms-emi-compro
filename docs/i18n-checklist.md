@@ -30,7 +30,7 @@ Each step = one commit. Verify with `pnpm lint` and `pnpm build`, run prettier.
 - [x] **9. Module: faq**
 - [x] **10. Module: client**
 - [x] **11. Module: division**
-- [ ] **12. Module: board_member** (incl. types)
+- [x] **12. Module: board_member** (incl. types)
 - [ ] **13. Module: document_commitment** (incl. categories, upload dialog)
 - [ ] **14. Module: article** (incl. categories)
 - [ ] **15. Module: home**

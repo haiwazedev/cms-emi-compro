@@ -1,8 +1,8 @@
 import type { BoardMemberType } from '@/module/board_member/api/board-member.api'
-import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { Language } from '@/module/language/api/language.api'
 import type { BoardMemberTypeFormValues } from '@/module/board_member/schemas/board-member-type-form.schema'
-import { boardMemberTypeFormSchema } from '@/module/board_member/schemas/board-member-type-form.schema'
+import { createBoardMemberTypeFormSchema } from '@/module/board_member/schemas/board-member-type-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -35,12 +35,13 @@ function BoardMemberTypeFormDialog({
   pending,
   onSubmit,
 }: BoardMemberTypeFormDialogProps) {
+  const { t } = useI18n()
   const {
     formState: { errors },
     handleSubmit,
     register,
   } = useForm<BoardMemberTypeFormValues>({
-    resolver: zodResolver(boardMemberTypeFormSchema),
+    resolver: zodResolver(createBoardMemberTypeFormSchema(t)),
     defaultValues: { type: memberType?.type ?? '' },
   })
 
@@ -49,12 +50,10 @@ function BoardMemberTypeFormDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {memberType
-              ? BOARD_MEMBER_LABELS.editType
-              : BOARD_MEMBER_LABELS.createType}
+            {memberType ? t.boardMember.editType : t.boardMember.createType}
           </DialogTitle>
           <DialogDescription>
-            {BOARD_MEMBER_LABELS.typesDescription} — {language.flag}{' '}
+            {t.boardMember.typesDescription} — {language.flag}{' '}
             {language.language}
           </DialogDescription>
         </DialogHeader>
@@ -65,7 +64,7 @@ function BoardMemberTypeFormDialog({
         >
           <div className="flex flex-col gap-2 px-5 py-5">
             <Label htmlFor="board-member-type-name">
-              {BOARD_MEMBER_LABELS.typeName}
+              {t.boardMember.typeName}
             </Label>
             <Input
               id="board-member-type-name"
@@ -90,7 +89,7 @@ function BoardMemberTypeFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {BOARD_MEMBER_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -99,10 +98,10 @@ function BoardMemberTypeFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {BOARD_MEMBER_LABELS.saving}
+                  {t.boardMember.saving}
                 </>
               ) : (
-                BOARD_MEMBER_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>
