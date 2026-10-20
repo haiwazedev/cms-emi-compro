@@ -6,7 +6,7 @@ import type {
 } from '@/module/home/api/home.api'
 import { SortableSlideCard } from '@/module/home/components/sortable-slide-card'
 import { SortableStatisticRow } from '@/module/home/components/sortable-statistic-row'
-import { HOME_LABELS } from '@/module/home/constants/home.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   homeContentQueryKeys,
   homeContentQueryOptions,
@@ -64,6 +64,7 @@ const emptyHomeDraft: HomeDraft = {
 }
 
 function HomePage() {
+  const { t } = useI18n()
   const { lang } = useSearch({ from: '/_authenticated/home' })
   const navigate = useNavigate({ from: '/home' })
   const languagesQuery = useQuery(languagesQueryOptions())
@@ -78,18 +79,18 @@ function HomePage() {
   }, [language, navigate, urlLanguage])
 
   if (languagesQuery.isPending) {
-    return <HomePageMessage message={HOME_LABELS.loading} />
+    return <HomePageMessage message={t.home.loading} />
   }
   if (languagesQuery.isError) {
     return (
       <HomePageMessage
-        message={HOME_LABELS.languagesFailed}
+        message={t.home.languagesFailed}
         onRetry={() => void languagesQuery.refetch()}
       />
     )
   }
   if (!language) {
-    return <HomePageMessage message={HOME_LABELS.noLanguages} />
+    return <HomePageMessage message={t.home.noLanguages} />
   }
 
   return (
@@ -115,6 +116,7 @@ function HomeEditor({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const homeQuery = useQuery(homeContentQueryOptions(languageId))
@@ -146,13 +148,13 @@ function HomeEditor({
   // Native prompts: confirm for in-app navigation, beforeunload for refresh/close.
   useBlocker({
     shouldBlockFn: () =>
-      isDirty && !window.confirm(HOME_LABELS.discardChangesConfirm),
+      isDirty && !window.confirm(t.home.discardChangesConfirm),
     enableBeforeUnload: () => isDirty,
   })
 
   function requestLanguage(id: string) {
     if (id === languageId) return
-    if (isDirty && !window.confirm(HOME_LABELS.discardChangesConfirm)) return
+    if (isDirty && !window.confirm(t.home.discardChangesConfirm)) return
 
     onLanguageChange(id)
   }
@@ -163,16 +165,15 @@ function HomeEditor({
       queryClient.setQueryData(homeContentQueryKeys.page(languageId), contents)
       setSavedDraft(mapHomeContents(contents))
       toast.add({
-        title: 'Berhasil',
-        description: HOME_LABELS.saveSuccess,
+        title: t.common.success,
+        description: t.home.saveSuccess,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
-        description:
-          error instanceof Error ? error.message : HOME_LABELS.saveFailed,
+        title: t.common.error,
+        description: error instanceof Error ? error.message : t.home.saveFailed,
         type: 'error',
       })
     },
@@ -352,7 +353,7 @@ function HomeEditor({
         message={
           homeQuery.error instanceof Error
             ? homeQuery.error.message
-            : HOME_LABELS.loadFailed
+            : t.home.loadFailed
         }
         onRetry={() => void homeQuery.refetch()}
       />
@@ -360,7 +361,7 @@ function HomeEditor({
   }
 
   if (homeQuery.isPending || !editorDraft || !baselineDraft) {
-    return <HomePageMessage message={HOME_LABELS.loading} />
+    return <HomePageMessage message={t.home.loading} />
   }
 
   const canDeleteSlide =
@@ -374,10 +375,10 @@ function HomeEditor({
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {HOME_LABELS.pageTitle}
+              {t.home.pageTitle}
             </h1>
             <p className="text-muted text-sm lg:text-base">
-              {HOME_LABELS.description}
+              {t.home.description}
             </p>
           </div>
           <div className="flex items-center gap-2 self-start lg:self-auto">
@@ -385,9 +386,9 @@ function HomeEditor({
               type="button"
               variant="outline"
               disabled
-              title={HOME_LABELS.previewDisabled}
+              title={t.home.previewDisabled}
             >
-              {HOME_LABELS.preview}
+              {t.home.preview}
             </Button>
             {canWrite && (
               <Button
@@ -404,9 +405,7 @@ function HomeEditor({
                 ) : (
                   <CheckIcon aria-hidden="true" className="size-4" />
                 )}
-                {saveMutation.isPending
-                  ? HOME_LABELS.saving
-                  : HOME_LABELS.savePublish}
+                {saveMutation.isPending ? t.home.saving : t.home.savePublish}
               </Button>
             )}
           </div>
@@ -414,7 +413,7 @@ function HomeEditor({
 
         {/* Controlled by the URL: a cancelled discard keeps the current language. */}
         <LanguageSelect
-          label={HOME_LABELS.language}
+          label={t.home.language}
           languages={languages}
           value={languageId}
           onChange={requestLanguage}
@@ -427,10 +426,10 @@ function HomeEditor({
                 id="home-carousel-title"
                 className="text-base font-bold"
               >
-                {HOME_LABELS.carousel}
+                {t.home.carousel}
               </CardTitle>
               <span className="text-muted text-xs">
-                {HOME_LABELS.slideCount(editorDraft.slides.length)}
+                {t.home.slideCount(editorDraft.slides.length)}
               </span>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -439,7 +438,7 @@ function HomeEditor({
                   aria-hidden="true"
                   className="mt-0.5 size-4 shrink-0"
                 />
-                <p>{HOME_LABELS.carouselHint}</p>
+                <p>{t.home.carouselHint}</p>
               </div>
 
               {editorDraft.slides.length === 0 ? (
@@ -447,7 +446,7 @@ function HomeEditor({
                   role="status"
                   className="text-foreground/55 py-6 text-center text-sm"
                 >
-                  {HOME_LABELS.emptySlides}
+                  {t.home.emptySlides}
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -480,7 +479,7 @@ function HomeEditor({
                 className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
                 onClick={addSlide}
               >
-                {HOME_LABELS.addSlide}
+                {t.home.addSlide}
               </Button>
             </CardContent>
           </Card>
@@ -491,10 +490,10 @@ function HomeEditor({
                 id="home-statistics-title"
                 className="text-base font-bold"
               >
-                {HOME_LABELS.statistics}
+                {t.home.statistics}
               </CardTitle>
               <span className="text-muted text-xs">
-                {HOME_LABELS.statisticCount(editorDraft.statistics.length)}
+                {t.home.statisticCount(editorDraft.statistics.length)}
               </span>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -503,7 +502,7 @@ function HomeEditor({
                   role="status"
                   className="text-foreground/55 py-6 text-center text-sm"
                 >
-                  {HOME_LABELS.emptyStatistics}
+                  {t.home.emptyStatistics}
                 </p>
               ) : (
                 <div className="border-border overflow-hidden rounded-lg border">
@@ -511,14 +510,10 @@ function HomeEditor({
                     <TableHeader className="bg-primary">
                       <TableRow className="border-b-0 hover:bg-transparent">
                         <TableHead className="w-12 px-2" />
+                        <StatisticHead>{t.home.statisticLabel}</StatisticHead>
+                        <StatisticHead>{t.home.statisticNumber}</StatisticHead>
                         <StatisticHead>
-                          {HOME_LABELS.statisticLabel}
-                        </StatisticHead>
-                        <StatisticHead>
-                          {HOME_LABELS.statisticNumber}
-                        </StatisticHead>
-                        <StatisticHead>
-                          {HOME_LABELS.statisticDescription}
+                          {t.home.statisticDescription}
                         </StatisticHead>
                         <TableHead>
                           <span className="sr-only">Aksi</span>
@@ -549,7 +544,7 @@ function HomeEditor({
                 className="bg-primary text-secondary hover:bg-primary/80 w-full border-dashed"
                 onClick={addStatistic}
               >
-                {HOME_LABELS.addStatistic}
+                {t.home.addStatistic}
               </Button>
             </CardContent>
           </Card>
@@ -557,7 +552,7 @@ function HomeEditor({
           <Card aria-labelledby="home-teaser-title">
             <CardHeader>
               <CardTitle id="home-teaser-title" className="text-base font-bold">
-                {HOME_LABELS.teaser}
+                {t.home.teaser}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -565,20 +560,20 @@ function HomeEditor({
                 <div className="flex flex-col gap-3 lg:flex-row">
                   <HomeTextField
                     id="home-teaser-heading"
-                    label={HOME_LABELS.teaserTitle}
+                    label={t.home.teaserTitle}
                     value={editorDraft.teaserTitle}
                     onChange={(value) => changeTeaser('teaserTitle', value)}
                   />
                   <HomeTextField
                     id="home-teaser-cta"
-                    label={HOME_LABELS.ctaTitle}
+                    label={t.home.ctaTitle}
                     value={editorDraft.ctaTitle}
                     onChange={(value) => changeTeaser('ctaTitle', value)}
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="home-teaser-content">
-                    {HOME_LABELS.teaserContent}
+                    {t.home.teaserContent}
                   </Label>
                   <Textarea
                     id="home-teaser-content"
@@ -651,6 +646,7 @@ function HomePageMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="bg-primary flex min-h-full items-center justify-center p-4 lg:p-8">
       <Card className="w-full max-w-lg">
@@ -663,7 +659,7 @@ function HomePageMessage({
           </p>
           {onRetry && (
             <Button type="button" variant="outline" onClick={onRetry}>
-              {HOME_LABELS.retry}
+              {t.common.retry}
             </Button>
           )}
         </CardContent>
