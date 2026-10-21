@@ -64,7 +64,7 @@ export async function getDocumentCommitments(
   params: DocumentCommitmentListParams,
 ) {
   const { data } = await apiClient.get<DocumentCommitmentListResponse>(
-    '/document_commitments',
+    '/admin/document_commitments',
     { params },
   )
 
