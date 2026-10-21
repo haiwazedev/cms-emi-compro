@@ -52,12 +52,12 @@ interface FaqResponse {
 }
 
 export async function getFaqs(params: { language_id?: string } = {}) {
-  const { data } = await apiClient.get<FaqsResponse>('/faqs', { params })
+  const { data } = await apiClient.get<FaqsResponse>('/admin/faqs', { params })
   return data.faqs
 }
 
 export async function getFaq(faqId: number) {
-  const { data } = await apiClient.get<FaqResponse>('/faqs/' + faqId)
+  const { data } = await apiClient.get<FaqResponse>('/admin/faqs/' + faqId)
   return data.faq
 }
 
