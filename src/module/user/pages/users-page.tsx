@@ -430,6 +430,13 @@ function UserSearchInput({ search }: { search?: string }) {
   const { t } = useI18n()
   const navigate = useNavigate({ from: '/users' })
   const [value, setValue] = useState(search ?? '')
+  const [syncedSearch, setSyncedSearch] = useState(search)
+
+  // The URL can change from outside (navbar search); show its value.
+  if (search !== syncedSearch) {
+    setSyncedSearch(search)
+    if (search !== (value.trim() || undefined)) setValue(search ?? '')
+  }
 
   useEffect(() => {
     const nextSearch = value.trim() || undefined

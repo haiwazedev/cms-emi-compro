@@ -51,6 +51,15 @@ function InboxPage() {
     from: '/_authenticated/inbox',
   })
   const [searchValue, setSearchValue] = useState(search ?? '')
+  const [syncedSearch, setSyncedSearch] = useState(search)
+
+  // The URL can change from outside (navbar search); show its value.
+  if (search !== syncedSearch) {
+    setSyncedSearch(search)
+    if (search !== (searchValue.trim() || undefined)) {
+      setSearchValue(search ?? '')
+    }
+  }
   const [selectedId, setSelectedId] = useState<number>()
   const [deleteTarget, setDeleteTarget] = useState<Inbox | null>(null)
 
