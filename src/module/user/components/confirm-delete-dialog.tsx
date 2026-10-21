@@ -1,4 +1,4 @@
-import { USER_LABELS } from '@/module/user/constants/user.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -31,6 +31,7 @@ function ConfirmDeleteDialog({
   onCancel,
   onConfirm,
 }: ConfirmDeleteDialogProps) {
+  const { t } = useI18n()
   return (
     <Dialog
       open={open}
@@ -62,7 +63,7 @@ function ConfirmDeleteDialog({
             disabled={pending}
             onClick={onCancel}
           >
-            {USER_LABELS.cancel}
+            {t.common.cancel}
           </Button>
           <Button
             type="button"
@@ -71,7 +72,7 @@ function ConfirmDeleteDialog({
             disabled={!itemName || pending}
             onClick={onConfirm}
           >
-            {pending ? USER_LABELS.deleting : USER_LABELS.delete}
+            {pending ? t.user.deleting : t.common.delete}
           </Button>
         </DialogFooter>
       </DialogContent>

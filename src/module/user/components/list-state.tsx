@@ -1,4 +1,4 @@
-import { USER_LABELS } from '@/module/user/constants/user.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 
 function ListMessage({ message, role }: { message: string; role?: 'status' }) {
@@ -18,13 +18,14 @@ function ListError({
   fallback: string
   onRetry: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
       <p role="alert" className="text-danger text-sm">
         {error instanceof Error ? error.message : fallback}
       </p>
       <Button type="button" variant="outline" onClick={onRetry}>
-        {USER_LABELS.retry}
+        {t.common.retry}
       </Button>
     </div>
   )

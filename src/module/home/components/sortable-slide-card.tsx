@@ -1,6 +1,6 @@
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
-import { HOME_LABELS } from '@/module/home/constants/home.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { HomeSlideDraft } from '@/module/home/types/home.types'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -49,6 +49,7 @@ function SortableSlideCard({
   onDelete,
   onChoosePhoto,
 }: SortableSlideCardProps) {
+  const { t } = useI18n()
   const [expanded, setExpanded] = useState(index === 0)
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: slide.clientKey,
@@ -85,7 +86,7 @@ function SortableSlideCard({
                 {slide.title1} <em>{slide.title2}</em>
               </>
             ) : (
-              HOME_LABELS.slide(slideNumber)
+              t.home.slide(slideNumber)
             )}
           </p>
           <p className="text-muted truncate text-xs">
@@ -99,7 +100,7 @@ function SortableSlideCard({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.moveSlideUp(slideNumber)}
+            aria-label={t.home.moveSlideUp(slideNumber)}
             disabled={index === 0}
             onClick={() => onMove(index, index - 1)}
           >
@@ -110,7 +111,7 @@ function SortableSlideCard({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.moveSlideDown(slideNumber)}
+            aria-label={t.home.moveSlideDown(slideNumber)}
             disabled={index === total - 1}
             onClick={() => onMove(index, index + 1)}
           >
@@ -121,8 +122,8 @@ function SortableSlideCard({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.deleteSlide(slideNumber)}
-            title={canDelete ? undefined : HOME_LABELS.keepOneSlide}
+            aria-label={t.home.deleteSlide(slideNumber)}
+            title={canDelete ? undefined : t.home.keepOneSlide}
             disabled={!canDelete}
             onClick={() => onDelete(slide.clientKey)}
           >
@@ -135,8 +136,8 @@ function SortableSlideCard({
             className="size-8"
             aria-label={
               expanded
-                ? HOME_LABELS.collapseSlide(slideNumber)
-                : HOME_LABELS.expandSlide(slideNumber)
+                ? t.home.collapseSlide(slideNumber)
+                : t.home.expandSlide(slideNumber)
             }
             aria-expanded={expanded}
             onClick={() => setExpanded((value) => !value)}
@@ -155,13 +156,13 @@ function SortableSlideCard({
           <div className="flex flex-col gap-3 lg:flex-row">
             <TextField
               id={`${slide.clientKey}-title-1`}
-              label={HOME_LABELS.slideTitle1}
+              label={t.home.slideTitle1}
               value={slide.title1}
               onChange={(value) => onChange(slide.clientKey, 'title1', value)}
             />
             <TextField
               id={`${slide.clientKey}-title-2`}
-              label={HOME_LABELS.slideTitle2}
+              label={t.home.slideTitle2}
               value={slide.title2}
               onChange={(value) => onChange(slide.clientKey, 'title2', value)}
             />
@@ -169,7 +170,7 @@ function SortableSlideCard({
 
           <div className="flex flex-col gap-2">
             <Label htmlFor={`${slide.clientKey}-subtitle`}>
-              {HOME_LABELS.slideSubtitle}
+              {t.home.slideSubtitle}
             </Label>
             <Textarea
               id={`${slide.clientKey}-subtitle`}
@@ -183,7 +184,7 @@ function SortableSlideCard({
 
           <div className="flex flex-col gap-2">
             <Label>
-              {HOME_LABELS.backgroundPhoto}
+              {t.home.backgroundPhoto}
               <span aria-hidden="true" className="text-danger">
                 *
               </span>
@@ -198,15 +199,13 @@ function SortableSlideCard({
                   />
                 ) : mediaLoading ? (
                   <span role="status" className="text-foreground/55 text-xs">
-                    {HOME_LABELS.loading}
+                    {t.home.loading}
                   </span>
                 ) : (
                   <div className="text-foreground/50 flex flex-col items-center gap-1 text-xs">
                     <ImageIcon aria-hidden="true" className="size-5" />
                     <span>
-                      {mediaFailed
-                        ? HOME_LABELS.photoUnavailable
-                        : HOME_LABELS.noPhoto}
+                      {mediaFailed ? t.home.photoUnavailable : t.home.noPhoto}
                     </span>
                   </div>
                 )}
@@ -217,7 +216,7 @@ function SortableSlideCard({
                   variant="outline"
                   onClick={() => onChoosePhoto(slide.clientKey)}
                 >
-                  {media ? HOME_LABELS.changePhoto : HOME_LABELS.choosePhoto}
+                  {media ? t.home.changePhoto : t.home.choosePhoto}
                 </Button>
                 {media && (
                   <p className="text-muted text-xs">

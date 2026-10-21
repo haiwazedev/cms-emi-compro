@@ -9,12 +9,10 @@ import {
   DashboardInboxStatCard,
   DashboardServiceStatCard,
 } from '@/module/dashboard/components/dashboard-count-stat-cards'
-import {
-  DASHBOARD_LABELS,
-  DASHBOARD_QUICK_LINKS,
-} from '@/module/dashboard/constants/dashboard.constants'
+import { DASHBOARD_QUICK_LINKS } from '@/module/dashboard/constants/dashboard.constants'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent } from '@/shared/components/ui/card'
+import { useI18n, type Locale } from '@/shared/lib/i18n/i18n-context'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -36,14 +34,8 @@ const QUICK_LINK_ICONS: Record<
   inbox: MailIcon,
 }
 
-// WIB (GMT+7), e.g. "09.14".
-const wibTimeFormat = new Intl.DateTimeFormat('id-ID', {
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: 'Asia/Jakarta',
-})
-
 function DashboardPage() {
+  const { locale, t } = useI18n()
   const { canWrite } = usePermissions()
   // The authenticated route loads the user before this page renders.
   const { data: user } = useQuery(authQueryOptions())
@@ -54,10 +46,10 @@ function DashboardPage() {
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {DASHBOARD_LABELS.greeting(firstName)}
+            {t.dashboard.greeting(firstName)}
           </h1>
           <p className="text-foreground/60 text-sm lg:text-base">
-            {DASHBOARD_LABELS.description(wibTimeFormat.format(new Date()))}
+            {t.dashboard.description(formatWibTime(new Date(), locale))}
           </p>
         </div>
 
@@ -67,7 +59,7 @@ function DashboardPage() {
             <Button asChild>
               <Link to="/articles/create">
                 <PlusIcon aria-hidden="true" className="size-4" />
-                {DASHBOARD_LABELS.newArticle}
+                {t.dashboard.newArticle}
               </Link>
             </Button>
           )}
@@ -96,7 +88,7 @@ function DashboardPage() {
           <Card>
             <CardContent className="flex flex-col gap-3 space-y-0">
               <h2 className="text-muted text-xs font-semibold tracking-wider uppercase">
-                {DASHBOARD_LABELS.quickAccess}
+                {t.dashboard.quickAccess}
               </h2>
               {DASHBOARD_QUICK_LINKS.map((link) => {
                 const Icon = QUICK_LINK_ICONS[link.key]
@@ -110,7 +102,7 @@ function DashboardPage() {
                   >
                     <Link to={link.to}>
                       <Icon aria-hidden="true" className="size-4" />
-                      {link.label}
+                      {t.dashboard.quickLinks[link.key]}
                     </Link>
                   </Button>
                 )
@@ -121,6 +113,16 @@ function DashboardPage() {
       </div>
     </div>
   )
+}
+
+// Jakarta time with a localized zone name, e.g. "09.14 WIB" or "09:14 AM GMT+7".
+function formatWibTime(date: Date, locale: Locale) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta',
+    timeZoneName: 'short',
+  }).format(date)
 }
 
 export { DashboardPage }

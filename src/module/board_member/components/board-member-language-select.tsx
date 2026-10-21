@@ -1,5 +1,5 @@
 import type { Language } from '@/module/language/api/language.api'
-import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   Select,
   SelectContent,
@@ -19,23 +19,29 @@ function BoardMemberLanguageSelect({
   languageId,
   onLanguageChange,
 }: BoardMemberLanguageSelectProps) {
+  const { t } = useI18n()
   return (
-    <Select value={languageId} onValueChange={onLanguageChange}>
-      <SelectTrigger
-        aria-label={BOARD_MEMBER_LABELS.language}
-        className="w-full lg:w-64"
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {languages.map((language) => (
-          <SelectItem key={language.id} value={language.id}>
-            <span aria-hidden="true">{language.flag}</span>
-            {language.language}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div className="flex items-center gap-2">
+      <span className="shrink-0 text-sm font-medium">
+        {t.common.contentLabel}
+      </span>
+      <Select value={languageId} onValueChange={onLanguageChange}>
+        <SelectTrigger
+          aria-label={t.boardMember.language}
+          className="w-full lg:w-64"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {languages.map((language) => (
+            <SelectItem key={language.id} value={language.id}>
+              <span aria-hidden="true">{language.flag}</span>
+              {language.language}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   )
 }
 

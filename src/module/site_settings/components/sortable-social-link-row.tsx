@@ -1,11 +1,10 @@
-import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import { ImageFileField } from '@/module/site_settings/components/image-file-field'
 import {
   SITE_SETTINGS_ICON_MAX_SIZE,
   SITE_SETTINGS_ICON_TYPES,
-  SITE_SETTINGS_LABELS,
 } from '@/module/site_settings/constants/site-settings.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { SiteSettingsFormValues } from '@/module/site_settings/schemas/site-settings.schema'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -26,6 +25,7 @@ function SortableSocialLinkRow({
   index,
   onDelete,
 }: SortableSocialLinkRowProps) {
+  const { t } = useI18n()
   const { canPublish } = usePermissions()
   const { ref, handleRef } = useSortable({ id, index, group: 'social-links' })
   const {
@@ -47,7 +47,7 @@ function SortableSocialLinkRow({
         <button
           ref={handleRef}
           type="button"
-          aria-label={SITE_SETTINGS_LABELS.dragSocial(rowNumber)}
+          aria-label={t.siteSettings.dragSocial(rowNumber)}
           className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing"
         >
           <GripVerticalIcon aria-hidden="true" className="size-4" />
@@ -60,7 +60,7 @@ function SortableSocialLinkRow({
           render={({ field }) => (
             <ImageFileField
               id={`social-icon-${id}`}
-              label={`${SITE_SETTINGS_LABELS.icon} ${rowNumber}`}
+              label={`${t.siteSettings.icon} ${rowNumber}`}
               value={field.value}
               onChange={field.onChange}
               extensions={SITE_SETTINGS_ICON_TYPES}
@@ -72,25 +72,25 @@ function SortableSocialLinkRow({
       </TableCell>
       <TableCell className="w-44">
         <Input
-          aria-label={`${SITE_SETTINGS_LABELS.platform} ${rowNumber}`}
+          aria-label={`${t.siteSettings.platform} ${rowNumber}`}
           aria-invalid={Boolean(rowErrors?.platform)}
           maxLength={50}
           {...register(`socialLinks.${index}.platform`)}
         />
         <p className="text-foreground/55 mt-1 text-xs">
-          {platformValue.length + ' / 50 karakter'}
+          {t.common.characterCount(platformValue.length, 50)}
         </p>
         <RowError message={rowErrors?.platform?.message} />
       </TableCell>
       <TableCell className="min-w-64">
         <Input
-          aria-label={`${SITE_SETTINGS_LABELS.url} ${rowNumber}`}
+          aria-label={`${t.siteSettings.url} ${rowNumber}`}
           aria-invalid={Boolean(rowErrors?.url)}
           maxLength={255}
           {...register(`socialLinks.${index}.url`)}
         />
         <p className="text-foreground/55 mt-1 text-xs">
-          {urlValue.length + ' / 255 karakter'}
+          {t.common.characterCount(urlValue.length, 255)}
         </p>
         <RowError message={rowErrors?.url?.message} />
       </TableCell>
@@ -100,12 +100,12 @@ function SortableSocialLinkRow({
           name={`socialLinks.${index}.visible`}
           render={({ field }) => (
             <Switch
-              aria-label={SITE_SETTINGS_LABELS.toggleSocial(rowNumber)}
+              aria-label={t.siteSettings.toggleSocial(rowNumber)}
               checked={field.value}
               onCheckedChange={field.onChange}
               // Without publish the server keeps each link's saved status.
               disabled={!canPublish}
-              title={canPublish ? undefined : PERMISSION_HINTS.draftOnly}
+              title={canPublish ? undefined : t.auth.draftOnly}
             />
           )}
         />
@@ -116,7 +116,7 @@ function SortableSocialLinkRow({
           variant="outline"
           size="icon"
           className="size-8"
-          aria-label={SITE_SETTINGS_LABELS.deleteSocial(rowNumber)}
+          aria-label={t.siteSettings.deleteSocial(rowNumber)}
           onClick={() => onDelete(index)}
         >
           <Trash2Icon aria-hidden="true" className="size-4" />

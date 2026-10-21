@@ -1,4 +1,3 @@
-import { ROLE_LABELS } from '@/module/user/constants/user.constants'
 import { RolesPage } from '@/module/user/pages/roles-page'
 import { authQueryOptions } from '@/module/auth/queries/auth.queries'
 import { getPermissions } from '@/module/auth/hooks/use-permissions'
@@ -13,8 +12,5 @@ export const Route = createFileRoute('/_authenticated/roles')({
     }
   },
   component: RolesPage,
-  staticData: { title: ROLE_LABELS.pageTitle },
-  head: () => ({
-    meta: [{ title: ROLE_LABELS.documentTitle }],
-  }),
+  staticData: { title: (t) => t.role.pageTitle },
 })

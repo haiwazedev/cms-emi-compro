@@ -6,7 +6,7 @@ import {
 } from '@/module/document_commitment/api/document-commitment.api'
 import type { DocumentCommitmentCategory } from '@/module/document_commitment/api/document-commitment.api'
 import { DocumentCommitmentCategoryFormDialog } from '@/module/document_commitment/components/document-commitment-category-form-dialog'
-import { DOCUMENT_COMMITMENT_LABELS } from '@/module/document_commitment/constants/document-commitment.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { documentCommitmentQueryKeys } from '@/module/document_commitment/queries/document-commitment.queries'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -25,6 +25,7 @@ import { useState } from 'react'
 import { documentCommitmentCategoriesQueryOptions } from '../queries/document-commitment.queries'
 
 function DocumentCommitmentCategoriesPage() {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
@@ -57,18 +58,18 @@ function DocumentCommitmentCategoriesPage() {
         }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: DOCUMENT_COMMITMENT_LABELS.categorySaved,
+        title: t.common.success,
+        description: t.documentCommitment.categorySaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DOCUMENT_COMMITMENT_LABELS.categorySaveFailed,
+            : t.documentCommitment.categorySaveFailed,
         type: 'error',
       })
     },
@@ -87,18 +88,18 @@ function DocumentCommitmentCategoriesPage() {
         }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: DOCUMENT_COMMITMENT_LABELS.categoryDeleted,
+        title: t.common.success,
+        description: t.documentCommitment.categoryDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DOCUMENT_COMMITMENT_LABELS.categoryDeleteFailed,
+            : t.documentCommitment.categoryDeleteFailed,
         type: 'error',
       })
     },
@@ -124,52 +125,52 @@ function DocumentCommitmentCategoriesPage() {
             className="text-secondary h-auto self-start px-0"
           >
             <Link to="/document_commitments">
-              {DOCUMENT_COMMITMENT_LABELS.backToDocuments}
+              {t.documentCommitment.backToDocuments}
             </Link>
           </Button>
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {DOCUMENT_COMMITMENT_LABELS.categoryPageTitle}
+              {t.documentCommitment.categoryPageTitle}
             </h1>
             <p className="text-foreground/60 text-sm lg:text-base">
-              {DOCUMENT_COMMITMENT_LABELS.categoryDescription}
+              {t.documentCommitment.categoryDescription}
             </p>
           </div>
         </div>
         {canWrite && (
           <Button type="button" onClick={() => openCategoryForm()}>
             <PlusIcon aria-hidden="true" className="size-4" />
-            {DOCUMENT_COMMITMENT_LABELS.addCategory}
+            {t.documentCommitment.addCategory}
           </Button>
         )}
       </header>
 
       <section
-        aria-label={DOCUMENT_COMMITMENT_LABELS.categoryPageTitle}
+        aria-label={t.documentCommitment.categoryPageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {categoriesQuery.isPending ? (
           <CategoryMessage
             role="status"
-            message={DOCUMENT_COMMITMENT_LABELS.loadingCategories}
+            message={t.documentCommitment.loadingCategories}
           />
         ) : categoriesQuery.isError ? (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <p role="alert" className="text-danger text-sm">
               {categoriesQuery.error instanceof Error
                 ? categoriesQuery.error.message
-                : DOCUMENT_COMMITMENT_LABELS.categoriesFailed}
+                : t.documentCommitment.categoriesFailed}
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => void categoriesQuery.refetch()}
             >
-              {DOCUMENT_COMMITMENT_LABELS.retry}
+              {t.common.retry}
             </Button>
           </div>
         ) : categoriesQuery.data?.length === 0 ? (
-          <CategoryMessage message={DOCUMENT_COMMITMENT_LABELS.noCategories} />
+          <CategoryMessage message={t.documentCommitment.noCategories} />
         ) : (
           <ul className="divide-border divide-y">
             {categoriesQuery.data?.map((category) => (
@@ -191,7 +192,7 @@ function DocumentCommitmentCategoriesPage() {
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label={`${DOCUMENT_COMMITMENT_LABELS.edit} ${category.name}`}
+                      aria-label={`${t.common.edit} ${category.name}`}
                       onClick={() => openCategoryForm(category)}
                     >
                       <PencilIcon aria-hidden="true" className="size-4" />
@@ -203,7 +204,7 @@ function DocumentCommitmentCategoriesPage() {
                       variant="outline"
                       size="icon"
                       disabled={deleteMutation.isPending}
-                      aria-label={`${DOCUMENT_COMMITMENT_LABELS.delete} ${category.name}`}
+                      aria-label={`${t.common.delete} ${category.name}`}
                       onClick={() => setCategoryToDelete(category)}
                     >
                       <Trash2Icon aria-hidden="true" className="size-4" />
@@ -237,11 +238,11 @@ function DocumentCommitmentCategoriesPage() {
       >
         <DialogContent
           className="max-w-xl"
-          closeLabel={DOCUMENT_COMMITMENT_LABELS.closeDeleteCategoryDialog}
+          closeLabel={t.documentCommitment.closeDeleteCategoryDialog}
         >
           <DialogHeader className="border-border border-b">
             <DialogTitle>
-              {DOCUMENT_COMMITMENT_LABELS.deleteCategoryTitle}
+              {t.documentCommitment.deleteCategoryTitle}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5 px-5 py-6">
@@ -254,7 +255,7 @@ function DocumentCommitmentCategoriesPage() {
                   “{categoryToDelete.name}”
                 </p>
                 <DialogDescription>
-                  {DOCUMENT_COMMITMENT_LABELS.deleteCategoryDescription}
+                  {t.documentCommitment.deleteCategoryDescription}
                 </DialogDescription>
               </div>
             )}
@@ -266,7 +267,7 @@ function DocumentCommitmentCategoriesPage() {
               disabled={deleteMutation.isPending}
               onClick={() => setCategoryToDelete(null)}
             >
-              {DOCUMENT_COMMITMENT_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -280,8 +281,8 @@ function DocumentCommitmentCategoriesPage() {
               }}
             >
               {deleteMutation.isPending
-                ? DOCUMENT_COMMITMENT_LABELS.deletingCategory
-                : DOCUMENT_COMMITMENT_LABELS.confirmDeleteCategory}
+                ? t.documentCommitment.deletingCategory
+                : t.documentCommitment.confirmDeleteCategory}
             </Button>
           </DialogFooter>
         </DialogContent>

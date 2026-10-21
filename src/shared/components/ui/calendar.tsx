@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { cn } from '@/shared/lib/utils'
 import {
   ChevronDownIcon,
@@ -6,8 +7,10 @@ import {
   ChevronUpIcon,
 } from 'lucide-react'
 import { DayPicker } from 'react-day-picker'
-import { id } from 'react-day-picker/locale'
+import { enUS, id } from 'react-day-picker/locale'
 import type { ComponentProps } from 'react'
+
+const DAY_PICKER_LOCALES = { id, en: enUS }
 
 function Calendar({
   className,
@@ -16,10 +19,12 @@ function Calendar({
   locale,
   ...props
 }: ComponentProps<typeof DayPicker>) {
+  const { locale: appLocale } = useI18n()
+
   return (
     <DayPicker
       {...props}
-      locale={locale ?? id}
+      locale={locale ?? DAY_PICKER_LOCALES[appLocale]}
       className={cn('p-3', className)}
       classNames={{
         root: 'relative w-fit',

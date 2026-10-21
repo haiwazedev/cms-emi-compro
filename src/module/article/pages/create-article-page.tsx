@@ -1,5 +1,5 @@
 import { ArticleForm } from '@/module/article/components/article-form'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { ArticleLoadState } from '@/module/article/pages/edit-article-page'
 import { findDefaultLanguage } from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
@@ -7,12 +7,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 function CreateArticlePage() {
+  const { t } = useI18n()
   const languagesQuery = useQuery(languagesQueryOptions())
   // Always starts on the default language; no `lang` param on create.
   const [languageId, setLanguageId] = useState<string>()
 
   if (languagesQuery.isPending) {
-    return <ArticleLoadState message={ARTICLE_LABELS.loadingArticles} />
+    return <ArticleLoadState message={t.article.loadingArticles} />
   }
 
   if (languagesQuery.isError || languagesQuery.data.length === 0) {
@@ -20,8 +21,8 @@ function CreateArticlePage() {
       <ArticleLoadState
         message={
           languagesQuery.isError
-            ? ARTICLE_LABELS.languagesFailed
-            : ARTICLE_LABELS.noLanguages
+            ? t.article.languagesFailed
+            : t.article.noLanguages
         }
       />
     )

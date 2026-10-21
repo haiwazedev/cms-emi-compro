@@ -1,4 +1,4 @@
-import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { siteSettingsQueryOptions } from '@/module/site_settings/queries/site-settings.queries'
 import { Button } from '@/shared/components/ui/button'
@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ExternalLinkIcon } from 'lucide-react'
 
 function DashboardViewSiteButton() {
+  const { t } = useI18n()
   const { data: siteUrl } = useQuery({
     ...siteSettingsQueryOptions(DEFAULT_LANGUAGE_ID),
     select: (settings) => settings.landingSiteUrl,
@@ -14,7 +15,7 @@ function DashboardViewSiteButton() {
   const content = (
     <>
       <ExternalLinkIcon aria-hidden="true" className="size-4" />
-      {DASHBOARD_LABELS.viewSite}
+      {t.dashboard.viewSite}
     </>
   )
 

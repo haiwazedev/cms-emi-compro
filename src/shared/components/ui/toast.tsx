@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { toast } from '@/shared/lib/toast'
 import { cn } from '@/shared/lib/utils'
 import { Toast } from '@base-ui/react/toast'
@@ -5,6 +6,7 @@ import { CircleCheckIcon, CircleXIcon, XIcon } from 'lucide-react'
 
 function ToastList() {
   const { toasts } = Toast.useToastManager()
+  const { t } = useI18n()
 
   return toasts.map((toastItem) => {
     const isSuccess = toastItem.type === 'success'
@@ -44,7 +46,7 @@ function ToastList() {
             )}
           </div>
           <Toast.Close
-            aria-label="Tutup notifikasi"
+            aria-label={t.common.closeNotification}
             className="text-foreground/60 hover:text-foreground focus-visible:outline-none"
           >
             <XIcon aria-hidden="true" className="size-4" />

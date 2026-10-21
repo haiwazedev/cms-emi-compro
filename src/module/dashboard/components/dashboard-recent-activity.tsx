@@ -1,5 +1,5 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { activityLogsQueryOptions } from '@/module/activity_log/queries/activity-log.queries'
-import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
 import { Card, CardContent } from '@/shared/components/ui/card'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { formatRelativeTime } from '@/shared/lib/format-relative-time'
@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 const RECENT_ACTIVITY_PARAMS = { page: 1, limit: 3 }
 
 function DashboardRecentActivity() {
+  const { locale, t } = useI18n()
   const activityQuery = useQuery(
     activityLogsQueryOptions(RECENT_ACTIVITY_PARAMS),
   )
@@ -17,12 +18,12 @@ function DashboardRecentActivity() {
     <Card>
       <CardContent className="flex flex-col gap-4 space-y-0">
         <h2 className="text-muted text-xs font-semibold tracking-wider uppercase">
-          {DASHBOARD_LABELS.recentActivity}
+          {t.dashboard.recentActivity}
         </h2>
 
         {activityQuery.isPending ? (
           <div role="status" className="flex flex-col gap-4">
-            <span className="sr-only">{DASHBOARD_LABELS.loadingActivity}</span>
+            <span className="sr-only">{t.dashboard.loadingActivity}</span>
             {Array.from(
               { length: RECENT_ACTIVITY_PARAMS.limit },
               (_, index) => (
@@ -38,12 +39,10 @@ function DashboardRecentActivity() {
           </div>
         ) : activityQuery.isError ? (
           <p role="alert" className="text-danger text-sm">
-            {activityQuery.error.message || DASHBOARD_LABELS.activityFailed}
+            {activityQuery.error.message || t.dashboard.activityFailed}
           </p>
         ) : activityLogs.length === 0 ? (
-          <p className="text-foreground/60 text-sm">
-            {DASHBOARD_LABELS.noActivity}
-          </p>
+          <p className="text-foreground/60 text-sm">{t.dashboard.noActivity}</p>
         ) : (
           <ul className="flex flex-col gap-4">
             {activityLogs.map((activity) => (
@@ -68,7 +67,7 @@ function DashboardRecentActivity() {
                     dateTime={activity.created_at}
                     className="text-foreground/55 text-xs"
                   >
-                    {formatRelativeTime(activity.created_at)}
+                    {formatRelativeTime(activity.created_at, locale)}
                   </time>
                 </div>
               </li>

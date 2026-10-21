@@ -1,6 +1,9 @@
 import type { Role, User, UserFields } from '@/module/user/api/user.api'
-import { USER_LABELS } from '@/module/user/constants/user.constants'
-import { NO_ROLE, userFormSchema } from '@/module/user/schemas/user-form.schema'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
+import {
+  NO_ROLE,
+  createUserFormSchema,
+} from '@/module/user/schemas/user-form.schema'
 import type { UserFormValues } from '@/module/user/schemas/user-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -45,13 +48,14 @@ function UserFormDialog({
   emailError,
   onSubmit,
 }: UserFormDialogProps) {
+  const { t } = useI18n()
   const {
     control,
     formState: { errors },
     handleSubmit,
     register,
   } = useForm<UserFormValues>({
-    resolver: zodResolver(userFormSchema),
+    resolver: zodResolver(createUserFormSchema(t)),
     defaultValues: {
       name: user?.name ?? '',
       email: user?.email ?? '',
@@ -66,9 +70,9 @@ function UserFormDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {user ? USER_LABELS.editUserTitle : USER_LABELS.addUser}
+            {user ? t.user.editUserTitle : t.user.addUser}
           </DialogTitle>
-          <DialogDescription>{USER_LABELS.formDescription}</DialogDescription>
+          <DialogDescription>{t.user.formDescription}</DialogDescription>
         </DialogHeader>
 
         <form
@@ -83,7 +87,7 @@ function UserFormDialog({
           <div className="flex flex-col gap-4 px-5 py-5">
             {/* Name */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="user-name">{USER_LABELS.name}</Label>
+              <Label htmlFor="user-name">{t.user.name}</Label>
               <Input
                 id="user-name"
                 autoFocus
@@ -101,7 +105,7 @@ function UserFormDialog({
 
             {/* Email */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="user-email">{USER_LABELS.email}</Label>
+              <Label htmlFor="user-email">{t.user.email}</Label>
               <Input
                 id="user-email"
                 type="email"
@@ -118,7 +122,7 @@ function UserFormDialog({
 
             {/* Role */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="user-role">{USER_LABELS.role}</Label>
+              <Label htmlFor="user-role">{t.user.role}</Label>
               <Controller
                 control={control}
                 name="role"
@@ -129,12 +133,10 @@ function UserFormDialog({
                     disabled={pending}
                   >
                     <SelectTrigger id="user-role">
-                      <SelectValue placeholder={USER_LABELS.rolePlaceholder} />
+                      <SelectValue placeholder={t.user.rolePlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NO_ROLE}>
-                        {USER_LABELS.noRole}
-                      </SelectItem>
+                      <SelectItem value={NO_ROLE}>{t.user.noRole}</SelectItem>
                       {roles.map((role) => (
                         <SelectItem key={role.id} value={String(role.id)}>
                           {role.name}
@@ -148,7 +150,7 @@ function UserFormDialog({
 
             {/* Status */}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="user-active">{USER_LABELS.status}</Label>
+              <Label htmlFor="user-active">{t.user.status}</Label>
               <Controller
                 control={control}
                 name="is_active"
@@ -161,7 +163,7 @@ function UserFormDialog({
                       disabled={pending}
                     />
                     <span className="text-sm">
-                      {field.value ? USER_LABELS.active : USER_LABELS.inactive}
+                      {field.value ? t.user.active : t.user.inactive}
                     </span>
                   </div>
                 )}
@@ -176,7 +178,7 @@ function UserFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {USER_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -185,10 +187,10 @@ function UserFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {USER_LABELS.saving}
+                  {t.user.saving}
                 </>
               ) : (
-                USER_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>

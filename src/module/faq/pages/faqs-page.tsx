@@ -10,12 +10,18 @@ import { ArticleLanguageLegend } from '@/module/article/components/article-langu
 import { FaqEditor } from '@/module/faq/components/faq-editor'
 import { FaqFormCard } from '@/module/faq/components/faq-form-card'
 import { SortableFaqRow } from '@/module/faq/components/sortable-faq-row'
-import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   faqQueryKeys,
+  faqsByLanguageQueryOptions,
   faqsQueryOptions,
 } from '@/module/faq/queries/faq.queries'
-import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
+import { LanguageSelect } from '@/module/language/components/language-select'
+import {
+  DEFAULT_LANGUAGE_ID,
+  findDefaultLanguage,
+} from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { Button } from '@/shared/components/ui/button'
 import { Card } from '@/shared/components/ui/card'
 import {
@@ -38,27 +44,57 @@ import { DragDropProvider } from '@dnd-kit/react'
 import type { DragEndEvent } from '@dnd-kit/react'
 import { isSortable } from '@dnd-kit/react/sortable'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { LoaderCircleIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 type FormState = { faq?: FaqListItem }
 
 function FaqsPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
+  const navigate = useNavigate({ from: '/faqs' })
+  const { lang } = useSearch({ from: '/_authenticated/faqs' })
+  const languagesQuery = useQuery(languagesQueryOptions())
   const faqsQuery = useQuery(faqsQueryOptions())
   const [form, setForm] = useState<FormState | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FaqListItem | null>(null)
+  const [editorDirty, setEditorDirty] = useState(false)
+
+  const languages = languagesQuery.data ?? []
+  const language =
+    languages.find((item) => item.id === lang) ?? findDefaultLanguage(languages)
+  const languageId = language?.id ?? DEFAULT_LANGUAGE_ID
+  // The full list keeps every FAQ for reordering; this one adds the
+  // questions of the selected language.
+  const localizedFaqsQuery = useQuery(faqsByLanguageQueryOptions(languageId))
 
   const faqs = faqsQuery.data ?? []
+  const localizedQuestions = new Map(
+    localizedFaqsQuery.data?.map((faq) => [faq.id, faq.question ?? '']),
+  )
+
+  function requestLanguage(id: string) {
+    if (id === language?.id) return
+    if (
+      form?.faq &&
+      editorDirty &&
+      !window.confirm(t.faq.discardChangesConfirm)
+    )
+      return
+
+    setEditorDirty(false)
+    void navigate({ search: { lang: id } })
+  }
 
   function showSuccess(description: string) {
-    toast.add({ title: 'Berhasil', description, type: 'success' })
+    toast.add({ title: t.common.success, description, type: 'success' })
   }
 
   function showError(error: unknown, fallback: string) {
     toast.add({
-      title: 'Gagal',
+      title: t.common.error,
       description: error instanceof Error ? error.message : fallback,
       type: 'error',
     })
@@ -75,11 +111,9 @@ function FaqsPage() {
     onSuccess: async (_faq, variables) => {
       setForm(null)
       await queryClient.invalidateQueries({ queryKey: faqQueryKeys.all })
-      showSuccess(
-        variables.faqId === undefined ? FAQ_LABELS.created : FAQ_LABELS.updated,
-      )
+      showSuccess(variables.faqId === undefined ? t.faq.created : t.faq.updated)
     },
-    onError: (error) => showError(error, FAQ_LABELS.saveFailed),
+    onError: (error) => showError(error, t.faq.saveFailed),
   })
 
   const deleteMutation = useMutation({
@@ -88,9 +122,9 @@ function FaqsPage() {
       if (form?.faq?.id === faq.id) setForm(null)
       setDeleteTarget(null)
       await queryClient.invalidateQueries({ queryKey: faqQueryKeys.all })
-      showSuccess(FAQ_LABELS.deleted)
+      showSuccess(t.faq.deleted)
     },
-    onError: (error) => showError(error, FAQ_LABELS.deleteFailed),
+    onError: (error) => showError(error, t.faq.deleteFailed),
   })
 
   const reorderMutation = useMutation({
@@ -100,7 +134,7 @@ function FaqsPage() {
     },
     onError: (error) => {
       void queryClient.invalidateQueries({ queryKey: faqQueryKeys.list() })
-      showError(error, FAQ_LABELS.orderFailed)
+      showError(error, t.faq.orderFailed)
     },
   })
 
@@ -129,10 +163,10 @@ function FaqsPage() {
           {/* Page Title */}
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {FAQ_LABELS.pageTitle}
+              {t.faq.pageTitle}
             </h1>
             <p className="text-muted text-sm lg:text-base">
-              {FAQ_LABELS.description}
+              {t.faq.description}
             </p>
           </div>
 
@@ -145,22 +179,39 @@ function FaqsPage() {
               onClick={() => setForm({})}
             >
               <PlusIcon aria-hidden="true" className="size-4" />
-              {FAQ_LABELS.addQuestion}
+              {t.faq.addQuestion}
             </Button>
           )}
         </header>
 
+        {/* Language Select */}
+        {languagesQuery.isError ? (
+          <SectionMessage
+            message={t.faq.languagesFailed}
+            onRetry={() => void languagesQuery.refetch()}
+          />
+        ) : (
+          language && (
+            <LanguageSelect
+              label={t.faq.language}
+              languages={languages}
+              value={language.id}
+              onChange={requestLanguage}
+            />
+          )
+        )}
+
         {/* Content */}
-        <Card aria-label={FAQ_LABELS.pageTitle}>
+        <Card aria-label={t.faq.pageTitle}>
           {faqsQuery.isPending ? (
-            <SectionMessage message={FAQ_LABELS.loadingFaqs} />
+            <SectionMessage message={t.faq.loadingFaqs} />
           ) : faqsQuery.isError ? (
             <SectionMessage
-              message={FAQ_LABELS.faqsFailed}
+              message={t.faq.faqsFailed}
               onRetry={() => void faqsQuery.refetch()}
             />
           ) : faqs.length === 0 ? (
-            <SectionMessage message={FAQ_LABELS.noFaqs} />
+            <SectionMessage message={t.faq.noFaqs} />
           ) : (
             <div className="overflow-x-auto pt-4">
               {/* Language Status Legend */}
@@ -171,16 +222,16 @@ function FaqsPage() {
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-12 px-2" />
                     <TableHead className="text-muted font-bold uppercase">
-                      {FAQ_LABELS.order}
+                      {t.faq.order}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {FAQ_LABELS.question}
+                      {t.faq.question}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {FAQ_LABELS.status}
+                      {t.faq.status}
                     </TableHead>
                     <TableHead>
-                      <span className="sr-only">{FAQ_LABELS.actions}</span>
+                      <span className="sr-only">{t.faq.actions}</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -189,6 +240,7 @@ function FaqsPage() {
                     <SortableFaqRow
                       key={faq.id}
                       faq={faq}
+                      localizedQuestion={localizedQuestions.get(faq.id)}
                       index={index}
                       selected={faq.id === form?.faq?.id}
                       disabled={rowsDisabled}
@@ -202,34 +254,36 @@ function FaqsPage() {
           )}
         </Card>
 
-        {form?.faq ? (
-          <FaqEditor
-            key={form.faq.id}
-            faq={form.faq}
-            pending={saveMutation.isPending}
-            onCancel={() => setForm(null)}
-            onSubmit={(languageId, fields) =>
-              saveMutation.mutate({
-                faqId: form.faq?.id,
-                fields: { ...fields, language_id: languageId },
-              })
-            }
-          />
-        ) : (
-          form && (
-            // New FAQs start with Bahasa Indonesia content.
-            <FaqFormCard
-              title={FAQ_LABELS.createTitle}
-              pending={saveMutation.isPending}
-              onCancel={() => setForm(null)}
-              onSubmit={(fields) =>
-                saveMutation.mutate({
-                  fields: { ...fields, language_id: DEFAULT_LANGUAGE_ID },
-                })
-              }
-            />
-          )
-        )}
+        {form?.faq
+          ? language && (
+              <FaqEditor
+                key={form.faq.id}
+                faq={form.faq}
+                language={language}
+                pending={saveMutation.isPending}
+                onCancel={() => setForm(null)}
+                onDirtyChange={setEditorDirty}
+                onSubmit={(fields) =>
+                  saveMutation.mutate({
+                    faqId: form.faq?.id,
+                    fields: { ...fields, language_id: language.id },
+                  })
+                }
+              />
+            )
+          : form && (
+              // New FAQs start with Bahasa Indonesia content.
+              <FaqFormCard
+                title={t.faq.createTitle}
+                pending={saveMutation.isPending}
+                onCancel={() => setForm(null)}
+                onSubmit={(fields) =>
+                  saveMutation.mutate({
+                    fields: { ...fields, language_id: DEFAULT_LANGUAGE_ID },
+                  })
+                }
+              />
+            )}
 
         <Dialog
           open={deleteTarget !== null}
@@ -239,10 +293,10 @@ function FaqsPage() {
         >
           <DialogContent
             className="max-w-xl"
-            closeLabel={FAQ_LABELS.closeDeleteDialog}
+            closeLabel={t.faq.closeDeleteDialog}
           >
             <DialogHeader className="border-border border-b">
-              <DialogTitle>{FAQ_LABELS.deleteTitle}</DialogTitle>
+              <DialogTitle>{t.faq.deleteTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 py-6">
               <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
@@ -251,9 +305,7 @@ function FaqsPage() {
               <p className="text-accent wrap-break-words font-semibold">
                 “{deleteTarget?.question}”
               </p>
-              <DialogDescription>
-                {FAQ_LABELS.deleteDescription}
-              </DialogDescription>
+              <DialogDescription>{t.faq.deleteDescription}</DialogDescription>
             </div>
             <DialogFooter className="bg-primary">
               <Button
@@ -262,7 +314,7 @@ function FaqsPage() {
                 disabled={deleteMutation.isPending}
                 onClick={() => setDeleteTarget(null)}
               >
-                {FAQ_LABELS.cancel}
+                {t.common.cancel}
               </Button>
               <Button
                 type="button"
@@ -278,10 +330,10 @@ function FaqsPage() {
                       aria-hidden="true"
                       className="size-4 animate-spin"
                     />
-                    {FAQ_LABELS.deleting}
+                    {t.faq.deleting}
                   </>
                 ) : (
-                  FAQ_LABELS.confirmDelete
+                  t.faq.confirmDelete
                 )}
               </Button>
             </DialogFooter>
@@ -299,6 +351,7 @@ function SectionMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
       <p role={onRetry ? 'alert' : 'status'} className="text-muted text-sm">
@@ -306,7 +359,7 @@ function SectionMessage({
       </p>
       {onRetry && (
         <Button type="button" variant="outline" onClick={onRetry}>
-          {FAQ_LABELS.retry}
+          {t.common.retry}
         </Button>
       )}
     </div>

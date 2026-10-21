@@ -1,4 +1,4 @@
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { ArticleRichTextEditor } from '@/module/article/components/article-rich-text-editor'
 import { Badge } from '@/shared/components/ui/badge'
 import {
@@ -33,6 +33,7 @@ function ArticlePreviewDialog({
   issueDate,
   author,
 }: ArticlePreviewDialogProps) {
+  const { t } = useI18n()
   const formattedDate = formatPreviewDate(issueDate)
   // Parse only while open; the form re-renders on every keystroke.
   const readTime = open ? calculateReadTime(content) : undefined
@@ -41,10 +42,8 @@ function ArticlePreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl">
         <DialogHeader>
-          <DialogTitle>{ARTICLE_LABELS.preview}</DialogTitle>
-          <DialogDescription>
-            Tampilan artikel berdasarkan perubahan yang belum disimpan.
-          </DialogDescription>
+          <DialogTitle>{t.article.preview}</DialogTitle>
+          <DialogDescription>{t.article.previewDescription}</DialogDescription>
         </DialogHeader>
         <div className="flex min-h-0 flex-col gap-8 overflow-y-auto px-5 pb-8">
           {photoUrl ? (
@@ -55,7 +54,7 @@ function ArticlePreviewDialog({
             />
           ) : (
             <div className="bg-primary text-foreground/55 flex aspect-[4/5] w-full items-center justify-center rounded-2xl text-sm lg:aspect-[5/2]">
-              Foto utama belum dipilih
+              {t.article.previewNoPhoto}
             </div>
           )}
           <article className="mx-auto flex w-full max-w-3xl flex-col">
@@ -65,7 +64,7 @@ function ArticlePreviewDialog({
               </Badge>
             )}
             <h1 className="text-accent mt-4 text-3xl leading-tight font-bold tracking-tight lg:text-5xl">
-              {title || 'Judul artikel'}
+              {title || t.article.previewTitlePlaceholder}
             </h1>
             <div className="text-foreground/60 border-border mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-b pb-5 text-xs">
               {formattedDate && (
@@ -84,7 +83,7 @@ function ArticlePreviewDialog({
                 <ArticleRichTextEditor content={content} readOnly />
               ) : (
                 <p className="text-foreground/55 text-sm">
-                  Isi artikel akan ditampilkan di sini.
+                  {t.article.previewBodyPlaceholder}
                 </p>
               )}
             </div>

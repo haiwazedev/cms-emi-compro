@@ -1,64 +1,43 @@
 import type { FaqListItem } from '@/module/faq/api/faq.api'
 import { FaqFormCard } from '@/module/faq/components/faq-form-card'
 import type { FaqFormFields } from '@/module/faq/components/faq-form-card'
-import { FAQ_LABELS } from '@/module/faq/constants/faq.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { faqQueryOptions } from '@/module/faq/queries/faq.queries'
-import { LanguageSelect } from '@/module/language/components/language-select'
-import { findDefaultLanguage } from '@/module/language/constants/language.constants'
-import { languagesQueryOptions } from '@/module/language/queries/language.queries'
+import type { Language } from '@/module/language/api/language.api'
 import { Button } from '@/shared/components/ui/button'
 import { useQuery } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useState } from 'react'
 
 interface FaqEditorProps {
   faq: FaqListItem
+  language: Language
   pending: boolean
   onCancel: () => void
-  onSubmit: (languageId: string, fields: FaqFormFields) => void
+  onDirtyChange: (dirty: boolean) => void
+  onSubmit: (fields: FaqFormFields) => void
 }
 
-// Edits one language of an existing FAQ; `?lang=` picks the language.
-function FaqEditor({ faq, pending, onCancel, onSubmit }: FaqEditorProps) {
-  const navigate = useNavigate({ from: '/faqs' })
-  const { lang } = useSearch({ from: '/_authenticated/faqs' })
-  const languagesQuery = useQuery(languagesQueryOptions())
+// Edits the page's selected language of an existing FAQ.
+function FaqEditor({
+  faq,
+  language,
+  pending,
+  onCancel,
+  onDirtyChange,
+  onSubmit,
+}: FaqEditorProps) {
+  const { t } = useI18n()
   const faqQuery = useQuery(faqQueryOptions(faq.id))
-  const [dirty, setDirty] = useState(false)
 
-  const languages = languagesQuery.data ?? []
-  const language =
-    languages.find((item) => item.id === lang) ?? findDefaultLanguage(languages)
-
-  function requestLanguage(id: string) {
-    if (id === language?.id) return
-    if (dirty && !window.confirm(FAQ_LABELS.discardChangesConfirm)) return
-
-    setDirty(false)
-    void navigate({ search: { lang: id } })
-  }
-
-  if (languagesQuery.isError) {
-    return (
-      <EditorMessage
-        message={FAQ_LABELS.languagesFailed}
-        onRetry={() => void languagesQuery.refetch()}
-      />
-    )
-  }
   if (faqQuery.isError) {
     return (
       <EditorMessage
-        message={FAQ_LABELS.faqFailed}
+        message={t.faq.faqFailed}
         onRetry={() => void faqQuery.refetch()}
       />
     )
   }
-  if (languagesQuery.isPending || faqQuery.isPending) {
-    return <EditorMessage message={FAQ_LABELS.loadingFaq} />
-  }
-  if (!language) {
-    return <EditorMessage message={FAQ_LABELS.noLanguages} />
+  if (faqQuery.isPending) {
+    return <EditorMessage message={t.faq.loadingFaq} />
   }
 
   const content = faqQuery.data.contents.find(
@@ -66,25 +45,16 @@ function FaqEditor({ faq, pending, onCancel, onSubmit }: FaqEditorProps) {
   )
 
   return (
-    <div className="flex flex-col gap-4">
-      <LanguageSelect
-        label={FAQ_LABELS.language}
-        languages={languages}
-        value={language.id}
-        onChange={requestLanguage}
-      />
-
-      <FaqFormCard
-        // Remount per language so the form loads that language's content.
-        key={language.id}
-        title={FAQ_LABELS.editTitle(faq.question ?? '')}
-        initial={content}
-        pending={pending}
-        onCancel={onCancel}
-        onDirtyChange={setDirty}
-        onSubmit={(fields) => onSubmit(language.id, fields)}
-      />
-    </div>
+    <FaqFormCard
+      // Remount per language so the form loads that language's content.
+      key={language.id}
+      title={t.faq.editTitle(faq.question ?? '')}
+      initial={content}
+      pending={pending}
+      onCancel={onCancel}
+      onDirtyChange={onDirtyChange}
+      onSubmit={onSubmit}
+    />
   )
 }
 
@@ -95,6 +65,7 @@ function EditorMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-6 text-center">
       <p role={onRetry ? 'alert' : 'status'} className="text-muted text-sm">
@@ -102,7 +73,7 @@ function EditorMessage({
       </p>
       {onRetry && (
         <Button type="button" variant="outline" onClick={onRetry}>
-          {FAQ_LABELS.retry}
+          {t.common.retry}
         </Button>
       )}
     </div>

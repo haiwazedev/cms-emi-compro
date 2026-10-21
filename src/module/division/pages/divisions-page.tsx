@@ -21,7 +21,7 @@ import { DivisionFormDialog } from '@/module/division/components/division-form-d
 import { ServiceFormDialog } from '@/module/division/components/service-form-dialog'
 import { SortableDivisionRow } from '@/module/division/components/sortable-division-row'
 import { SortableServiceRow } from '@/module/division/components/sortable-service-row'
-import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { Language } from '@/module/language/api/language.api'
 import { findDefaultLanguage } from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
@@ -70,6 +70,7 @@ type DeleteTarget =
   { kind: 'division'; record: Division } | { kind: 'service'; record: Service }
 
 function DivisionsPage() {
+  const { t } = useI18n()
   const { lang } = useSearch({ from: '/_authenticated/divisions' })
   const navigate = useNavigate({ from: '/divisions' })
   const languagesQuery = useQuery(languagesQueryOptions())
@@ -87,18 +88,18 @@ function DivisionsPage() {
   }, [language, navigate, urlLanguage])
 
   if (languagesQuery.isPending) {
-    return <PageMessage message={DIVISION_LABELS.languageLoading} />
+    return <PageMessage message={t.division.languageLoading} />
   }
   if (languagesQuery.isError) {
     return (
       <PageMessage
-        message={DIVISION_LABELS.languagesFailed}
+        message={t.division.languagesFailed}
         onRetry={() => void languagesQuery.refetch()}
       />
     )
   }
   if (!language) {
-    return <PageMessage message={DIVISION_LABELS.noLanguages} />
+    return <PageMessage message={t.division.noLanguages} />
   }
 
   return (
@@ -124,6 +125,7 @@ function DivisionsContent({
   languageId: string
   onLanguageChange: (languageId: string) => void
 }) {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const queryClient = useQueryClient()
   const divisionsQuery = useQuery(divisionsQueryOptions())
@@ -172,21 +174,21 @@ function DivisionsContent({
         queryClient.invalidateQueries({ queryKey: serviceQueryKeys.all }),
       ])
       toast.add({
-        title: 'Berhasil',
+        title: t.common.success,
         description:
           variables.divisionId === undefined
-            ? DIVISION_LABELS.divisionCreated
-            : DIVISION_LABELS.divisionUpdated,
+            ? t.division.divisionCreated
+            : t.division.divisionUpdated,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DIVISION_LABELS.divisionSaveFailed,
+            : t.division.divisionSaveFailed,
         type: 'error',
       })
     },
@@ -208,21 +210,19 @@ function DivisionsContent({
         queryClient.invalidateQueries({ queryKey: divisionQueryKeys.all }),
       ])
       toast.add({
-        title: 'Berhasil',
+        title: t.common.success,
         description:
           variables.serviceId === undefined
-            ? DIVISION_LABELS.serviceCreated
-            : DIVISION_LABELS.serviceUpdated,
+            ? t.division.serviceCreated
+            : t.division.serviceUpdated,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error
-            ? error.message
-            : DIVISION_LABELS.serviceSaveFailed,
+          error instanceof Error ? error.message : t.division.serviceSaveFailed,
         type: 'error',
       })
     },
@@ -240,23 +240,23 @@ function DivisionsContent({
         queryClient.invalidateQueries({ queryKey: serviceQueryKeys.all }),
       ])
       toast.add({
-        title: 'Berhasil',
+        title: t.common.success,
         description:
           target.kind === 'division'
-            ? DIVISION_LABELS.divisionDeleted
-            : DIVISION_LABELS.serviceDeleted,
+            ? t.division.divisionDeleted
+            : t.division.serviceDeleted,
         type: 'success',
       })
     },
     onError: (error, target) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
             : target.kind === 'division'
-              ? DIVISION_LABELS.divisionDeleteFailed
-              : DIVISION_LABELS.serviceDeleteFailed,
+              ? t.division.divisionDeleteFailed
+              : t.division.serviceDeleteFailed,
         type: 'error',
       })
     },
@@ -270,11 +270,11 @@ function DivisionsContent({
     onError: (error) => {
       void queryClient.invalidateQueries({ queryKey: divisionQueryKeys.list() })
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DIVISION_LABELS.divisionOrderFailed,
+            : t.division.divisionOrderFailed,
         type: 'error',
       })
     },
@@ -300,11 +300,11 @@ function DivisionsContent({
     onError: (error) => {
       void queryClient.invalidateQueries({ queryKey: serviceQueryKeys.list() })
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DIVISION_LABELS.serviceOrderFailed,
+            : t.division.serviceOrderFailed,
         type: 'error',
       })
     },
@@ -356,10 +356,10 @@ function DivisionsContent({
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {DIVISION_LABELS.pageTitle}
+              {t.division.pageTitle}
             </h1>
             <p className="text-muted text-sm lg:text-base">
-              {DIVISION_LABELS.description}
+              {t.division.description}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
@@ -371,7 +371,7 @@ function DivisionsContent({
                 onClick={() => setDivisionDialog({})}
               >
                 <PlusIcon aria-hidden="true" className="size-4" />
-                {DIVISION_LABELS.addDivision}
+                {t.division.addDivision}
               </Button>
             )}
             {canWrite && (
@@ -387,7 +387,7 @@ function DivisionsContent({
                 }
               >
                 <PlusIcon aria-hidden="true" className="size-4" />
-                {DIVISION_LABELS.addService}
+                {t.division.addService}
               </Button>
             )}
           </div>
@@ -395,7 +395,7 @@ function DivisionsContent({
 
         <Select value={languageId} onValueChange={onLanguageChange}>
           <SelectTrigger
-            aria-label={DIVISION_LABELS.language}
+            aria-label={t.division.language}
             className="w-full lg:w-64"
           >
             <SelectValue />
@@ -413,24 +413,24 @@ function DivisionsContent({
         <Card aria-labelledby="division-list-title">
           <CardHeader>
             <CardTitle id="division-list-title">
-              {DIVISION_LABELS.divisions}
+              {t.division.divisions}
             </CardTitle>
             <span className="text-muted text-xs">
               {divisionsQuery.isSuccess
-                ? DIVISION_LABELS.divisionCount(divisions.length)
-                : DIVISION_LABELS.loadingDivisions}
+                ? t.division.divisionCount(divisions.length)
+                : t.division.loadingDivisions}
             </span>
           </CardHeader>
 
           {divisionsQuery.isPending ? (
-            <SectionMessage message={DIVISION_LABELS.loadingDivisions} />
+            <SectionMessage message={t.division.loadingDivisions} />
           ) : divisionsQuery.isError ? (
             <SectionMessage
-              message={DIVISION_LABELS.divisionsFailed}
+              message={t.division.divisionsFailed}
               onRetry={() => void divisionsQuery.refetch()}
             />
           ) : divisions.length === 0 ? (
-            <SectionMessage message={DIVISION_LABELS.noDivisions} />
+            <SectionMessage message={t.division.noDivisions} />
           ) : (
             <div className="overflow-x-auto">
               <Table className="min-w-max">
@@ -438,22 +438,22 @@ function DivisionsContent({
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-12 px-2" />
                     <TableHead className="text-muted font-bold uppercase">
-                      {DIVISION_LABELS.icon}
+                      {t.division.icon}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {DIVISION_LABELS.divisionName}
+                      {t.division.divisionName}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {DIVISION_LABELS.abbreviation}
+                      {t.division.abbreviation}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {DIVISION_LABELS.serviceCount}
+                      {t.division.serviceCount}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {DIVISION_LABELS.status}
+                      {t.division.status}
                     </TableHead>
                     <TableHead>
-                      <span className="sr-only">{DIVISION_LABELS.actions}</span>
+                      <span className="sr-only">{t.division.actions}</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -488,8 +488,8 @@ function DivisionsContent({
           <CardHeader className="flex-col items-start lg:flex-row lg:items-center">
             <CardTitle id="service-list-title">
               {selectedDivision
-                ? `${DIVISION_LABELS.services} — ${findDivisionContent(selectedDivision, languageId)?.name ?? DIVISION_LABELS.missingTranslation}`
-                : DIVISION_LABELS.services}
+                ? `${t.division.services} — ${findDivisionContent(selectedDivision, languageId)?.name ?? t.division.missingTranslation}`
+                : t.division.services}
             </CardTitle>
             {divisions.length > 0 && (
               <Select
@@ -498,15 +498,19 @@ function DivisionsContent({
                 disabled={divisionsQuery.isPending || divisionsQuery.isError}
               >
                 <SelectTrigger
-                  aria-label={DIVISION_LABELS.selectDivision}
+                  aria-label={t.division.selectDivision}
                   className="w-full lg:max-w-sm"
                 >
-                  <SelectValue placeholder={DIVISION_LABELS.selectDivision} />
+                  <SelectValue placeholder={t.division.selectDivision} />
                 </SelectTrigger>
                 <SelectContent>
                   {divisions.map((division) => (
                     <SelectItem key={division.id} value={String(division.id)}>
-                      {divisionSelectLabel(division, languageId)}
+                      {divisionSelectLabel(
+                        division,
+                        languageId,
+                        t.division.missingTranslation,
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -515,16 +519,16 @@ function DivisionsContent({
           </CardHeader>
 
           {!selectedDivision ? (
-            <SectionMessage message={DIVISION_LABELS.noSelectedDivision} />
+            <SectionMessage message={t.division.noSelectedDivision} />
           ) : servicesQuery.isPending ? (
-            <SectionMessage message={DIVISION_LABELS.loadingServices} />
+            <SectionMessage message={t.division.loadingServices} />
           ) : servicesQuery.isError ? (
             <SectionMessage
-              message={DIVISION_LABELS.servicesFailed}
+              message={t.division.servicesFailed}
               onRetry={() => void servicesQuery.refetch()}
             />
           ) : selectedServices.length === 0 ? (
-            <SectionMessage message={DIVISION_LABELS.noServices} />
+            <SectionMessage message={t.division.noServices} />
           ) : (
             <>
               <div className="overflow-x-auto">
@@ -533,18 +537,16 @@ function DivisionsContent({
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="w-12 px-2" />
                       <TableHead className="text-muted font-bold uppercase">
-                        {DIVISION_LABELS.serviceName}
+                        {t.division.serviceName}
                       </TableHead>
                       <TableHead className="text-muted font-bold uppercase">
-                        {DIVISION_LABELS.division}
+                        {t.division.division}
                       </TableHead>
                       <TableHead className="text-muted font-bold uppercase">
-                        {DIVISION_LABELS.order}
+                        {t.division.order}
                       </TableHead>
                       <TableHead>
-                        <span className="sr-only">
-                          {DIVISION_LABELS.actions}
-                        </span>
+                        <span className="sr-only">{t.division.actions}</span>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -557,7 +559,7 @@ function DivisionsContent({
                         index={index}
                         divisionAbbreviation={
                           findDivisionContent(selectedDivision, languageId)
-                            ?.abbr ?? DIVISION_LABELS.missingTranslation
+                            ?.abbr ?? t.division.missingTranslation
                         }
                         disabled={serviceReorderPending}
                         onEdit={() =>
@@ -581,9 +583,9 @@ function DivisionsContent({
                     className="mt-0.5 size-4 shrink-0"
                   />
                   <p>
-                    {DIVISION_LABELS.serviceInfoBefore}
-                    <strong>{DIVISION_LABELS.serviceInfoTag}</strong>
-                    {DIVISION_LABELS.serviceInfoAfter}
+                    {t.division.serviceInfoBefore}
+                    <strong>{t.division.serviceInfoTag}</strong>
+                    {t.division.serviceInfoAfter}
                   </p>
                 </div>
               </div>
@@ -643,13 +645,13 @@ function DivisionsContent({
         >
           <DialogContent
             className="max-w-xl"
-            closeLabel={DIVISION_LABELS.closeDeleteDialog}
+            closeLabel={t.division.closeDeleteDialog}
           >
             <DialogHeader className="border-border border-b">
               <DialogTitle>
                 {deleteTarget?.kind === 'division'
-                  ? DIVISION_LABELS.deleteDivisionTitle
-                  : DIVISION_LABELS.deleteServiceTitle}
+                  ? t.division.deleteDivisionTitle
+                  : t.division.deleteServiceTitle}
               </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 px-5 py-6">
@@ -659,12 +661,18 @@ function DivisionsContent({
               {deleteTarget && (
                 <>
                   <p className="text-accent font-semibold break-words">
-                    “{deleteTargetName(deleteTarget, languageId)}”
+                    “
+                    {deleteTargetName(
+                      deleteTarget,
+                      languageId,
+                      t.division.missingTranslation,
+                    )}
+                    ”
                   </p>
                   <DialogDescription>
                     {deleteTarget.kind === 'division'
-                      ? DIVISION_LABELS.deleteDivisionDescription
-                      : DIVISION_LABELS.deleteServiceDescription}
+                      ? t.division.deleteDivisionDescription
+                      : t.division.deleteServiceDescription}
                   </DialogDescription>
                 </>
               )}
@@ -676,7 +684,7 @@ function DivisionsContent({
                 disabled={deleteMutation.isPending}
                 onClick={() => setDeleteTarget(null)}
               >
-                {DIVISION_LABELS.cancel}
+                {t.common.cancel}
               </Button>
               <Button
                 type="button"
@@ -692,10 +700,10 @@ function DivisionsContent({
                       aria-hidden="true"
                       className="size-4 animate-spin"
                     />
-                    {DIVISION_LABELS.deleting}
+                    {t.division.deleting}
                   </>
                 ) : (
-                  DIVISION_LABELS.confirmDelete
+                  t.division.confirmDelete
                 )}
               </Button>
             </DialogFooter>
@@ -713,6 +721,7 @@ function SectionMessage({
   message: string
   onRetry?: () => void
 }) {
+  const { t } = useI18n()
   return (
     <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
       <p role={onRetry ? 'alert' : 'status'} className="text-muted text-sm">
@@ -720,7 +729,7 @@ function SectionMessage({
       </p>
       {onRetry && (
         <Button type="button" variant="outline" onClick={onRetry}>
-          {DIVISION_LABELS.retry}
+          {t.common.retry}
         </Button>
       )}
     </div>
@@ -755,21 +764,29 @@ function findServiceContent(
   return service.contents.find((item) => item.language_id === languageId)
 }
 
-function divisionSelectLabel(division: Division, languageId: string) {
+function divisionSelectLabel(
+  division: Division,
+  languageId: string,
+  missingTranslation: string,
+) {
   const content = findDivisionContent(division, languageId)
 
   return content
     ? `${content.abbr} — ${content.name}`
-    : `${DIVISION_LABELS.missingTranslation} (#${division.id})`
+    : `${missingTranslation} (#${division.id})`
 }
 
-function deleteTargetName(target: DeleteTarget, languageId: string) {
+function deleteTargetName(
+  target: DeleteTarget,
+  languageId: string,
+  missingTranslation: string,
+) {
   const content =
     target.kind === 'division'
       ? findDivisionContent(target.record, languageId)
       : findServiceContent(target.record, languageId)
 
-  return content?.name ?? DIVISION_LABELS.missingTranslation
+  return content?.name ?? missingTranslation
 }
 
 function moveItems<T>(items: T[], fromIndex: number, toIndex: number) {

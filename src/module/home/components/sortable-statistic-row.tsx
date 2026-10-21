@@ -1,4 +1,4 @@
-import { HOME_LABELS } from '@/module/home/constants/home.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { HomeStatisticDraft } from '@/module/home/types/home.types'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -37,6 +37,7 @@ function SortableStatisticRow({
   onDuplicate,
   onDelete,
 }: SortableStatisticRowProps) {
+  const { t } = useI18n()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: statistic.clientKey,
     index,
@@ -60,7 +61,7 @@ function SortableStatisticRow({
       </TableCell>
       <TableCell className="min-w-48">
         <Input
-          aria-label={`${HOME_LABELS.statisticLabel} ${statisticNumber}`}
+          aria-label={`${t.home.statisticLabel} ${statisticNumber}`}
           value={statistic.label}
           onChange={(event) =>
             onChange(statistic.clientKey, 'label', event.currentTarget.value)
@@ -69,7 +70,7 @@ function SortableStatisticRow({
       </TableCell>
       <TableCell className="w-28">
         <Input
-          aria-label={`${HOME_LABELS.statisticNumber} ${statisticNumber}`}
+          aria-label={`${t.home.statisticNumber} ${statisticNumber}`}
           value={statistic.number}
           onChange={(event) =>
             onChange(statistic.clientKey, 'number', event.currentTarget.value)
@@ -78,7 +79,7 @@ function SortableStatisticRow({
       </TableCell>
       <TableCell className="min-w-64">
         <Input
-          aria-label={`${HOME_LABELS.statisticDescription} ${statisticNumber}`}
+          aria-label={`${t.home.statisticDescription} ${statisticNumber}`}
           value={statistic.description}
           onChange={(event) =>
             onChange(
@@ -96,7 +97,7 @@ function SortableStatisticRow({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.moveStatisticUp(statisticNumber)}
+            aria-label={t.home.moveStatisticUp(statisticNumber)}
             disabled={index === 0}
             onClick={() => onMove(index, index - 1)}
           >
@@ -107,7 +108,7 @@ function SortableStatisticRow({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.moveStatisticDown(statisticNumber)}
+            aria-label={t.home.moveStatisticDown(statisticNumber)}
             disabled={index === total - 1}
             onClick={() => onMove(index, index + 1)}
           >
@@ -118,7 +119,7 @@ function SortableStatisticRow({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.duplicateStatistic(statisticNumber)}
+            aria-label={t.home.duplicateStatistic(statisticNumber)}
             onClick={() => onDuplicate(statistic.clientKey)}
           >
             <CopyIcon aria-hidden="true" className="size-4" />
@@ -128,8 +129,8 @@ function SortableStatisticRow({
             variant="outline"
             size="icon"
             className="size-8"
-            aria-label={HOME_LABELS.deleteStatistic(statisticNumber)}
-            title={canDelete ? undefined : HOME_LABELS.keepOneStatistic}
+            aria-label={t.home.deleteStatistic(statisticNumber)}
+            title={canDelete ? undefined : t.home.keepOneStatistic}
             disabled={!canDelete}
             onClick={() => onDelete(statistic.clientKey)}
           >

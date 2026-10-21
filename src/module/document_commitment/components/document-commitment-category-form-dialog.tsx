@@ -1,7 +1,7 @@
 import type { DocumentCommitmentCategory } from '@/module/document_commitment/api/document-commitment.api'
-import { DOCUMENT_COMMITMENT_LABELS } from '@/module/document_commitment/constants/document-commitment.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { DocumentCommitmentCategoryFormValues } from '@/module/document_commitment/schemas/document-commitment-form.schema'
-import { documentCommitmentCategoryFormSchema } from '@/module/document_commitment/schemas/document-commitment-form.schema'
+import { createDocumentCommitmentCategoryFormSchema } from '@/module/document_commitment/schemas/document-commitment-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -16,7 +16,7 @@ import { Label } from '@/shared/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
 interface DocumentCommitmentCategoryFormDialogProps {
   open: boolean
@@ -33,15 +33,18 @@ function DocumentCommitmentCategoryFormDialog({
   pending,
   onSubmit,
 }: DocumentCommitmentCategoryFormDialogProps) {
+  const { t } = useI18n()
   const {
+    control,
     formState: { errors },
     handleSubmit,
     register,
     reset,
   } = useForm<DocumentCommitmentCategoryFormValues>({
-    resolver: zodResolver(documentCommitmentCategoryFormSchema),
+    resolver: zodResolver(createDocumentCommitmentCategoryFormSchema(t)),
     defaultValues: { name: category?.name ?? '' },
   })
+  const nameValue = useWatch({ control, name: 'name' })
 
   useEffect(() => {
     if (open) reset({ name: category?.name ?? '' })
@@ -53,11 +56,11 @@ function DocumentCommitmentCategoryFormDialog({
         <DialogHeader className="border-border border-b">
           <DialogTitle>
             {category
-              ? DOCUMENT_COMMITMENT_LABELS.editCategory
-              : DOCUMENT_COMMITMENT_LABELS.createCategory}
+              ? t.documentCommitment.editCategory
+              : t.documentCommitment.createCategory}
           </DialogTitle>
           <DialogDescription>
-            Atur nama kategori dokumen komitmen.
+            {t.documentCommitment.categoryFormDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -67,7 +70,7 @@ function DocumentCommitmentCategoryFormDialog({
         >
           <div className="flex flex-col gap-2 px-5 py-5">
             <Label htmlFor="document-commitment-category-name">
-              {DOCUMENT_COMMITMENT_LABELS.categoryName}
+              {t.documentCommitment.categoryName}
             </Label>
             <Input
               id="document-commitment-category-name"
@@ -77,6 +80,9 @@ function DocumentCommitmentCategoryFormDialog({
               aria-invalid={Boolean(errors.name)}
               {...register('name')}
             />
+            <p className="text-foreground/55 text-xs">
+              {t.common.characterCount(nameValue.length, 100)}
+            </p>
             {errors.name?.message && (
               <p role="alert" className="text-danger text-sm">
                 {errors.name.message}
@@ -91,7 +97,7 @@ function DocumentCommitmentCategoryFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {DOCUMENT_COMMITMENT_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -100,10 +106,10 @@ function DocumentCommitmentCategoryFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {DOCUMENT_COMMITMENT_LABELS.saving}
+                  {t.documentCommitment.saving}
                 </>
               ) : (
-                DOCUMENT_COMMITMENT_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>

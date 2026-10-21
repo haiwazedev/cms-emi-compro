@@ -7,10 +7,7 @@ export const Route = createFileRoute(
 )({
   validateSearch: articleEditSearchSchema,
   component: EditArticleRoute,
-  staticData: { title: 'Ubah Artikel' },
-  head: () => ({
-    meta: [{ title: 'Ubah Artikel | PLN EMI Admin' }],
-  }),
+  staticData: { title: (t) => t.article.editPageTitle },
 })
 
 function EditArticleRoute() {

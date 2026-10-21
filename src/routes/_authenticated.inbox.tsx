@@ -1,11 +1,9 @@
-import { INBOX_LABELS } from '@/module/inbox/constants/inbox.constants'
 import { InboxPage } from '@/module/inbox/pages/inbox-page'
+import { inboxSearchSchema } from '@/module/inbox/schemas/inbox-search.schema'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/inbox')({
+  validateSearch: inboxSearchSchema,
   component: InboxPage,
-  staticData: { title: INBOX_LABELS.pageTitle },
-  head: () => ({
-    meta: [{ title: INBOX_LABELS.documentTitle }],
-  }),
+  staticData: { title: (t) => t.inbox.pageTitle },
 })

@@ -1,5 +1,5 @@
 import { DashboardStatCard } from '@/module/dashboard/components/dashboard-stat-card'
-import { DASHBOARD_LABELS } from '@/module/dashboard/constants/dashboard.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   divisionsQueryOptions,
   servicesQueryOptions,
@@ -23,6 +23,7 @@ interface CountStatCardProps {
 }
 
 function CountStatCard({ value, note, error, ...props }: CountStatCardProps) {
+  const { t } = useI18n()
   if (error) {
     return (
       <DashboardStatCard
@@ -30,7 +31,7 @@ function CountStatCard({ value, note, error, ...props }: CountStatCardProps) {
         value="-"
         note={
           <p role="alert" className="text-danger">
-            {error.message || DASHBOARD_LABELS.countFailed}
+            {error.message || t.dashboard.countFailed}
           </p>
         }
       />
@@ -44,7 +45,7 @@ function CountStatCard({ value, note, error, ...props }: CountStatCardProps) {
         value={<Skeleton className="my-1 h-7 w-10" />}
         note={
           <div role="status">
-            <span className="sr-only">{DASHBOARD_LABELS.loadingCount}</span>
+            <span className="sr-only">{t.dashboard.loadingCount}</span>
             <Skeleton className="h-4 w-24" />
           </div>
         }
@@ -56,6 +57,7 @@ function CountStatCard({ value, note, error, ...props }: CountStatCardProps) {
 }
 
 function DashboardDocumentStatCard() {
+  const { t } = useI18n()
   // limit 1: only pagination.totalItems is needed.
   const documentsQuery = useQuery(
     documentCommitmentsQueryOptions({ page: 1, limit: 1 }),
@@ -64,13 +66,13 @@ function DashboardDocumentStatCard() {
 
   return (
     <CountStatCard
-      label={DASHBOARD_LABELS.documents}
+      label={t.dashboard.documents}
       icon={FileTextIcon}
       iconClassName="bg-success/10 text-success"
       value={documentsQuery.data?.pagination.totalItems}
       note={
         categoriesQuery.data &&
-        DASHBOARD_LABELS.categoryCount(categoriesQuery.data.length)
+        t.dashboard.categoryCount(categoriesQuery.data.length)
       }
       error={documentsQuery.error ?? categoriesQuery.error}
     />
@@ -78,18 +80,19 @@ function DashboardDocumentStatCard() {
 }
 
 function DashboardServiceStatCard() {
+  const { t } = useI18n()
   const servicesQuery = useQuery(servicesQueryOptions())
   const divisionsQuery = useQuery(divisionsQueryOptions())
 
   return (
     <CountStatCard
-      label={DASHBOARD_LABELS.services}
+      label={t.dashboard.services}
       icon={ZapIcon}
       iconClassName="bg-warning/10 text-warning"
       value={servicesQuery.data?.length}
       note={
         divisionsQuery.data &&
-        DASHBOARD_LABELS.divisionCount(divisionsQuery.data.length)
+        t.dashboard.divisionCount(divisionsQuery.data.length)
       }
       error={servicesQuery.error ?? divisionsQuery.error}
     />
@@ -97,15 +100,16 @@ function DashboardServiceStatCard() {
 }
 
 function DashboardInboxStatCard() {
+  const { t } = useI18n()
   const countsQuery = useQuery(inboxCountsQueryOptions())
 
   return (
     <CountStatCard
-      label={DASHBOARD_LABELS.inbox}
+      label={t.dashboard.inbox}
       icon={MailIcon}
       iconClassName="bg-danger/10 text-danger"
       value={countsQuery.data?.unreadCount}
-      note={countsQuery.data && DASHBOARD_LABELS.unread}
+      note={countsQuery.data && t.dashboard.unread}
       error={countsQuery.error}
     />
   )

@@ -1,3 +1,4 @@
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { cn } from '@/shared/lib/utils'
 import { Dialog as SheetPrimitive } from 'radix-ui'
 import { XIcon } from 'lucide-react'
@@ -52,9 +53,11 @@ function SheetContent({
   children,
   side = 'right',
   showCloseButton = true,
-  closeLabel = 'Close',
+  closeLabel,
   ...props
 }: SheetContentProps) {
+  const { t } = useI18n()
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -71,7 +74,7 @@ function SheetContent({
         {showCloseButton && (
           <SheetPrimitive.Close className="text-foreground/70 hover:bg-primary focus-visible:ring-accent/50 absolute top-4 right-4 inline-flex size-8 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none">
             <XIcon aria-hidden="true" className="size-4" />
-            <span className="sr-only">{closeLabel}</span>
+            <span className="sr-only">{closeLabel ?? t.common.close}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Content>

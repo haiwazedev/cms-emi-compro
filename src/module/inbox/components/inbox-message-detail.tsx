@@ -1,6 +1,6 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { Inbox } from '@/module/inbox/api/inbox.api'
-import { INBOX_LABELS } from '@/module/inbox/constants/inbox.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import type { LucideIcon } from 'lucide-react'
@@ -12,14 +12,14 @@ import {
   UserIcon,
 } from 'lucide-react'
 
-const fullDateFormat = new Intl.DateTimeFormat('id-ID', {
+const FULL_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   day: 'numeric',
   month: 'short',
   year: 'numeric',
   hour: '2-digit',
   minute: '2-digit',
   timeZoneName: 'short',
-})
+}
 
 function InboxMessageDetail({
   message,
@@ -30,9 +30,10 @@ function InboxMessageDetail({
   onToggleRead: () => void
   onDelete: () => void
 }) {
+  const { locale, t } = useI18n()
   const { canDelete } = usePermissions()
   const replyHref = `mailto:${message.email}?subject=${encodeURIComponent(
-    INBOX_LABELS.replyPrefix + message.inbox_subject.name,
+    t.inbox.replyPrefix + message.inbox_subject.name,
   )}`
 
   return (
@@ -47,18 +48,17 @@ function InboxMessageDetail({
             <MetaItem icon={PhoneIcon}>{message.phone}</MetaItem>
           )}
           <MetaItem icon={CalendarIcon}>
-            {fullDateFormat.format(new Date(message.created_at))}
+            {new Intl.DateTimeFormat(locale, FULL_DATE_OPTIONS).format(
+              new Date(message.created_at),
+            )}
           </MetaItem>
         </div>
       </header>
 
       <dl className="flex flex-col gap-4 lg:flex-row">
+        <DetailField label={t.inbox.company} value={message.company ?? '-'} />
         <DetailField
-          label={INBOX_LABELS.company}
-          value={message.company ?? '-'}
-        />
-        <DetailField
-          label={INBOX_LABELS.subject}
+          label={t.inbox.subject}
           value={message.inbox_subject.name}
         />
       </dl>
@@ -71,11 +71,11 @@ function InboxMessageDetail({
         <Button asChild>
           <a href={replyHref}>
             <MailIcon aria-hidden="true" className="size-4" />
-            {INBOX_LABELS.replyViaEmail}
+            {t.inbox.replyViaEmail}
           </a>
         </Button>
         <Button type="button" variant="outline" onClick={onToggleRead}>
-          {message.is_read ? INBOX_LABELS.markUnread : INBOX_LABELS.markRead}
+          {message.is_read ? t.inbox.markUnread : t.inbox.markRead}
         </Button>
         {canDelete && (
           <Button
@@ -85,7 +85,7 @@ function InboxMessageDetail({
             onClick={onDelete}
           >
             <Trash2Icon aria-hidden="true" className="size-4" />
-            {INBOX_LABELS.delete}
+            {t.common.delete}
           </Button>
         )}
       </div>

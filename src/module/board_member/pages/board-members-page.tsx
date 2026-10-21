@@ -12,7 +12,7 @@ import type {
 import { BoardMemberLanguageSelect } from '@/module/board_member/components/board-member-language-select'
 import { BoardMemberFormDialog } from '@/module/board_member/components/board-member-form-dialog'
 import { SortableBoardMemberRow } from '@/module/board_member/components/sortable-board-member-row'
-import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   boardMemberQueryKeys,
   boardMemberTypesQueryOptions,
@@ -59,6 +59,7 @@ const EMPTY_MEMBERS: BoardMember[] = []
 const EMPTY_TYPES: BoardMemberType[] = []
 
 function BoardMembersPage() {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/board_members' })
   const { lang } = useSearch({ from: '/_authenticated/board_members' })
   const languagesQuery = useQuery(languagesQueryOptions())
@@ -80,26 +81,26 @@ function BoardMembersPage() {
   }, [language, navigate, urlLanguage])
 
   if (languagesQuery.isPending) {
-    return <BoardMemberMessage message={BOARD_MEMBER_LABELS.languageLoading} />
+    return <BoardMemberMessage message={t.boardMember.languageLoading} />
   }
   if (languagesQuery.isError) {
     return (
       <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
         <p role="alert" className="text-danger text-sm">
-          {BOARD_MEMBER_LABELS.languagesFailed}
+          {t.boardMember.languagesFailed}
         </p>
         <Button
           type="button"
           variant="outline"
           onClick={() => void languagesQuery.refetch()}
         >
-          {BOARD_MEMBER_LABELS.retry}
+          {t.common.retry}
         </Button>
       </div>
     )
   }
   if (!language) {
-    return <BoardMemberMessage message={BOARD_MEMBER_LABELS.noLanguages} />
+    return <BoardMemberMessage message={t.boardMember.noLanguages} />
   }
 
   return (
@@ -131,6 +132,7 @@ function BoardMembersContent({
   language: Language
   onLanguageChange: (languageId: string) => void
 }) {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/board_members' })
   const queryClient = useQueryClient()
@@ -183,18 +185,18 @@ function BoardMembersContent({
         queryKey: boardMemberQueryKeys.members(),
       })
       toast.add({
-        title: 'Berhasil',
-        description: BOARD_MEMBER_LABELS.memberSaved,
+        title: t.common.success,
+        description: t.boardMember.memberSaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : BOARD_MEMBER_LABELS.memberSaveFailed,
+            : t.boardMember.memberSaveFailed,
         type: 'error',
       })
     },
@@ -208,18 +210,18 @@ function BoardMembersContent({
         queryKey: boardMemberQueryKeys.members(),
       })
       toast.add({
-        title: 'Berhasil',
-        description: BOARD_MEMBER_LABELS.memberDeleted,
+        title: t.common.success,
+        description: t.boardMember.memberDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : BOARD_MEMBER_LABELS.memberDeleteFailed,
+            : t.boardMember.memberDeleteFailed,
         type: 'error',
       })
     },
@@ -243,11 +245,11 @@ function BoardMembersContent({
         queryKey: boardMemberQueryKeys.members(),
       })
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : BOARD_MEMBER_LABELS.memberOrderFailed,
+            : t.boardMember.memberOrderFailed,
         type: 'error',
       })
     },
@@ -309,16 +311,16 @@ function BoardMembersContent({
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {BOARD_MEMBER_LABELS.pageTitle}
+              {t.boardMember.pageTitle}
             </h1>
             <p className="text-muted text-sm lg:text-base">
-              {BOARD_MEMBER_LABELS.description}
+              {t.boardMember.description}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
             <Button asChild variant="outline">
               <Link to="/board_member_types" search={{ lang: language.id }}>
-                {BOARD_MEMBER_LABELS.manageTypes}
+                {t.boardMember.manageTypes}
               </Link>
             </Button>
             {canWrite && (
@@ -328,7 +330,7 @@ function BoardMembersContent({
                 onClick={() => openMemberForm()}
               >
                 <PlusIcon aria-hidden="true" className="size-4" />
-                {BOARD_MEMBER_LABELS.addMember}
+                {t.boardMember.addMember}
               </Button>
             )}
           </div>
@@ -341,7 +343,7 @@ function BoardMembersContent({
         />
 
         <section
-          aria-label={BOARD_MEMBER_LABELS.pageTitle}
+          aria-label={t.boardMember.pageTitle}
           className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
         >
           <div className="border-border flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
@@ -352,15 +354,13 @@ function BoardMembersContent({
               disabled={typesQuery.isPending || typesQuery.isError}
             >
               <SelectTrigger
-                aria-label={BOARD_MEMBER_LABELS.typeFilterLabel}
+                aria-label={t.boardMember.typeFilterLabel}
                 className="w-full lg:w-52"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">
-                  {BOARD_MEMBER_LABELS.allTypes}
-                </SelectItem>
+                <SelectItem value="ALL">{t.boardMember.allTypes}</SelectItem>
                 {localizedTypes.map((type) => (
                   <SelectItem key={type.id} value={String(type.id)}>
                     {type.type}
@@ -370,8 +370,8 @@ function BoardMembersContent({
             </Select>
             <span className="text-muted text-xs lg:ml-auto">
               {membersQuery.isSuccess
-                ? BOARD_MEMBER_LABELS.entryCount(members.length)
-                : BOARD_MEMBER_LABELS.loadingMembers}
+                ? t.boardMember.entryCount(members.length)
+                : t.boardMember.loadingMembers}
             </span>
           </div>
 
@@ -380,14 +380,14 @@ function BoardMembersContent({
               <p role="alert" className="text-danger text-sm">
                 {typesQuery.error instanceof Error
                   ? typesQuery.error.message
-                  : BOARD_MEMBER_LABELS.typesFailed}
+                  : t.boardMember.typesFailed}
               </p>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => void typesQuery.refetch()}
               >
-                {BOARD_MEMBER_LABELS.retry}
+                {t.common.retry}
               </Button>
             </div>
           )}
@@ -395,21 +395,21 @@ function BoardMembersContent({
           {membersQuery.isPending ? (
             <BoardMemberMessage
               role="status"
-              message={BOARD_MEMBER_LABELS.loadingMembers}
+              message={t.boardMember.loadingMembers}
             />
           ) : membersQuery.isError ? (
             <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
               <p role="alert" className="text-danger text-sm">
                 {membersQuery.error instanceof Error
                   ? membersQuery.error.message
-                  : BOARD_MEMBER_LABELS.membersFailed}
+                  : t.boardMember.membersFailed}
               </p>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => void membersQuery.refetch()}
               >
-                {BOARD_MEMBER_LABELS.retry}
+                {t.common.retry}
               </Button>
             </div>
           ) : members.length === 0 ? (
@@ -417,16 +417,16 @@ function BoardMembersContent({
               <BoardMemberMessage
                 message={
                   localizedTypes.length === 0
-                    ? BOARD_MEMBER_LABELS.noTypes
+                    ? t.boardMember.noTypes
                     : search || board_member_type_id
-                      ? BOARD_MEMBER_LABELS.noSearchResults
-                      : BOARD_MEMBER_LABELS.noMembers
+                      ? t.boardMember.noSearchResults
+                      : t.boardMember.noMembers
                 }
               />
               {localizedTypes.length === 0 && typesQuery.isSuccess && (
                 <Button asChild variant="outline">
                   <Link to="/board_member_types" search={{ lang: language.id }}>
-                    {BOARD_MEMBER_LABELS.manageTypes}
+                    {t.boardMember.manageTypes}
                   </Link>
                 </Button>
               )}
@@ -438,24 +438,22 @@ function BoardMembersContent({
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-12 px-2" />
                     <TableHead className="text-muted font-bold uppercase">
-                      {BOARD_MEMBER_LABELS.photo}
+                      {t.boardMember.photo}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {BOARD_MEMBER_LABELS.nameAndRole}
+                      {t.boardMember.nameAndRole}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {BOARD_MEMBER_LABELS.type}
+                      {t.boardMember.type}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {BOARD_MEMBER_LABELS.order}
+                      {t.boardMember.order}
                     </TableHead>
                     <TableHead className="text-muted font-bold uppercase">
-                      {BOARD_MEMBER_LABELS.officialPhoto}
+                      {t.boardMember.officialPhoto}
                     </TableHead>
                     <TableHead>
-                      <span className="sr-only">
-                        {BOARD_MEMBER_LABELS.actions}
-                      </span>
+                      <span className="sr-only">{t.boardMember.actions}</span>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -480,9 +478,7 @@ function BoardMembersContent({
           )}
         </section>
 
-        <p className="text-muted text-xs italic">
-          {BOARD_MEMBER_LABELS.orderHint}
-        </p>
+        <p className="text-muted text-xs italic">{t.boardMember.orderHint}</p>
 
         {memberFormOpen && (
           <BoardMemberFormDialog
@@ -511,10 +507,10 @@ function BoardMembersContent({
         >
           <DialogContent
             className="max-w-xl"
-            closeLabel={BOARD_MEMBER_LABELS.closeDeleteMemberDialog}
+            closeLabel={t.boardMember.closeDeleteMemberDialog}
           >
             <DialogHeader className="border-border border-b">
-              <DialogTitle>{BOARD_MEMBER_LABELS.deleteMemberTitle}</DialogTitle>
+              <DialogTitle>{t.boardMember.deleteMemberTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-5 px-5 py-6">
               <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
@@ -526,7 +522,7 @@ function BoardMembersContent({
                     “{memberToDelete.name}”
                   </p>
                   <DialogDescription>
-                    {BOARD_MEMBER_LABELS.deleteMemberDescription}
+                    {t.boardMember.deleteMemberDescription}
                   </DialogDescription>
                 </div>
               )}
@@ -538,7 +534,7 @@ function BoardMembersContent({
                 disabled={deleteMutation.isPending}
                 onClick={() => setMemberToDelete(null)}
               >
-                {BOARD_MEMBER_LABELS.cancel}
+                {t.common.cancel}
               </Button>
               <Button
                 type="button"
@@ -550,8 +546,8 @@ function BoardMembersContent({
                 }}
               >
                 {deleteMutation.isPending
-                  ? BOARD_MEMBER_LABELS.deletingMember
-                  : BOARD_MEMBER_LABELS.confirmDeleteMember}
+                  ? t.boardMember.deletingMember
+                  : t.boardMember.confirmDeleteMember}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -562,6 +558,7 @@ function BoardMembersContent({
 }
 
 function BoardMemberSearchInput({ search }: { search?: string }) {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/board_members' })
   const [value, setValue] = useState(search ?? '')
 
@@ -589,9 +586,9 @@ function BoardMemberSearchInput({ search }: { search?: string }) {
         className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
-        aria-label={BOARD_MEMBER_LABELS.searchLabel}
+        aria-label={t.boardMember.searchLabel}
         type="search"
-        placeholder={BOARD_MEMBER_LABELS.searchPlaceholder}
+        placeholder={t.boardMember.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
         className="bg-primary border-border pl-10 text-sm"

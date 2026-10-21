@@ -1,4 +1,4 @@
-import { SITE_SETTINGS_LABELS } from '@/module/site_settings/constants/site-settings.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { SiteSettingsImage } from '@/module/site_settings/schemas/site-settings.schema'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -26,6 +26,7 @@ function ImageFileField({
   previewClassName,
   disabled = false,
 }: ImageFileFieldProps) {
+  const { t } = useI18n()
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
 
@@ -35,12 +36,12 @@ function ImageFileField({
 
     const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
     if (!extensions.includes(extension)) {
-      setError(SITE_SETTINGS_LABELS.imageInvalid)
+      setError(t.siteSettings.imageInvalid)
       return
     }
 
     if (file.size > maxSize) {
-      setError(SITE_SETTINGS_LABELS.imageTooLarge(maxSize / 1024 / 1024))
+      setError(t.siteSettings.imageTooLarge(maxSize / 1024 / 1024))
       return
     }
 
@@ -77,7 +78,7 @@ function ImageFileField({
             />
           ) : (
             <span className="text-foreground/55 text-xs">
-              {SITE_SETTINGS_LABELS.noImage}
+              {t.siteSettings.noImage}
             </span>
           )}
         </div>
@@ -90,9 +91,7 @@ function ImageFileField({
           onClick={() => inputRef.current?.click()}
         >
           <UploadIcon aria-hidden="true" className="size-4" />
-          {value.url
-            ? SITE_SETTINGS_LABELS.change
-            : SITE_SETTINGS_LABELS.choose}
+          {value.url ? t.siteSettings.change : t.siteSettings.choose}
         </Button>
       </div>
       {error && (

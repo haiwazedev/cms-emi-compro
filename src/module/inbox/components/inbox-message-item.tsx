@@ -1,13 +1,13 @@
 import type { Inbox } from '@/module/inbox/api/inbox.api'
-import { INBOX_LABELS } from '@/module/inbox/constants/inbox.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { cn } from '@/shared/lib/utils'
 
-const shortDateFormat = new Intl.DateTimeFormat('id-ID', {
+const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   day: 'numeric',
   month: 'short',
   hour: '2-digit',
   minute: '2-digit',
-})
+}
 
 function getInitials(name: string) {
   return name
@@ -27,6 +27,7 @@ function InboxMessageItem({
   selected: boolean
   onSelect: () => void
 }) {
+  const { locale, t } = useI18n()
   return (
     <li>
       <button
@@ -47,13 +48,15 @@ function InboxMessageItem({
               {message.name}
               {!message.is_read && (
                 <span
-                  aria-label={INBOX_LABELS.unread}
+                  aria-label={t.inbox.unread}
                   className="bg-secondary size-2 rounded-full"
                 />
               )}
             </span>
             <span className="text-foreground/50 shrink-0 text-xs">
-              {shortDateFormat.format(new Date(message.created_at))}
+              {new Intl.DateTimeFormat(locale, SHORT_DATE_OPTIONS).format(
+                new Date(message.created_at),
+              )}
             </span>
           </span>
           <span className="text-accent text-sm">

@@ -1,6 +1,6 @@
 import { NavigationSidebar } from './navigation-sidebar'
-import { NAVIGATION_LABELS } from '../constants/navigation.constants'
 import { Button } from '@/shared/components/ui/button'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   Sheet,
   SheetClose,
@@ -11,6 +11,8 @@ import {
 import { MenuIcon, XIcon } from 'lucide-react'
 
 function MobileNavigationDrawer() {
+  const { t } = useI18n()
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -18,7 +20,7 @@ function MobileNavigationDrawer() {
           type="button"
           variant="ghost"
           size="icon"
-          aria-label={NAVIGATION_LABELS.openNavigation}
+          aria-label={t.nav.openNavigation}
           className="shrink-0 lg:hidden"
         >
           <MenuIcon aria-hidden="true" className="size-5" />
@@ -27,18 +29,16 @@ function MobileNavigationDrawer() {
       <SheetContent
         side="left"
         showCloseButton={false}
-        aria-label={NAVIGATION_LABELS.navigation}
+        aria-label={t.nav.navigation}
         className="w-64 border-0 bg-transparent p-0 text-white shadow-none"
       >
-        <SheetTitle className="sr-only">
-          {NAVIGATION_LABELS.navigation}
-        </SheetTitle>
+        <SheetTitle className="sr-only">{t.nav.navigation}</SheetTitle>
         <SheetClose asChild>
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={NAVIGATION_LABELS.closeNavigation}
+            aria-label={t.nav.closeNavigation}
             className="absolute top-3 right-3 z-10 text-white hover:bg-white/10 hover:text-white"
           >
             <XIcon aria-hidden="true" className="size-4" />

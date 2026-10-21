@@ -9,7 +9,7 @@ import type {
   ArticleCategoryWriteFields,
 } from '@/module/article/api/article.api'
 import { ArticleCategoryFormDialog } from '@/module/article/components/article-category-form-dialog'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   articleCategoriesQueryOptions,
   articleQueryKeys,
@@ -31,6 +31,7 @@ import { PencilIcon, PlusIcon, TagIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 function ArticleCategoriesPage() {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
   const categoriesQuery = useQuery(articleCategoriesQueryOptions())
@@ -56,18 +57,16 @@ function ArticleCategoriesPage() {
       // Article lists and details embed the category name.
       await queryClient.invalidateQueries({ queryKey: articleQueryKeys.all })
       toast.add({
-        title: 'Berhasil',
-        description: ARTICLE_LABELS.categorySaved,
+        title: t.common.success,
+        description: t.article.categorySaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error
-            ? error.message
-            : ARTICLE_LABELS.categorySaveFailed,
+          error instanceof Error ? error.message : t.article.categorySaveFailed,
         type: 'error',
       })
     },
@@ -79,18 +78,18 @@ function ArticleCategoriesPage() {
       setCategoryToDelete(null)
       await queryClient.invalidateQueries({ queryKey: articleQueryKeys.all })
       toast.add({
-        title: 'Berhasil',
-        description: ARTICLE_LABELS.categoryDeleted,
+        title: t.common.success,
+        description: t.article.categoryDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : ARTICLE_LABELS.categoryDeleteFailed,
+            : t.article.categoryDeleteFailed,
         type: 'error',
       })
     },
@@ -121,14 +120,14 @@ function ArticleCategoriesPage() {
             variant="link"
             className="text-secondary h-auto self-start px-0"
           >
-            <Link to="/articles">{ARTICLE_LABELS.backToArticles}</Link>
+            <Link to="/articles">{t.article.backToArticles}</Link>
           </Button>
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {ARTICLE_LABELS.categoryPageTitle}
+              {t.article.categoryPageTitle}
             </h1>
             <p className="text-foreground/60 text-sm lg:text-base">
-              {ARTICLE_LABELS.categoryDescription}
+              {t.article.categoryDescription}
             </p>
           </div>
         </div>
@@ -139,37 +138,37 @@ function ArticleCategoriesPage() {
             onClick={() => openCategoryForm()}
           >
             <PlusIcon aria-hidden="true" className="size-4" />
-            {ARTICLE_LABELS.addCategory}
+            {t.article.addCategory}
           </Button>
         )}
       </header>
 
       <section
-        aria-label={ARTICLE_LABELS.categoryPageTitle}
+        aria-label={t.article.categoryPageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {categoriesQuery.isPending ? (
           <CategoryMessage
             role="status"
-            message={ARTICLE_LABELS.loadingCategories}
+            message={t.article.loadingCategories}
           />
         ) : categoriesQuery.isError ? (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <p role="alert" className="text-danger text-sm">
               {categoriesQuery.error instanceof Error
                 ? categoriesQuery.error.message
-                : ARTICLE_LABELS.categoriesFailed}
+                : t.article.categoriesFailed}
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => void categoriesQuery.refetch()}
             >
-              {ARTICLE_LABELS.retry}
+              {t.common.retry}
             </Button>
           </div>
         ) : categoriesQuery.data.length === 0 ? (
-          <CategoryMessage message={ARTICLE_LABELS.noCategories} />
+          <CategoryMessage message={t.article.noCategories} />
         ) : (
           <ul className="divide-border divide-y">
             {categoriesQuery.data.map((category) => (
@@ -196,7 +195,7 @@ function ArticleCategoriesPage() {
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label={`${ARTICLE_LABELS.edit} ${category.name}`}
+                      aria-label={`${t.common.edit} ${category.name}`}
                       onClick={() => openCategoryForm(category)}
                     >
                       <PencilIcon aria-hidden="true" className="size-4" />
@@ -208,7 +207,7 @@ function ArticleCategoriesPage() {
                       variant="outline"
                       size="icon"
                       disabled={deleteMutation.isPending}
-                      aria-label={`${ARTICLE_LABELS.delete} ${category.name}`}
+                      aria-label={`${t.common.delete} ${category.name}`}
                       onClick={() => setCategoryToDelete(category)}
                     >
                       <Trash2Icon aria-hidden="true" className="size-4" />
@@ -240,10 +239,10 @@ function ArticleCategoriesPage() {
       >
         <DialogContent
           className="max-w-xl"
-          closeLabel={ARTICLE_LABELS.closeDeleteCategoryDialog}
+          closeLabel={t.article.closeDeleteCategoryDialog}
         >
           <DialogHeader className="border-border border-b">
-            <DialogTitle>{ARTICLE_LABELS.deleteCategoryTitle}</DialogTitle>
+            <DialogTitle>{t.article.deleteCategoryTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5 px-5 py-6">
             <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
@@ -255,7 +254,7 @@ function ArticleCategoriesPage() {
                   “{categoryToDelete.name}”
                 </p>
                 <DialogDescription>
-                  {ARTICLE_LABELS.deleteCategoryDescription}
+                  {t.article.deleteCategoryDescription}
                 </DialogDescription>
               </div>
             )}
@@ -267,7 +266,7 @@ function ArticleCategoriesPage() {
               disabled={deleteMutation.isPending}
               onClick={() => setCategoryToDelete(null)}
             >
-              {ARTICLE_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -279,8 +278,8 @@ function ArticleCategoriesPage() {
               }}
             >
               {deleteMutation.isPending
-                ? ARTICLE_LABELS.deletingCategory
-                : ARTICLE_LABELS.confirmDeleteCategory}
+                ? t.article.deletingCategory
+                : t.article.confirmDeleteCategory}
             </Button>
           </DialogFooter>
         </DialogContent>

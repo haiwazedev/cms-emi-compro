@@ -3,10 +3,7 @@ import type { Role, RoleFields } from '@/module/user/api/user.api'
 import { ConfirmDeleteDialog } from '@/module/user/components/confirm-delete-dialog'
 import { ListError, ListMessage } from '@/module/user/components/list-state'
 import { RoleFormDialog } from '@/module/user/components/role-form-dialog'
-import {
-  ROLE_LABELS,
-  USER_LABELS,
-} from '@/module/user/constants/user.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { useCurrentUserRecord } from '@/module/user/hooks/use-current-user-record'
 import {
   rolesQueryOptions,
@@ -21,6 +18,7 @@ import { KeyRoundIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 
 function RolesPage() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const rolesQuery = useQuery(rolesQueryOptions())
   const currentUser = useCurrentUserRecord()
@@ -42,16 +40,16 @@ function RolesPage() {
       // User rows and the permission matrix show role names.
       await invalidateUserAccess()
       toast.add({
-        title: 'Berhasil',
-        description: ROLE_LABELS.roleSaved,
+        title: t.common.success,
+        description: t.role.roleSaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : ROLE_LABELS.roleSaveFailed,
+          error instanceof Error ? error.message : t.role.roleSaveFailed,
         type: 'error',
       })
     },
@@ -64,16 +62,16 @@ function RolesPage() {
       // The role's users are deleted too.
       await invalidateUserAccess()
       toast.add({
-        title: 'Berhasil',
-        description: ROLE_LABELS.roleDeleted,
+        title: t.common.success,
+        description: t.role.roleDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error ? error.message : ROLE_LABELS.roleDeleteFailed,
+          error instanceof Error ? error.message : t.role.roleDeleteFailed,
         type: 'error',
       })
     },
@@ -109,14 +107,14 @@ function RolesPage() {
             variant="link"
             className="text-secondary h-auto self-start px-0"
           >
-            <Link to="/users">{ROLE_LABELS.backToUsers}</Link>
+            <Link to="/users">{t.role.backToUsers}</Link>
           </Button>
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {ROLE_LABELS.pageTitle}
+              {t.role.pageTitle}
             </h1>
             <p className="text-muted text-sm lg:text-base">
-              {ROLE_LABELS.description}
+              {t.role.description}
             </p>
           </div>
         </div>
@@ -126,24 +124,24 @@ function RolesPage() {
           onClick={() => openForm()}
         >
           <PlusIcon aria-hidden="true" className="size-4" />
-          {ROLE_LABELS.addRole}
+          {t.role.addRole}
         </Button>
       </header>
 
       <section
-        aria-label={ROLE_LABELS.pageTitle}
+        aria-label={t.role.pageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {rolesQuery.isPending ? (
-          <ListMessage role="status" message={USER_LABELS.loading} />
+          <ListMessage role="status" message={t.user.loading} />
         ) : rolesQuery.isError ? (
           <ListError
             error={rolesQuery.error}
-            fallback={ROLE_LABELS.rolesFailed}
+            fallback={t.role.rolesFailed}
             onRetry={() => void rolesQuery.refetch()}
           />
         ) : rolesQuery.data.length === 0 ? (
-          <ListMessage message={ROLE_LABELS.noRoles} />
+          <ListMessage message={t.role.noRoles} />
         ) : (
           <ul className="divide-border divide-y">
             {rolesQuery.data.map((role) => {
@@ -168,7 +166,7 @@ function RolesPage() {
                         </span>
                       )}
                       <span className="text-muted text-xs">
-                        {ROLE_LABELS.userCount(role.user_count)}
+                        {t.role.userCount(role.user_count)}
                       </span>
                     </div>
                   </div>
@@ -177,22 +175,20 @@ function RolesPage() {
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label={ROLE_LABELS.editRole(role.name)}
+                      aria-label={t.role.editRole(role.name)}
                       onClick={() => openForm(role)}
                     >
                       <PencilIcon aria-hidden="true" className="size-4" />
                     </Button>
                     <span
-                      title={
-                        isOwnRole ? ROLE_LABELS.cannotDeleteOwnRole : undefined
-                      }
+                      title={isOwnRole ? t.role.cannotDeleteOwnRole : undefined}
                     >
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
                         disabled={isOwnRole || deleteMutation.isPending}
-                        aria-label={ROLE_LABELS.deleteRole(role.name)}
+                        aria-label={t.role.deleteRole(role.name)}
                         onClick={() => setRoleToDelete(role)}
                       >
                         <Trash2Icon aria-hidden="true" className="size-4" />
@@ -223,17 +219,17 @@ function RolesPage() {
 
       <ConfirmDeleteDialog
         open={roleToDelete !== null}
-        title={ROLE_LABELS.deleteRoleTitle}
+        title={t.role.deleteRoleTitle}
         itemName={roleToDelete?.name}
         description={
           roleToDelete
-            ? ROLE_LABELS.deleteRoleDescription(
+            ? t.role.deleteRoleDescription(
                 roleToDelete.name,
                 roleToDelete.user_count,
               )
             : undefined
         }
-        closeLabel={ROLE_LABELS.closeDeleteRoleDialog}
+        closeLabel={t.role.closeDeleteRoleDialog}
         pending={deleteMutation.isPending}
         onCancel={() => setRoleToDelete(null)}
         onConfirm={() => {

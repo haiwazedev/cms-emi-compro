@@ -8,7 +8,7 @@ import type {
   ArticleListParams,
   ArticleStatus,
 } from '@/module/article/api/article.api'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { ArticleDataTable } from '@/module/article/components/article-data-table'
 import { ArticleDeleteDialog } from '@/module/article/components/article-delete-dialog'
 import { ArticleLanguageLegend } from '@/module/article/components/article-language-pills'
@@ -30,6 +30,7 @@ type StatusFilter = ArticleStatus | 'ALL'
 type SortOrder = ArticleListParams['sort_order']
 
 function ArticlesPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/articles' })
   const searchParams = useSearch({ from: '/_authenticated/articles' })
@@ -120,21 +121,19 @@ function ArticlesPage() {
         <div className="flex flex-col gap-1">
           {/* Title */}
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {ARTICLE_LABELS.pageTitle}
+            {t.article.pageTitle}
           </h1>
 
           {/* Sub-title */}
           <p className="text-muted text-sm lg:text-base">
-            {ARTICLE_LABELS.description}
+            {t.article.description}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto">
           {/* "Kelola Kategori" button */}
           <Button asChild variant="outline">
-            <Link to="/article_categories">
-              {ARTICLE_LABELS.manageCategories}
-            </Link>
+            <Link to="/article_categories">{t.article.manageCategories}</Link>
           </Button>
 
           {/* "+ Buat Artikel" button */}
@@ -142,7 +141,7 @@ function ArticlesPage() {
             <Button asChild>
               <Link to="/articles/create">
                 <PlusIcon aria-hidden="true" className="size-4" />
-                {ARTICLE_LABELS.createArticle}
+                {t.article.createArticle}
               </Link>
             </Button>
           )}
@@ -150,7 +149,7 @@ function ArticlesPage() {
       </header>
 
       <section
-        aria-label={ARTICLE_LABELS.pageTitle}
+        aria-label={t.article.pageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {/* Filters */}
@@ -158,7 +157,7 @@ function ArticlesPage() {
           <ArticleSearchInput key={search ?? ''} search={search} />
 
           <label className="sr-only" htmlFor="article-category-filter">
-            {ARTICLE_LABELS.categoryFilterLabel}
+            {t.article.categoryFilterLabel}
           </label>
           <Select
             value={article_category_id?.toString() ?? 'ALL'}
@@ -167,7 +166,7 @@ function ArticlesPage() {
           >
             <SelectTrigger
               id="article-category-filter"
-              aria-label={ARTICLE_LABELS.categoryFilterLabel}
+              aria-label={t.article.categoryFilterLabel}
               className="lg:w-40"
             >
               <SelectValue />
@@ -175,8 +174,8 @@ function ArticlesPage() {
             <SelectContent>
               <SelectItem value="ALL">
                 {categoriesQuery.isPending
-                  ? ARTICLE_LABELS.loadingCategories
-                  : ARTICLE_LABELS.allCategories}
+                  ? t.article.loadingCategories
+                  : t.article.allCategories}
               </SelectItem>
               {categoriesQuery.data?.map((category) => (
                 <SelectItem key={category.id} value={String(category.id)}>
@@ -187,7 +186,7 @@ function ArticlesPage() {
           </Select>
 
           <label className="sr-only" htmlFor="article-status-filter">
-            {ARTICLE_LABELS.statusFilterLabel}
+            {t.article.statusFilterLabel}
           </label>
           <Select
             value={status ?? 'ALL'}
@@ -195,22 +194,20 @@ function ArticlesPage() {
           >
             <SelectTrigger
               id="article-status-filter"
-              aria-label={ARTICLE_LABELS.statusFilterLabel}
+              aria-label={t.article.statusFilterLabel}
               className="lg:w-40"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">{ARTICLE_LABELS.allStatuses}</SelectItem>
-              <SelectItem value="PUBLISHED">
-                {ARTICLE_LABELS.published}
-              </SelectItem>
-              <SelectItem value="DRAFT">{ARTICLE_LABELS.draft}</SelectItem>
+              <SelectItem value="ALL">{t.article.allStatuses}</SelectItem>
+              <SelectItem value="PUBLISHED">{t.article.published}</SelectItem>
+              <SelectItem value="DRAFT">{t.article.draft}</SelectItem>
             </SelectContent>
           </Select>
 
           <label className="sr-only" htmlFor="article-sort-order">
-            {ARTICLE_LABELS.sortLabel}
+            {t.article.sortLabel}
           </label>
           <Select
             value={sort_order}
@@ -218,19 +215,19 @@ function ArticlesPage() {
           >
             <SelectTrigger
               id="article-sort-order"
-              aria-label={ARTICLE_LABELS.sortLabel}
+              aria-label={t.article.sortLabel}
               className="lg:w-36"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">{ARTICLE_LABELS.newest}</SelectItem>
-              <SelectItem value="asc">{ARTICLE_LABELS.oldest}</SelectItem>
+              <SelectItem value="desc">{t.article.newest}</SelectItem>
+              <SelectItem value="asc">{t.article.oldest}</SelectItem>
             </SelectContent>
           </Select>
 
           <p className="text-muted text-sm lg:ml-auto lg:whitespace-nowrap">
-            {ARTICLE_LABELS.entryCount(pagination?.totalItems ?? 0)}
+            {t.article.entryCount(pagination?.totalItems ?? 0)}
           </p>
         </div>
 
@@ -239,33 +236,30 @@ function ArticlesPage() {
 
         {categoriesQuery.isError && (
           <p role="status" className="text-danger px-4 pb-4 text-sm">
-            {ARTICLE_LABELS.categoriesFailed}
+            {t.article.categoriesFailed}
           </p>
         )}
 
         {/* Article Table */}
         {articlesQuery.isPending ? (
-          <ArticleMessage
-            role="status"
-            message={ARTICLE_LABELS.loadingArticles}
-          />
+          <ArticleMessage role="status" message={t.article.loadingArticles} />
         ) : articlesQuery.isError ? (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <p role="alert" className="text-danger text-sm">
               {articlesQuery.error instanceof Error
                 ? articlesQuery.error.message
-                : ARTICLE_LABELS.articlesFailed}
+                : t.article.articlesFailed}
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => void articlesQuery.refetch()}
             >
-              {ARTICLE_LABELS.retry}
+              {t.common.retry}
             </Button>
           </div>
         ) : articles.length === 0 ? (
-          <ArticleMessage message={ARTICLE_LABELS.noArticles} />
+          <ArticleMessage message={t.article.noArticles} />
         ) : (
           <ArticleDataTable
             articles={articles}
@@ -292,6 +286,7 @@ function ArticlesPage() {
 }
 
 function ArticleSearchInput({ search }: { search?: string }) {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/articles' })
   const [value, setValue] = useState(search ?? '')
 
@@ -320,9 +315,9 @@ function ArticleSearchInput({ search }: { search?: string }) {
         className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
-        aria-label={ARTICLE_LABELS.searchLabel}
+        aria-label={t.article.searchLabel}
         type="search"
-        placeholder={ARTICLE_LABELS.searchPlaceholder}
+        placeholder={t.article.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.target.value)}
         className="bg-primary border-border pl-10 text-sm"

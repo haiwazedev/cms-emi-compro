@@ -1,8 +1,7 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
-import {
-  ARTICLE_LABELS,
-  ARTICLE_PAGE_SIZES,
-} from '@/module/article/constants/article.constants'
+import { ARTICLE_PAGE_SIZES } from '@/module/article/constants/article.constants'
+import type { Dictionary } from '@/shared/lib/i18n/id'
+import { useI18n, type Locale } from '@/shared/lib/i18n/i18n-context'
 import type { ArticleListItem } from '@/module/article/api/article.api'
 import { Button } from '@/shared/components/ui/button'
 import { TableCheckbox } from '@/shared/components/ui/table-checkbox'
@@ -44,6 +43,8 @@ import {
 } from 'lucide-react'
 
 function createArticleColumns(
+  t: Dictionary,
+  locale: Locale,
   onDeleteArticle: (article: ArticleListItem) => void,
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
   compact: boolean,
@@ -55,14 +56,14 @@ function createArticleColumns(
       id: 'select',
       header: ({ table }) => (
         <TableCheckbox
-          aria-label={ARTICLE_LABELS.selectAllArticles}
+          aria-label={t.article.selectAllArticles}
           checked={table.getIsAllRowsSelected()}
           onChange={table.getToggleAllRowsSelectedHandler()}
         />
       ),
       cell: ({ row }) => (
         <TableCheckbox
-          aria-label={ARTICLE_LABELS.selectArticle(row.original.title ?? '')}
+          aria-label={t.article.selectArticle(row.original.title ?? '')}
           checked={row.getIsSelected()}
           onChange={row.getToggleSelectedHandler()}
         />
@@ -70,12 +71,12 @@ function createArticleColumns(
     },
     {
       id: 'photo',
-      header: ARTICLE_LABELS.photo,
+      header: t.article.photo,
       cell: ({ row }) => <ArticlePhoto article={row.original} />,
     },
     {
       accessorKey: 'title',
-      header: ARTICLE_LABELS.title,
+      header: t.article.title,
       cell: ({ row }) => (
         <div className="flex min-w-64 flex-col gap-1 whitespace-normal">
           <span className="text-accent font-semibold">
@@ -98,7 +99,7 @@ function createArticleColumns(
     {
       accessorFn: (article) => article.article_category.name,
       id: 'category',
-      header: ARTICLE_LABELS.category,
+      header: t.article.category,
       cell: ({ row }) => (
         <span className="bg-secondary/10 text-accent inline-flex rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap">
           {row.original.article_category.name}
@@ -107,28 +108,28 @@ function createArticleColumns(
     },
     {
       accessorKey: 'issue_date',
-      header: ARTICLE_LABELS.date,
+      header: t.article.date,
       cell: ({ row }) => (
         <span className="text-foreground/70 whitespace-nowrap">
-          {formatIssueDate(row.original.issue_date)}
+          {formatIssueDate(row.original.issue_date, locale)}
         </span>
       ),
     },
     {
       id: 'status',
-      header: ARTICLE_LABELS.status,
+      header: t.article.status,
       cell: ({ row }) => <ArticleStatusPill status={row.original.status} />,
     },
     {
       id: 'languages',
-      header: ARTICLE_LABELS.languages,
+      header: t.article.languages,
       cell: ({ row }) => (
         <ArticleLanguagePills languages={row.original.languages} />
       ),
     },
     {
       id: 'actions',
-      header: () => <span className="sr-only">{ARTICLE_LABELS.actions}</span>,
+      header: () => <span className="sr-only">{t.article.actions}</span>,
       cell: ({ row }) => (
         <div className="flex items-center justify-end gap-2">
           {canWrite && (
@@ -137,9 +138,7 @@ function createArticleColumns(
               variant="outline"
               size="icon"
               className="size-8"
-              aria-label={
-                ARTICLE_LABELS.edit + ' ' + (row.original.title ?? '')
-              }
+              aria-label={t.common.edit + ' ' + (row.original.title ?? '')}
             >
               <Link
                 to="/articles/$articleId/edit"
@@ -155,7 +154,7 @@ function createArticleColumns(
               variant="outline"
               size="icon"
               className="size-8"
-              aria-label={`${ARTICLE_LABELS.delete} ${row.original.title ?? ''}`}
+              aria-label={`${t.common.delete} ${row.original.title ?? ''}`}
               onClick={() => onDeleteArticle(row.original)}
             >
               <Trash2Icon aria-hidden="true" className="size-4" />
@@ -193,10 +192,17 @@ function ArticleDataTable({
   compact = false,
 }: ArticleDataTableProps) {
   const { canWrite, canDelete } = usePermissions()
+  const { locale, t } = useI18n()
   const articleColumns = useMemo(
     () =>
-      createArticleColumns(onDeleteArticle, { canWrite, canDelete }, compact),
-    [canDelete, canWrite, compact, onDeleteArticle],
+      createArticleColumns(
+        t,
+        locale,
+        onDeleteArticle,
+        { canWrite, canDelete },
+        compact,
+      ),
+    [t, locale, canDelete, canWrite, compact, onDeleteArticle],
   )
 
   const table = useReactTable({
@@ -266,13 +272,14 @@ function ArticleTablePaginationBar({
   onPageIndexChange,
   onPageSizeChange,
 }: ArticleTablePagination) {
+  const { t } = useI18n()
   const start = totalItems === 0 ? 0 : pageIndex * pageSize + 1
   const end = Math.min((pageIndex + 1) * pageSize, totalItems)
 
   return (
     <div className="border-border flex flex-col gap-4 border-t px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-muted text-sm">
-        {ARTICLE_LABELS.showingEntries(start, end, totalItems)}
+        {t.article.showingEntries(start, end, totalItems)}
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -280,7 +287,7 @@ function ArticleTablePaginationBar({
           type="button"
           variant="outline"
           size="icon"
-          aria-label={ARTICLE_LABELS.previousPage}
+          aria-label={t.article.previousPage}
           disabled={pageIndex === 0}
           onClick={() => onPageIndexChange(pageIndex - 1)}
         >
@@ -293,7 +300,7 @@ function ArticleTablePaginationBar({
           type="button"
           variant="outline"
           size="icon"
-          aria-label={ARTICLE_LABELS.nextPage}
+          aria-label={t.article.nextPage}
           disabled={pageIndex + 1 >= pageCount}
           onClick={() => onPageIndexChange(pageIndex + 1)}
         >
@@ -303,16 +310,13 @@ function ArticleTablePaginationBar({
           value={String(pageSize)}
           onValueChange={(value) => onPageSizeChange(Number(value))}
         >
-          <SelectTrigger
-            aria-label={ARTICLE_LABELS.pageSize}
-            className="h-9 w-36"
-          >
+          <SelectTrigger aria-label={t.article.pageSize} className="h-9 w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {ARTICLE_PAGE_SIZES.map((size) => (
               <SelectItem key={size} value={String(size)}>
-                {ARTICLE_LABELS.pageSizeOption(size)}
+                {t.article.pageSizeOption(size)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -341,13 +345,13 @@ function ArticlePhoto({ article }: { article: ArticleListItem }) {
   )
 }
 
-function formatIssueDate(issueDate: string | null) {
+function formatIssueDate(issueDate: string | null, locale: Locale) {
   if (!issueDate) return '-'
 
   const date = new Date(`${issueDate.slice(0, 10)}T00:00:00`)
   if (Number.isNaN(date.getTime())) return '-'
 
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

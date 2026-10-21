@@ -12,7 +12,7 @@ import type {
 } from '@/module/document_commitment/api/document-commitment.api'
 import { DocumentCommitmentDataTable } from '@/module/document_commitment/components/document-commitment-data-table'
 import { DocumentCommitmentFormDialog } from '@/module/document_commitment/components/document-commitment-form-dialog'
-import { DOCUMENT_COMMITMENT_LABELS } from '@/module/document_commitment/constants/document-commitment.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   documentCommitmentQueryKeys,
   documentCommitmentCategoriesQueryOptions,
@@ -45,6 +45,7 @@ import { useEffect, useMemo, useState } from 'react'
 type StatusFilter = DocumentCommitmentStatus | 'ALL'
 
 function DocumentCommitmentsPage() {
+  const { t } = useI18n()
   const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/document_commitments' })
   const queryClient = useQueryClient()
@@ -88,7 +89,7 @@ function DocumentCommitmentsPage() {
       if (documentId) {
         return updateDocumentCommitment(documentId, fields, file)
       }
-      if (!file) throw new Error(DOCUMENT_COMMITMENT_LABELS.pdfRequired)
+      if (!file) throw new Error(t.documentCommitment.pdfRequired)
       return createDocumentCommitment(fields, file)
     },
     onSuccess: async () => {
@@ -98,18 +99,18 @@ function DocumentCommitmentsPage() {
         queryKey: documentCommitmentQueryKeys.lists(),
       })
       toast.add({
-        title: 'Berhasil',
-        description: DOCUMENT_COMMITMENT_LABELS.documentSaved,
+        title: t.common.success,
+        description: t.documentCommitment.documentSaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DOCUMENT_COMMITMENT_LABELS.documentSaveFailed,
+            : t.documentCommitment.documentSaveFailed,
         type: 'error',
       })
     },
@@ -136,18 +137,18 @@ function DocumentCommitmentsPage() {
         exact: true,
       })
       toast.add({
-        title: 'Berhasil',
-        description: DOCUMENT_COMMITMENT_LABELS.documentDeleted,
+        title: t.common.success,
+        description: t.documentCommitment.documentDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : DOCUMENT_COMMITMENT_LABELS.documentDeleteFailed,
+            : t.documentCommitment.documentDeleteFailed,
         type: 'error',
       })
     },
@@ -189,29 +190,29 @@ function DocumentCommitmentsPage() {
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-            {DOCUMENT_COMMITMENT_LABELS.pageTitle}
+            {t.documentCommitment.pageTitle}
           </h1>
           <p className="text-muted text-sm lg:text-base">
-            {DOCUMENT_COMMITMENT_LABELS.description}
+            {t.documentCommitment.description}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline">
             <Link to="/document_commitment_categories">
-              {DOCUMENT_COMMITMENT_LABELS.manageCategories}
+              {t.documentCommitment.manageCategories}
             </Link>
           </Button>
           {canWrite && (
             <Button type="button" onClick={() => openDocumentForm()}>
               <PlusIcon aria-hidden="true" className="size-4" />
-              {DOCUMENT_COMMITMENT_LABELS.upload}
+              {t.documentCommitment.upload}
             </Button>
           )}
         </div>
       </header>
 
       <section
-        aria-label={DOCUMENT_COMMITMENT_LABELS.pageTitle}
+        aria-label={t.documentCommitment.pageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
@@ -223,14 +224,14 @@ function DocumentCommitmentsPage() {
             disabled={categoriesQuery.isPending || categoriesQuery.isError}
           >
             <SelectTrigger
-              aria-label={DOCUMENT_COMMITMENT_LABELS.categoryFilterLabel}
+              aria-label={t.documentCommitment.categoryFilterLabel}
               className="lg:w-52"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">
-                {DOCUMENT_COMMITMENT_LABELS.allCategories}
+                {t.documentCommitment.allCategories}
               </SelectItem>
               {categoriesQuery.data?.map((category) => (
                 <SelectItem key={category.id} value={String(category.id)}>
@@ -245,57 +246,57 @@ function DocumentCommitmentsPage() {
             onValueChange={(value) => updateStatus(value as StatusFilter)}
           >
             <SelectTrigger
-              aria-label={DOCUMENT_COMMITMENT_LABELS.statusFilterLabel}
+              aria-label={t.documentCommitment.statusFilterLabel}
               className="lg:w-40"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">
-                {DOCUMENT_COMMITMENT_LABELS.allStatuses}
+                {t.documentCommitment.allStatuses}
               </SelectItem>
               <SelectItem value="PUBLISHED">
-                {DOCUMENT_COMMITMENT_LABELS.published}
+                {t.documentCommitment.published}
               </SelectItem>
               <SelectItem value="DRAFT">
-                {DOCUMENT_COMMITMENT_LABELS.draft}
+                {t.documentCommitment.draft}
               </SelectItem>
             </SelectContent>
           </Select>
 
           <p className="text-muted text-sm lg:ml-auto lg:whitespace-nowrap">
-            {DOCUMENT_COMMITMENT_LABELS.entryCount(pagination?.totalItems ?? 0)}
+            {t.documentCommitment.entryCount(pagination?.totalItems ?? 0)}
           </p>
         </div>
 
         {categoriesQuery.isError && (
           <p role="status" className="text-danger px-4 pb-4 text-sm">
-            {DOCUMENT_COMMITMENT_LABELS.categoriesFailed}
+            {t.documentCommitment.categoriesFailed}
           </p>
         )}
 
         {documentsQuery.isPending ? (
           <DocumentMessage
             role="status"
-            message={DOCUMENT_COMMITMENT_LABELS.loadingDocuments}
+            message={t.documentCommitment.loadingDocuments}
           />
         ) : documentsQuery.isError ? (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <p role="alert" className="text-danger text-sm">
               {documentsQuery.error instanceof Error
                 ? documentsQuery.error.message
-                : DOCUMENT_COMMITMENT_LABELS.documentsFailed}
+                : t.documentCommitment.documentsFailed}
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => void documentsQuery.refetch()}
             >
-              {DOCUMENT_COMMITMENT_LABELS.retry}
+              {t.common.retry}
             </Button>
           </div>
         ) : documents.length === 0 ? (
-          <DocumentMessage message={DOCUMENT_COMMITMENT_LABELS.noDocuments} />
+          <DocumentMessage message={t.documentCommitment.noDocuments} />
         ) : (
           <DocumentCommitmentDataTable
             documents={documents}
@@ -350,11 +351,11 @@ function DocumentCommitmentsPage() {
       >
         <DialogContent
           className="max-w-xl"
-          closeLabel={DOCUMENT_COMMITMENT_LABELS.closeDeleteDialog}
+          closeLabel={t.documentCommitment.closeDeleteDialog}
         >
           <DialogHeader className="border-border border-b">
             <DialogTitle>
-              {DOCUMENT_COMMITMENT_LABELS.deleteDocumentTitle}
+              {t.documentCommitment.deleteDocumentTitle}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5 px-5 py-6">
@@ -367,7 +368,7 @@ function DocumentCommitmentsPage() {
                   “{documentToDelete.title}”
                 </p>
                 <DialogDescription>
-                  {DOCUMENT_COMMITMENT_LABELS.deleteDocumentDescription}
+                  {t.documentCommitment.deleteDocumentDescription}
                 </DialogDescription>
               </div>
             )}
@@ -379,7 +380,7 @@ function DocumentCommitmentsPage() {
               disabled={deleteMutation.isPending}
               onClick={() => setDocumentToDelete(null)}
             >
-              {DOCUMENT_COMMITMENT_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -393,8 +394,8 @@ function DocumentCommitmentsPage() {
               }}
             >
               {deleteMutation.isPending
-                ? DOCUMENT_COMMITMENT_LABELS.deletingDocument
-                : DOCUMENT_COMMITMENT_LABELS.confirmDeleteDocument}
+                ? t.documentCommitment.deletingDocument
+                : t.documentCommitment.confirmDeleteDocument}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -404,6 +405,7 @@ function DocumentCommitmentsPage() {
 }
 
 function DocumentSearchInput({ search }: { search?: string }) {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/document_commitments' })
   const [value, setValue] = useState(search ?? '')
 
@@ -428,9 +430,9 @@ function DocumentSearchInput({ search }: { search?: string }) {
         className="text-muted absolute top-1/2 left-3 size-4 -translate-y-1/2"
       />
       <Input
-        aria-label={DOCUMENT_COMMITMENT_LABELS.searchLabel}
+        aria-label={t.documentCommitment.searchLabel}
         type="search"
-        placeholder={DOCUMENT_COMMITMENT_LABELS.searchPlaceholder}
+        placeholder={t.documentCommitment.searchPlaceholder}
         value={value}
         onChange={(event) => setValue(event.target.value)}
         className="bg-primary border-border pl-10 text-sm"

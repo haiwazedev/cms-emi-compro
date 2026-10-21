@@ -5,12 +5,10 @@ import type {
 } from '@/module/board_member/api/board-member.api'
 import { getBoardMemberAssetUrl } from '@/module/board_member/api/board-member.api'
 import type { Language } from '@/module/language/api/language.api'
-import {
-  BOARD_MEMBER_LABELS,
-  BOARD_MEMBER_MAX_PHOTO_SIZE,
-} from '@/module/board_member/constants/board-member.constants'
+import { BOARD_MEMBER_MAX_PHOTO_SIZE } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { BoardMemberFormValues } from '@/module/board_member/schemas/board-member-form.schema'
-import { boardMemberFormSchema } from '@/module/board_member/schemas/board-member-form.schema'
+import { createBoardMemberFormSchema } from '@/module/board_member/schemas/board-member-form.schema'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -33,7 +31,7 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon, UploadIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useForm, useWatch } from 'react-hook-form'
 
 interface BoardMemberFormDialogProps {
   open: boolean
@@ -54,6 +52,7 @@ function BoardMemberFormDialog({
   pending,
   onSubmit,
 }: BoardMemberFormDialogProps) {
+  const { t } = useI18n()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedPhoto, setSelectedPhoto] = useState<File>()
   const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string>()
@@ -83,7 +82,7 @@ function BoardMemberFormDialog({
     handleSubmit,
     register,
   } = useForm<BoardMemberFormValues>({
-    resolver: zodResolver(boardMemberFormSchema),
+    resolver: zodResolver(createBoardMemberFormSchema(t)),
     defaultValues: {
       name: member?.name ?? '',
       company_name: member?.company_name ?? '',
@@ -92,6 +91,9 @@ function BoardMemberFormDialog({
       board_member_type_id: content?.board_member_type_id ?? types[0]?.id ?? 0,
     },
   })
+  const nameValue = useWatch({ control, name: 'name' })
+  const companyNameValue = useWatch({ control, name: 'company_name' })
+  const roleValue = useWatch({ control, name: 'role' })
 
   function handlePhotoChange(file: File | undefined) {
     setSelectedPhoto(undefined)
@@ -105,12 +107,12 @@ function BoardMemberFormDialog({
       !file.type || ['image/png', 'image/jpeg'].includes(file.type)
 
     if (!validExtension || !validMimeType) {
-      setPhotoError(BOARD_MEMBER_LABELS.photoInvalid)
+      setPhotoError(t.boardMember.photoInvalid)
       return
     }
 
     if (file.size > BOARD_MEMBER_MAX_PHOTO_SIZE) {
-      setPhotoError(BOARD_MEMBER_LABELS.photoTooLarge)
+      setPhotoError(t.boardMember.photoTooLarge)
       return
     }
 
@@ -136,13 +138,10 @@ function BoardMemberFormDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {isEditing
-              ? BOARD_MEMBER_LABELS.editMember
-              : BOARD_MEMBER_LABELS.createMember}
+            {isEditing ? t.boardMember.editMember : t.boardMember.createMember}
           </DialogTitle>
           <DialogDescription>
-            {BOARD_MEMBER_LABELS.description} — {language.flag}{' '}
-            {language.language}
+            {t.boardMember.description} — {language.flag} {language.language}
           </DialogDescription>
         </DialogHeader>
 
@@ -153,7 +152,7 @@ function BoardMemberFormDialog({
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-5 py-5">
             <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-name">
-                {BOARD_MEMBER_LABELS.nameField}
+                {t.boardMember.nameField}
               </Label>
               <Input
                 id="board-member-name"
@@ -164,6 +163,9 @@ function BoardMemberFormDialog({
                 aria-invalid={Boolean(errors.name)}
                 {...register('name')}
               />
+              <p className="text-foreground/55 text-xs">
+                {t.common.characterCount(nameValue.length, 200)}
+              </p>
               {errors.name?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.name.message}
@@ -173,7 +175,7 @@ function BoardMemberFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-company-name">
-                {BOARD_MEMBER_LABELS.companyNameField}
+                {t.boardMember.companyNameField}
               </Label>
               <Input
                 id="board-member-company-name"
@@ -182,6 +184,9 @@ function BoardMemberFormDialog({
                 aria-invalid={Boolean(errors.company_name)}
                 {...register('company_name')}
               />
+              <p className="text-foreground/55 text-xs">
+                {t.common.characterCount(companyNameValue.length, 100)}
+              </p>
               {errors.company_name?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.company_name.message}
@@ -191,7 +196,7 @@ function BoardMemberFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-role">
-                {BOARD_MEMBER_LABELS.roleField}
+                {t.boardMember.roleField}
               </Label>
               <Input
                 id="board-member-role"
@@ -201,6 +206,9 @@ function BoardMemberFormDialog({
                 aria-invalid={Boolean(errors.role)}
                 {...register('role')}
               />
+              <p className="text-foreground/55 text-xs">
+                {t.common.characterCount(roleValue.length, 100)}
+              </p>
               {errors.role?.message && (
                 <p role="alert" className="text-danger text-sm">
                   {errors.role.message}
@@ -210,7 +218,7 @@ function BoardMemberFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-description">
-                {BOARD_MEMBER_LABELS.descriptionField}
+                {t.boardMember.descriptionField}
               </Label>
               <Textarea
                 id="board-member-description"
@@ -227,7 +235,7 @@ function BoardMemberFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-type">
-                {BOARD_MEMBER_LABELS.typeField}
+                {t.boardMember.typeField}
               </Label>
               <Controller
                 control={control}
@@ -242,9 +250,7 @@ function BoardMemberFormDialog({
                       id="board-member-type"
                       aria-invalid={Boolean(errors.board_member_type_id)}
                     >
-                      <SelectValue
-                        placeholder={BOARD_MEMBER_LABELS.chooseType}
-                      />
+                      <SelectValue placeholder={t.boardMember.chooseType} />
                     </SelectTrigger>
                     <SelectContent>
                       {types.map((type) => (
@@ -265,7 +271,7 @@ function BoardMemberFormDialog({
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="board-member-photo">
-                {BOARD_MEMBER_LABELS.photoField}
+                {t.boardMember.photoField}
               </Label>
               {photoPreviewUrl && (
                 <div className="flex items-center gap-3">
@@ -275,7 +281,7 @@ function BoardMemberFormDialog({
                     className="size-12 rounded-full object-cover"
                   />
                   <span className="text-foreground/60 text-sm">
-                    {BOARD_MEMBER_LABELS.currentPhoto}
+                    {t.boardMember.currentPhoto}
                   </span>
                 </div>
               )}
@@ -300,8 +306,8 @@ function BoardMemberFormDialog({
                 >
                   <UploadIcon aria-hidden="true" className="size-4" />
                   {member?.photo || selectedPhoto
-                    ? BOARD_MEMBER_LABELS.replacePhoto
-                    : BOARD_MEMBER_LABELS.photoField}
+                    ? t.boardMember.replacePhoto
+                    : t.boardMember.photoField}
                 </Button>
                 {selectedPhoto && (
                   <span className="text-foreground/60 text-sm">
@@ -310,7 +316,7 @@ function BoardMemberFormDialog({
                 )}
               </div>
               <p className="text-foreground/55 text-xs">
-                {BOARD_MEMBER_LABELS.photoHelp}
+                {t.boardMember.photoHelp}
               </p>
               {photoError && (
                 <p role="alert" className="text-danger text-sm">
@@ -327,7 +333,7 @@ function BoardMemberFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {BOARD_MEMBER_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending || types.length === 0}>
               {pending ? (
@@ -336,10 +342,10 @@ function BoardMemberFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {BOARD_MEMBER_LABELS.saving}
+                  {t.boardMember.saving}
                 </>
               ) : (
-                BOARD_MEMBER_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>

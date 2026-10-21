@@ -1,11 +1,10 @@
-import { PERMISSION_HINTS } from '@/module/auth/constants/permission.constants'
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type {
   Division,
   DivisionStatus,
   DivisionWriteFields,
 } from '@/module/division/api/division.api'
-import { DIVISION_LABELS } from '@/module/division/constants/division.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -46,6 +45,7 @@ function DivisionFormDialog({
   pending,
   onSubmit,
 }: DivisionFormDialogProps) {
+  const { t } = useI18n()
   const { canPublish } = usePermissions()
   const content = division?.contents.find(
     (item) => item.language_id === languageId,
@@ -72,7 +72,7 @@ function DivisionFormDialog({
     setIconError(undefined)
 
     if (!file.name.toLocaleLowerCase().endsWith('.svg')) {
-      setIconError(DIVISION_LABELS.svgOnly)
+      setIconError(t.division.svgOnly)
       return
     }
 
@@ -84,13 +84,13 @@ function DivisionFormDialog({
         document.documentElement.localName === 'svg'
 
       if (!isValidSvg) {
-        setIconError(DIVISION_LABELS.invalidSvg)
+        setIconError(t.division.invalidSvg)
         return
       }
 
       setIconSvg(content)
     } catch {
-      setIconError(DIVISION_LABELS.invalidSvg)
+      setIconError(t.division.invalidSvg)
     }
   }
 
@@ -101,12 +101,12 @@ function DivisionFormDialog({
     if (iconError) return
 
     if (!name.trim()) {
-      setFormError(DIVISION_LABELS.requiredName)
+      setFormError(t.division.requiredName)
       return
     }
 
     if (!abbreviation.trim()) {
-      setFormError(DIVISION_LABELS.requiredAbbreviation)
+      setFormError(t.division.requiredAbbreviation)
       return
     }
 
@@ -125,19 +125,15 @@ function DivisionFormDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader className="border-border border-b">
           <DialogTitle>
-            {isEditing
-              ? DIVISION_LABELS.editDivision
-              : DIVISION_LABELS.createDivision}
+            {isEditing ? t.division.editDivision : t.division.createDivision}
           </DialogTitle>
-          <DialogDescription>{DIVISION_LABELS.description}</DialogDescription>
+          <DialogDescription>{t.division.description}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-col">
           <div className="flex flex-col gap-4 overflow-y-auto px-5 py-5">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="division-name">
-                {DIVISION_LABELS.divisionName}
-              </Label>
+              <Label htmlFor="division-name">{t.division.divisionName}</Label>
               <Input
                 id="division-name"
                 autoFocus
@@ -147,11 +143,14 @@ function DivisionFormDialog({
                 value={name}
                 onChange={(event) => setName(event.currentTarget.value)}
               />
+              <p className="text-foreground/55 text-xs">
+                {t.common.characterCount(name.length, 200)}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="division-abbreviation">
-                {DIVISION_LABELS.abbreviation}
+                {t.division.abbreviation}
               </Label>
               <Input
                 id="division-abbreviation"
@@ -161,11 +160,14 @@ function DivisionFormDialog({
                 value={abbreviation}
                 onChange={(event) => setAbbreviation(event.currentTarget.value)}
               />
+              <p className="text-foreground/55 text-xs">
+                {t.common.characterCount(abbreviation.length, 50)}
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="division-description">
-                {DIVISION_LABELS.divisionDescription}
+                {t.division.divisionDescription}
               </Label>
               <Textarea
                 id="division-description"
@@ -176,7 +178,7 @@ function DivisionFormDialog({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="division-status">{DIVISION_LABELS.status}</Label>
+              <Label htmlFor="division-status">{t.division.status}</Label>
               <Select
                 value={canPublish ? status : 'DRAFT'}
                 onValueChange={(value) => setStatus(value as DivisionStatus)}
@@ -186,27 +188,25 @@ function DivisionFormDialog({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DRAFT">{DIVISION_LABELS.draft}</SelectItem>
+                  <SelectItem value="DRAFT">{t.division.draft}</SelectItem>
                   <SelectItem value="PUBLISHED">
-                    {DIVISION_LABELS.published}
+                    {t.division.published}
                   </SelectItem>
                 </SelectContent>
               </Select>
               {!canPublish && (
-                <p className="text-foreground/60 text-xs">
-                  {PERMISSION_HINTS.draftOnly}
-                </p>
+                <p className="text-foreground/60 text-xs">{t.auth.draftOnly}</p>
               )}
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label>{DIVISION_LABELS.icon}</Label>
+              <Label>{t.division.icon}</Label>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".svg,image/svg+xml"
                 className="hidden"
-                aria-label={DIVISION_LABELS.selectIcon}
+                aria-label={t.division.selectIcon}
                 onChange={(event) => void handleFileChange(event)}
               />
               <div className="flex flex-wrap items-center gap-3">
@@ -228,9 +228,7 @@ function DivisionFormDialog({
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <UploadIcon aria-hidden="true" className="size-4" />
-                  {iconSvg
-                    ? DIVISION_LABELS.changeIcon
-                    : DIVISION_LABELS.selectIcon}
+                  {iconSvg ? t.division.changeIcon : t.division.selectIcon}
                 </Button>
                 {iconSvg && (
                   <Button
@@ -239,7 +237,7 @@ function DivisionFormDialog({
                     disabled={pending}
                     onClick={() => setIconSvg(null)}
                   >
-                    {DIVISION_LABELS.clearIcon}
+                    {t.division.clearIcon}
                   </Button>
                 )}
               </div>
@@ -248,9 +246,7 @@ function DivisionFormDialog({
                   {iconError}
                 </p>
               )}
-              <p className="text-foreground/55 text-xs">
-                {DIVISION_LABELS.svgOnly}
-              </p>
+              <p className="text-foreground/55 text-xs">{t.division.svgOnly}</p>
             </div>
 
             {formError && (
@@ -267,7 +263,7 @@ function DivisionFormDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              {DIVISION_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button type="submit" disabled={pending}>
               {pending ? (
@@ -276,10 +272,10 @@ function DivisionFormDialog({
                     aria-hidden="true"
                     className="size-4 animate-spin"
                   />
-                  {DIVISION_LABELS.saving}
+                  {t.division.saving}
                 </>
               ) : (
-                DIVISION_LABELS.save
+                t.common.save
               )}
             </Button>
           </DialogFooter>

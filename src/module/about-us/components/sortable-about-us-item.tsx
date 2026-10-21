@@ -1,4 +1,4 @@
-import { ABOUT_US_LABELS } from '@/module/about-us/constants/about-us.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import { useSortable } from '@dnd-kit/react/sortable'
 import { GripVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
@@ -26,6 +26,7 @@ function SortableAboutUsItem({
   onEdit,
   onDelete,
 }: SortableAboutUsItemProps) {
+  const { t } = useI18n()
   const { ref: sortableRef, handleRef: dragHandleRef } = useSortable({
     id: clientKey,
     index,
@@ -36,8 +37,8 @@ function SortableAboutUsItem({
   const itemNumber = index + 1
   const isMission = group === 'about-us-missions'
   const fallbackTitle = isMission
-    ? ABOUT_US_LABELS.mission(itemNumber)
-    : ABOUT_US_LABELS.timelineItem(itemNumber)
+    ? t.aboutUs.mission(itemNumber)
+    : t.aboutUs.timelineItem(itemNumber)
 
   return (
     <article
@@ -49,8 +50,8 @@ function SortableAboutUsItem({
         type="button"
         aria-label={
           isMission
-            ? ABOUT_US_LABELS.dragMission(itemNumber)
-            : ABOUT_US_LABELS.dragTimeline(itemNumber)
+            ? t.aboutUs.dragMission(itemNumber)
+            : t.aboutUs.dragTimeline(itemNumber)
         }
         className="text-secondary cursor-grab touch-none rounded p-1 active:cursor-grabbing"
       >
@@ -76,8 +77,8 @@ function SortableAboutUsItem({
           className="size-8"
           aria-label={
             isMission
-              ? ABOUT_US_LABELS.editMission(itemNumber)
-              : ABOUT_US_LABELS.editTimeline(itemNumber)
+              ? t.aboutUs.editMission(itemNumber)
+              : t.aboutUs.editTimeline(itemNumber)
           }
           onClick={onEdit}
         >
@@ -90,15 +91,15 @@ function SortableAboutUsItem({
           className="size-8"
           aria-label={
             isMission
-              ? ABOUT_US_LABELS.deleteMission(itemNumber)
-              : ABOUT_US_LABELS.deleteTimeline(itemNumber)
+              ? t.aboutUs.deleteMission(itemNumber)
+              : t.aboutUs.deleteTimeline(itemNumber)
           }
           title={
             canDelete
               ? undefined
               : isMission
-                ? ABOUT_US_LABELS.keepOneMission
-                : ABOUT_US_LABELS.keepOneTimeline
+                ? t.aboutUs.keepOneMission
+                : t.aboutUs.keepOneTimeline
           }
           disabled={!canDelete}
           onClick={onDelete}

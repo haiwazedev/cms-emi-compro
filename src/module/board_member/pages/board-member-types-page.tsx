@@ -7,7 +7,7 @@ import {
 import type { BoardMemberType } from '@/module/board_member/api/board-member.api'
 import { BoardMemberLanguageSelect } from '@/module/board_member/components/board-member-language-select'
 import { BoardMemberTypeFormDialog } from '@/module/board_member/components/board-member-type-form-dialog'
-import { BOARD_MEMBER_LABELS } from '@/module/board_member/constants/board-member.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   boardMemberQueryKeys,
   boardMemberTypesQueryOptions,
@@ -33,6 +33,7 @@ import { useEffect, useState } from 'react'
 const EMPTY_TYPES: BoardMemberType[] = []
 
 function BoardMemberTypesPage() {
+  const { t } = useI18n()
   const navigate = useNavigate({ from: '/board_member_types' })
   const { lang } = useSearch({ from: '/_authenticated/board_member_types' })
   const languagesQuery = useQuery(languagesQueryOptions())
@@ -47,26 +48,26 @@ function BoardMemberTypesPage() {
   }, [language, navigate, urlLanguage])
 
   if (languagesQuery.isPending) {
-    return <TypeMessage message={BOARD_MEMBER_LABELS.languageLoading} />
+    return <TypeMessage message={t.boardMember.languageLoading} />
   }
   if (languagesQuery.isError) {
     return (
       <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
         <p role="alert" className="text-danger text-sm">
-          {BOARD_MEMBER_LABELS.languagesFailed}
+          {t.boardMember.languagesFailed}
         </p>
         <Button
           type="button"
           variant="outline"
           onClick={() => void languagesQuery.refetch()}
         >
-          {BOARD_MEMBER_LABELS.retry}
+          {t.common.retry}
         </Button>
       </div>
     )
   }
   if (!language) {
-    return <TypeMessage message={BOARD_MEMBER_LABELS.noLanguages} />
+    return <TypeMessage message={t.boardMember.noLanguages} />
   }
 
   return (
@@ -92,6 +93,7 @@ function BoardMemberTypesContent({
   language: Language
   onLanguageChange: (languageId: string) => void
 }) {
+  const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
   const typesQuery = useQuery(boardMemberTypesQueryOptions())
@@ -119,18 +121,16 @@ function BoardMemberTypesContent({
         }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: BOARD_MEMBER_LABELS.typeSaved,
+        title: t.common.success,
+        description: t.boardMember.typeSaved,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
-          error instanceof Error
-            ? error.message
-            : BOARD_MEMBER_LABELS.typeSaveFailed,
+          error instanceof Error ? error.message : t.boardMember.typeSaveFailed,
         type: 'error',
       })
     },
@@ -149,18 +149,18 @@ function BoardMemberTypesContent({
         }),
       ])
       toast.add({
-        title: 'Berhasil',
-        description: BOARD_MEMBER_LABELS.typeDeleted,
+        title: t.common.success,
+        description: t.boardMember.typeDeleted,
         type: 'success',
       })
     },
     onError: (error) => {
       toast.add({
-        title: 'Gagal',
+        title: t.common.error,
         description:
           error instanceof Error
             ? error.message
-            : BOARD_MEMBER_LABELS.typeDeleteFailed,
+            : t.boardMember.typeDeleteFailed,
         type: 'error',
       })
     },
@@ -192,22 +192,22 @@ function BoardMemberTypesContent({
             className="text-secondary h-auto self-start px-0"
           >
             <Link to="/board_members" search={{ lang: language.id }}>
-              {BOARD_MEMBER_LABELS.backToMembers}
+              {t.boardMember.backToMembers}
             </Link>
           </Button>
           <div className="flex flex-col gap-1">
             <h1 className="text-accent text-2xl font-bold lg:text-3xl">
-              {BOARD_MEMBER_LABELS.typesPageTitle}
+              {t.boardMember.typesPageTitle}
             </h1>
             <p className="text-foreground/60 text-sm lg:text-base">
-              {BOARD_MEMBER_LABELS.typesDescription}
+              {t.boardMember.typesDescription}
             </p>
           </div>
         </div>
         {canWrite && (
           <Button type="button" onClick={() => openTypeForm()}>
             <PlusIcon aria-hidden="true" className="size-4" />
-            {BOARD_MEMBER_LABELS.addType}
+            {t.boardMember.addType}
           </Button>
         )}
       </header>
@@ -219,31 +219,28 @@ function BoardMemberTypesContent({
       />
 
       <section
-        aria-label={BOARD_MEMBER_LABELS.typesPageTitle}
+        aria-label={t.boardMember.typesPageTitle}
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         {typesQuery.isPending ? (
-          <TypeMessage
-            role="status"
-            message={BOARD_MEMBER_LABELS.loadingTypes}
-          />
+          <TypeMessage role="status" message={t.boardMember.loadingTypes} />
         ) : typesQuery.isError ? (
           <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
             <p role="alert" className="text-danger text-sm">
               {typesQuery.error instanceof Error
                 ? typesQuery.error.message
-                : BOARD_MEMBER_LABELS.typesFailed}
+                : t.boardMember.typesFailed}
             </p>
             <Button
               type="button"
               variant="outline"
               onClick={() => void typesQuery.refetch()}
             >
-              {BOARD_MEMBER_LABELS.retry}
+              {t.common.retry}
             </Button>
           </div>
         ) : localizedTypes.length === 0 ? (
-          <TypeMessage message={BOARD_MEMBER_LABELS.noTypesList} />
+          <TypeMessage message={t.boardMember.noTypesList} />
         ) : (
           <ul className="divide-border divide-y">
             {localizedTypes.map((memberType) => (
@@ -265,7 +262,7 @@ function BoardMemberTypesContent({
                       type="button"
                       variant="outline"
                       size="icon"
-                      aria-label={`${BOARD_MEMBER_LABELS.editType} ${memberType.type}`}
+                      aria-label={`${t.boardMember.editType} ${memberType.type}`}
                       onClick={() => openTypeForm(memberType)}
                     >
                       <PencilIcon aria-hidden="true" className="size-4" />
@@ -277,7 +274,7 @@ function BoardMemberTypesContent({
                       variant="outline"
                       size="icon"
                       disabled={deleteMutation.isPending}
-                      aria-label={`${BOARD_MEMBER_LABELS.deleteTypeTitle} ${memberType.type}`}
+                      aria-label={`${t.boardMember.deleteTypeTitle} ${memberType.type}`}
                       onClick={() => setTypeToDelete(memberType)}
                     >
                       <Trash2Icon aria-hidden="true" className="size-4" />
@@ -315,10 +312,10 @@ function BoardMemberTypesContent({
       >
         <DialogContent
           className="max-w-xl"
-          closeLabel={BOARD_MEMBER_LABELS.closeDeleteTypeDialog}
+          closeLabel={t.boardMember.closeDeleteTypeDialog}
         >
           <DialogHeader className="border-border border-b">
-            <DialogTitle>{BOARD_MEMBER_LABELS.deleteTypeTitle}</DialogTitle>
+            <DialogTitle>{t.boardMember.deleteTypeTitle}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5 px-5 py-6">
             <span className="bg-danger/10 text-danger flex size-14 items-center justify-center rounded-full">
@@ -330,7 +327,7 @@ function BoardMemberTypesContent({
                   “{typeToDelete.type}”
                 </p>
                 <DialogDescription>
-                  {BOARD_MEMBER_LABELS.deleteTypeDescription}
+                  {t.boardMember.deleteTypeDescription}
                 </DialogDescription>
               </div>
             )}
@@ -342,7 +339,7 @@ function BoardMemberTypesContent({
               disabled={deleteMutation.isPending}
               onClick={() => setTypeToDelete(null)}
             >
-              {BOARD_MEMBER_LABELS.cancel}
+              {t.common.cancel}
             </Button>
             <Button
               type="button"
@@ -354,8 +351,8 @@ function BoardMemberTypesContent({
               }}
             >
               {deleteMutation.isPending
-                ? BOARD_MEMBER_LABELS.deletingType
-                : BOARD_MEMBER_LABELS.confirmDeleteType}
+                ? t.boardMember.deletingType
+                : t.boardMember.confirmDeleteType}
             </Button>
           </DialogFooter>
         </DialogContent>

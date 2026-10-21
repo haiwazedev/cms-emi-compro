@@ -1,5 +1,5 @@
 import { articleQueryOptions } from '@/module/article/queries/article.queries'
-import { ARTICLE_LABELS } from '@/module/article/constants/article.constants'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { ArticleForm } from '@/module/article/components/article-form'
 import type { Language } from '@/module/language/api/language.api'
 import { findDefaultLanguage } from '@/module/language/constants/language.constants'
@@ -12,6 +12,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
 function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
+  const { t } = useI18n()
   const articleId = Number(articleIdParam)
   const hasValidId = Number.isSafeInteger(articleId) && articleId > 0
   const articleQuery = useQuery({
@@ -47,11 +48,11 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
   }, [article, fallbackLanguage, navigate, urlLanguage])
 
   if (!hasValidId) {
-    return <ArticleLoadState message={ARTICLE_LABELS.articleNotFound} />
+    return <ArticleLoadState message={t.article.articleNotFound} />
   }
 
   if (articleQuery.isPending || languagesQuery.isPending) {
-    return <ArticleLoadState message={ARTICLE_LABELS.loadingArticles} />
+    return <ArticleLoadState message={t.article.loadingArticles} />
   }
 
   if (languagesQuery.isError || !language) {
@@ -59,8 +60,8 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
       <ArticleLoadState
         message={
           languagesQuery.isError
-            ? ARTICLE_LABELS.languagesFailed
-            : ARTICLE_LABELS.noLanguages
+            ? t.article.languagesFailed
+            : t.article.noLanguages
         }
       />
     )
@@ -70,10 +71,10 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
     const message =
       articleQuery.error instanceof ApiError &&
       articleQuery.error.status === 404
-        ? ARTICLE_LABELS.articleNotFound
+        ? t.article.articleNotFound
         : articleQuery.error instanceof Error
           ? articleQuery.error.message
-          : ARTICLE_LABELS.articlesFailed
+          : t.article.articlesFailed
 
     return <ArticleLoadState message={message} />
   }
@@ -101,6 +102,7 @@ function EditArticlePage({ articleId: articleIdParam }: { articleId: string }) {
 }
 
 function ArticleLoadState({ message }: { message: string }) {
+  const { t } = useI18n()
   return (
     <div className="bg-primary flex min-h-full items-center justify-center p-4 lg:p-8">
       <Card className="w-full max-w-lg">
@@ -109,7 +111,7 @@ function ArticleLoadState({ message }: { message: string }) {
             {message}
           </p>
           <Button asChild variant="outline">
-            <Link to="/articles">{ARTICLE_LABELS.backToArticles}</Link>
+            <Link to="/articles">{t.article.backToArticles}</Link>
           </Button>
         </CardContent>
       </Card>
