@@ -115,7 +115,7 @@ export interface ArticleWriteFields {
 }
 
 export async function getArticles(params: ArticleListParams) {
-  const { data } = await apiClient.get<ArticleListResponse>('/articles', {
+  const { data } = await apiClient.get<ArticleListResponse>('/admin/articles', {
     params,
   })
 
@@ -174,7 +174,7 @@ export async function deleteArticleCategory(articleCategoryId: number) {
 
 export async function getArticle(articleId: number) {
   const { data } = await apiClient.get<ArticleResponse>(
-    '/articles/' + articleId,
+    '/admin/articles/' + articleId,
   )
 
   return data.article
