@@ -1,3 +1,5 @@
+import { ContentSearchDialog } from '@/module/search/components/content-search-dialog'
+import { useState } from 'react'
 import { MobileNavigationDrawer } from './mobile-navigation-drawer'
 import { ContentSearchBar } from './content-search-bar'
 import { LanguageSelector } from './language-selector'
@@ -8,6 +10,9 @@ type NavigationTopbarProps = {
 }
 
 function NavigationTopbar({ title }: NavigationTopbarProps) {
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const openSearch = () => setIsSearchOpen(true)
+
   return (
     <header className="bg-background px-4 py-3 lg:flex lg:h-16 lg:items-center lg:justify-between lg:px-8 lg:py-0">
       <div className="flex flex-1 items-center justify-between gap-4">
@@ -18,7 +23,7 @@ function NavigationTopbar({ title }: NavigationTopbarProps) {
 
         <div className="flex shrink-0 items-center gap-2 lg:gap-4">
           <div className="hidden w-64 lg:block">
-            <ContentSearchBar />
+            <ContentSearchBar onClick={openSearch} />
           </div>
           <LanguageSelector />
           <ProfileAvatar />
@@ -26,8 +31,10 @@ function NavigationTopbar({ title }: NavigationTopbarProps) {
       </div>
 
       <div className="mt-3 lg:hidden">
-        <ContentSearchBar />
+        <ContentSearchBar onClick={openSearch} />
       </div>
+
+      <ContentSearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </header>
   )
 }

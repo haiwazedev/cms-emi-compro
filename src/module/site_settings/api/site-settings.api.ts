@@ -68,9 +68,12 @@ export interface SiteSettingsData {
 }
 
 export async function getSiteSettings(languageId: string) {
-  const { data } = await apiClient.get<SiteSettingsResponse>('/site_settings', {
-    params: { language_id: languageId },
-  })
+  const { data } = await apiClient.get<SiteSettingsResponse>(
+    '/admin/site_settings',
+    {
+      params: { language_id: languageId },
+    },
+  )
   return toSettingsData(data.site_settings)
 }
 

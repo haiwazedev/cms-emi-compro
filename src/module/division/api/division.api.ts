@@ -84,7 +84,7 @@ interface ServiceDetailsResponse {
 }
 
 export async function getDivisions() {
-  const { data } = await apiClient.get<DivisionsResponse>('/divisions')
+  const { data } = await apiClient.get<DivisionsResponse>('/admin/divisions')
   return data.divisions
 }
 
@@ -117,13 +117,13 @@ export async function reorderDivisions(divisionIds: number[]) {
 }
 
 export async function getServices() {
-  const { data } = await apiClient.get<ServicesResponse>('/services')
+  const { data } = await apiClient.get<ServicesResponse>('/admin/services')
   return data.services
 }
 
 export async function getService(serviceId: number) {
   const { data } = await apiClient.get<ServiceDetailsResponse>(
-    '/services/' + serviceId,
+    '/admin/services/' + serviceId,
   )
   return data.service
 }
