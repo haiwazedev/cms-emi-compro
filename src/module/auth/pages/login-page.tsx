@@ -18,7 +18,7 @@ function LoginPage() {
   const { t } = useI18n()
 
   return (
-    <main className="flex min-h-screen flex-col p-4 lg:flex-row lg:p-12">
+    <main className="flex min-h-screen flex-col lg:flex-row">
       <section
         aria-labelledby="brand-heading"
         className="relative flex min-h-72 flex-col overflow-hidden px-8 py-8 text-white lg:w-1/2 lg:px-14 lg:py-12"
