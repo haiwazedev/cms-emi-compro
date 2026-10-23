@@ -4,6 +4,7 @@ import type {
   HomeContentRecord,
   HomeContentWriteItem,
 } from '@/module/home/api/home.api'
+import { HomePreviewDialog } from '@/module/home/components/home-preview-dialog'
 import { SortableSlideCard } from '@/module/home/components/sortable-slide-card'
 import { SortableStatisticRow } from '@/module/home/components/sortable-statistic-row'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
@@ -124,6 +125,7 @@ function HomeEditor({
   const [draft, setDraft] = useState<HomeDraft | null>(null)
   const [savedDraft, setSavedDraft] = useState<HomeDraft | null>(null)
   const [photoPickerKey, setPhotoPickerKey] = useState<string | null>(null)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   const apiDraft = useMemo(
     () => (homeQuery.data ? mapHomeContents(homeQuery.data) : null),
@@ -385,8 +387,7 @@ function HomeEditor({
             <Button
               type="button"
               variant="outline"
-              disabled
-              title={t.home.previewDisabled}
+              onClick={() => setPreviewOpen(true)}
             >
               {t.home.preview}
             </Button>
@@ -605,6 +606,13 @@ function HomeEditor({
             />
           )}
         </fieldset>
+        {previewOpen && (
+          <HomePreviewDialog
+            onOpenChange={setPreviewOpen}
+            draft={editorDraft}
+            languageId={languageId}
+          />
+        )}
       </div>
     </DragDropProvider>
   )

@@ -21,6 +21,7 @@ interface ArticleRichTextEditorProps {
   readOnly?: boolean
   id?: string
   ariaLabel?: string
+  className?: string
 }
 
 function ArticleRichTextEditor({
@@ -29,6 +30,7 @@ function ArticleRichTextEditor({
   readOnly = false,
   id,
   ariaLabel,
+  className,
 }: ArticleRichTextEditorProps) {
   const { t } = useI18n()
   const editor = useEditor({
@@ -178,6 +180,7 @@ function ArticleRichTextEditor({
           // Read-only is the preview: landing page article typography.
           readOnly &&
             'text-foreground/70 [&_blockquote]:border-secondary [&_blockquote]:text-accent min-h-0 p-0 text-base leading-8 [&_.tiptap]:min-h-0 [&_blockquote]:my-6 [&_blockquote]:pl-5 [&_blockquote]:text-xl [&_blockquote]:italic [&_h2]:mt-8 [&_h2]:mb-4 [&_h2]:text-2xl [&_h2]:leading-tight [&_h2]:font-bold [&_h3]:font-bold [&_p]:mb-6',
+          className,
         )}
       />
     </div>

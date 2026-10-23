@@ -16,6 +16,7 @@ const id = {
     connectionFailed: 'Tidak dapat terhubung ke server. Silakan coba lagi.',
     justNow: 'baru saja',
     contentLabel: 'Konten:',
+    previewEmpty: 'Bagian ini belum lengkap sehingga tidak tampil di situs.',
   },
   auth: {
     brandTitle: 'Content',
@@ -649,7 +650,11 @@ const id = {
     description:
       'Single Type - halaman utama situs PT Energy Management Indonesia (Persero).',
     preview: 'Pratinjau',
-    previewDisabled: 'Fitur pratinjau belum tersedia.',
+    previewDescription:
+      'Pratinjau Beranda berdasarkan perubahan yang belum disimpan.',
+    previewShowSlide: (index: number) => `Tampilkan slide ${index}`,
+    previewPreviousSlide: 'Slide sebelumnya',
+    previewNextSlide: 'Slide berikutnya',
     savePublish: 'Simpan & Terbitkan',
     saving: 'Menyimpan...',
     saveSuccess: 'Konten Beranda berhasil disimpan dan diterbitkan.',
@@ -704,7 +709,8 @@ const id = {
     pageTitle: 'Tentang Kami',
     description: 'Single Type - halaman profil perusahaan.',
     preview: 'Pratinjau',
-    previewDisabled: 'Fitur pratinjau belum tersedia.',
+    previewDescription:
+      'Pratinjau Tentang Kami berdasarkan perubahan yang belum disimpan.',
     savePublish: 'Simpan & Terbitkan',
     saving: 'Menyimpan...',
     saveSuccess: 'Konten Tentang Kami berhasil disimpan dan diterbitkan.',

@@ -18,6 +18,7 @@ const en: Dictionary = {
     connectionFailed: 'Unable to connect to the server. Please try again.',
     justNow: 'just now',
     contentLabel: 'Content:',
+    previewEmpty: 'This section is incomplete, so it is hidden on the site.',
   },
   auth: {
     brandTitle: 'Content',
@@ -653,7 +654,10 @@ const en: Dictionary = {
     description:
       'Single Type - the main page of the PT Energy Management Indonesia (Persero) site.',
     preview: 'Preview',
-    previewDisabled: 'Preview is not available yet.',
+    previewDescription: 'Home preview based on unsaved changes.',
+    previewShowSlide: (index: number) => `Show slide ${index}`,
+    previewPreviousSlide: 'Previous slide',
+    previewNextSlide: 'Next slide',
     savePublish: 'Save & Publish',
     saving: 'Saving...',
     saveSuccess: 'Home content saved and published successfully.',
@@ -708,7 +712,7 @@ const en: Dictionary = {
     pageTitle: 'About Us',
     description: 'Single Type - company profile page.',
     preview: 'Preview',
-    previewDisabled: 'Preview is not available yet.',
+    previewDescription: 'About Us preview based on unsaved changes.',
     savePublish: 'Save & Publish',
     saving: 'Saving...',
     saveSuccess: 'About Us content saved and published successfully.',
