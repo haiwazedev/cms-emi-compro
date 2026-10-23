@@ -21,7 +21,9 @@ Errors use this shape:
 The server requires `REDIS_URL`, `SESSION_SECRET`, and `FRONTEND_ORIGIN`. Use a
 random session secret of at least 32 bytes. The configured frontend origin must
 be an exact HTTP or HTTPS origin, such as `http://localhost:3000`. The server
-does not start if it cannot connect to Redis.
+does not start if it cannot connect to Redis. Invite and password reset emails
+require `RESEND_API_KEY` and `MAIL_FROM` (an address on a domain verified in
+Resend); the server does not start without them.
 
 ## Swagger
 
@@ -201,6 +203,89 @@ curl -i -X POST http://localhost:8000/auth/logout \
   -H 'Origin: http://localhost:3000' \
   -b cookies.txt
 ```
+
+## Forgot Password
+
+`POST /auth/forgot-password`
+
+Email a password reset link to an account. Always returns `204 No Content`,
+whether or not the email is registered, so the response cannot be used to
+check which accounts exist. A link is sent only to users who have already set
+a password; invited users who have not activated get nothing and need the
+admin to resend their invite. Each new link replaces the previous one and
+expires after 60 minutes.
+
+The link points to `${FRONTEND_ORIGIN}/auth/activate?token=<token>`.
+
+| Field   | Type   | Rules                       |
+| ------- | ------ | --------------------------- |
+| `email` | string | Required, valid, lowercased |
+
+```json
+{ "email": "ari@example.com" }
+```
+
+### Errors
+
+| Status                    | Message                                                                    |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `400 Bad Request`         | `Email must be valid.`                                                     |
+| `429 Too Many Requests`   | `Too many password reset requests. Please try again later.` (5 per 15 min) |
+| `503 Service Unavailable` | `Password reset is temporarily unavailable.` when Redis fails.             |
+
+## Verify Activation Token
+
+`POST /auth/activate/verify`
+
+Check a token from an invite or reset link without using it, so the page can
+show an expired link before the user types a password. Returns `200 OK` with
+the token's purpose; `POST /auth/activate` still checks the token again.
+
+| Field   | Type   | Rules                           |
+| ------- | ------ | ------------------------------- |
+| `token` | string | Required, from the emailed link |
+
+```json
+{ "purpose": "INVITE" }
+```
+
+`purpose` is `INVITE` (the account is activated on success) or `RESET`.
+
+### Errors
+
+| Status                    | Message                                                            |
+| ------------------------- | ------------------------------------------------------------------ |
+| `400 Bad Request`         | `This link is invalid or has expired.`                             |
+| `429 Too Many Requests`   | `Too many attempts. Please try again later.` (20 per 15 min)       |
+| `503 Service Unavailable` | `Account activation is temporarily unavailable.` when Redis fails. |
+
+## Activate Account
+
+`POST /auth/activate`
+
+Set a password with the token from an invite or password reset email. Returns
+`204 No Content`. An invite token also activates the account; a reset token
+only changes the password. The token works once, and using it invalidates the
+user's other tokens. Sessions created before the password change get
+`401 Unauthorized` on their next protected request. The user signs in
+afterwards with `POST /auth/login`.
+
+| Field      | Type   | Rules                                                                                      |
+| ---------- | ------ | ------------------------------------------------------------------------------------------ |
+| `token`    | string | Required, from the emailed link                                                            |
+| `password` | string | Required, 8–128 characters, with at least one uppercase letter, one number, and one symbol |
+
+```json
+{ "token": "Zx3...", "password": "Str0ng!Pass" }
+```
+
+### Errors
+
+| Status                    | Message                                                                                                                                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400 Bad Request`         | `This link is invalid or has expired.`, or a password rule: `Password must be at least 8 characters.`, `...contain an uppercase letter.`, `...contain a number.`, `...contain a symbol.` |
+| `429 Too Many Requests`   | `Too many attempts. Please try again later.` (10 per 15 min)                                                                                                                             |
+| `503 Service Unavailable` | `Account activation is temporarily unavailable.` when Redis fails.                                                                                                                       |
 
 ## Permissions
 
@@ -1913,9 +1998,16 @@ stable keys; show your own labels in the UI.
 - `GET /users` returns `{ "users": [...], "pagination": ... }` with `200 OK`,
   sorted by name.
 - `GET /users/:userId` returns `{ "user": ... }` with `200 OK`.
-- `POST /users` creates a user and returns `{ "user": ... }` with
-  `201 Created`. The password is set to the server's `DEFAULT_USER_PASSWORD`;
-  the request returns `500` if that variable is missing.
+- `POST /users` invites a user and returns `{ "user": ... }` with
+  `201 Created`. The user starts inactive with no password (`is_pending: true`)
+  and is emailed an activation link valid for 72 hours (see
+  [Activate Account](#activate-account)). If the email cannot be sent, the
+  user is still created and the request returns `502 Bad Gateway` with
+  `The invite email could not be sent. Try resending the invite.`
+- `POST /users/:userId/invite` resends the invite with a new link and returns
+  `204 No Content`; the previous link stops working. Returns `409 Conflict`
+  with `User has already activated their account.` once the user has a
+  password, and `502 Bad Gateway` if the email cannot be sent.
 - `PUT /users/:userId` partially updates a user and returns
   `{ "user": ... }` with `200 OK`.
 - `DELETE /users/:userId` returns `204 No Content`. Deleting your own account
@@ -1937,21 +2029,21 @@ stable keys; show your own labels in the UI.
 
 Bodies accept `name` (1–100 characters), `email` (valid, lowercased, unique),
 `role_id` (an existing role id, or `null` for no role), and `is_active`
-(boolean). All fields are required on create; omitted fields remain unchanged
-on update. An unknown `role_id` returns `400 Bad Request`; a duplicate email
-returns `409 Conflict`.
+(boolean, update only). `name`, `email`, and `role_id` are required on create;
+omitted fields remain unchanged on update. An unknown `role_id` returns
+`400 Bad Request`; a duplicate email returns `409 Conflict`.
 
 ```json
 {
   "name": "Andi Lala",
   "email": "andi.lala@emipersero.co.id",
-  "role_id": 3,
-  "is_active": true
+  "role_id": 3
 }
 ```
 
-Responses never include the password. `last_signed_in` is set on each
-successful login and is `null` until the first one.
+Responses never include the password. `is_pending` is `true` until the user
+accepts the invite. `last_signed_in` is set on each successful login and is
+`null` until the first one.
 
 ```json
 {
@@ -1960,7 +2052,8 @@ successful login and is `null` until the first one.
     "name": "Andi Lala",
     "email": "andi.lala@emipersero.co.id",
     "role": { "id": 3, "name": "Kontributor" },
-    "is_active": true,
+    "is_active": false,
+    "is_pending": true,
     "last_signed_in": null
   }
 }
