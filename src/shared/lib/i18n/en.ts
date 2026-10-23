@@ -944,6 +944,12 @@ const en: Dictionary = {
     actions: 'Actions',
     active: 'Active',
     inactive: 'Inactive',
+    pending: 'Pending Activation',
+    resendInvite: (name: string) => `Resend invite to ${name}`,
+    inviteDescription:
+      'The user will get an email to create a password and activate the account.',
+    inviteSent: "Invite sent to the user's email.",
+    inviteResent: 'Invite resent.',
     neverLoggedIn: '—',
     editUser: (name: string) => `Edit ${name}`,
     deleteUser: (name: string) => `Delete ${name}`,

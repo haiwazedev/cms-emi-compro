@@ -1,6 +1,11 @@
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { authQueryKey } from '@/module/auth/queries/auth.queries'
-import { createUser, deleteUser, updateUser } from '@/module/user/api/user.api'
+import {
+  createUser,
+  deleteUser,
+  resendInvite,
+  updateUser,
+} from '@/module/user/api/user.api'
 import type { User, UserFields } from '@/module/user/api/user.api'
 import { ConfirmDeleteDialog } from '@/module/user/components/confirm-delete-dialog'
 import { ListError, ListMessage } from '@/module/user/components/list-state'
@@ -43,6 +48,7 @@ import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  MailIcon,
   PencilIcon,
   PlusIcon,
   SearchIcon,
@@ -84,22 +90,20 @@ function UsersPage() {
       userId?: number
       fields: UserFields
     }) => (userId ? updateUser(userId, fields) : createUser(fields)),
-    onSuccess: async () => {
-      setFormOpen(false)
-      setUserToEdit(undefined)
-      // Role user counts change, and the header shows the signed-in user's name.
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: userQueryKeys.all }),
-        queryClient.invalidateQueries({ queryKey: userQueryKeys.roles() }),
-        queryClient.invalidateQueries({ queryKey: authQueryKey }),
-      ])
+    onSuccess: async (_user, { userId }) => {
+      await closeFormAndRefresh()
       toast.add({
         title: t.common.success,
-        description: t.user.userSaved,
+        description: userId ? t.user.userSaved : t.user.inviteSent,
         type: 'success',
       })
     },
-    onError: (error) => {
+    onError: async (error) => {
+      // 502: the user was created but the invite email failed; it can be resent from the list.
+      if (error instanceof ApiError && error.status === 502) {
+        await closeFormAndRefresh()
+      }
+
       toast.add({
         title: t.common.error,
         description:
@@ -137,6 +141,35 @@ function UsersPage() {
       })
     },
   })
+
+  const resendInviteMutation = useMutation({
+    mutationFn: resendInvite,
+    onSuccess: () => {
+      toast.add({
+        title: t.common.success,
+        description: t.user.inviteResent,
+        type: 'success',
+      })
+    },
+    onError: (error) => {
+      toast.add({
+        title: t.common.error,
+        description: error.message,
+        type: 'error',
+      })
+    },
+  })
+
+  async function closeFormAndRefresh() {
+    setFormOpen(false)
+    setUserToEdit(undefined)
+    // Role user counts change, and the header shows the signed-in user's name.
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: userQueryKeys.all }),
+      queryClient.invalidateQueries({ queryKey: userQueryKeys.roles() }),
+      queryClient.invalidateQueries({ queryKey: authQueryKey }),
+    ])
+  }
 
   const emailConflict =
     saveMutation.error instanceof ApiError && saveMutation.error.status === 409
@@ -256,6 +289,8 @@ function UsersPage() {
                     user={user}
                     isSelf={user.id === currentUser?.id}
                     deletePending={deleteMutation.isPending}
+                    resendPending={resendInviteMutation.isPending}
+                    onResendInvite={() => resendInviteMutation.mutate(user.id)}
                     onEdit={() => openForm(user)}
                     onDelete={() => setUserToDelete(user)}
                   />
@@ -323,12 +358,16 @@ function UserRow({
   user,
   isSelf,
   deletePending,
+  resendPending,
+  onResendInvite,
   onEdit,
   onDelete,
 }: {
   user: User
   isSelf: boolean
   deletePending: boolean
+  resendPending: boolean
+  onResendInvite: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
@@ -367,16 +406,22 @@ function UserRow({
         <span
           className={cn(
             'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
-            user.is_active
-              ? 'bg-success/10 text-success'
-              : 'bg-warning/15 text-warning',
+            user.is_pending
+              ? 'bg-secondary/10 text-secondary'
+              : user.is_active
+                ? 'bg-success/10 text-success'
+                : 'bg-warning/15 text-warning',
           )}
         >
           <span
             aria-hidden="true"
             className="size-1.5 rounded-full bg-current"
           />
-          {user.is_active ? t.user.active : t.user.inactive}
+          {user.is_pending
+            ? t.user.pending
+            : user.is_active
+              ? t.user.active
+              : t.user.inactive}
         </span>
       </TableCell>
 
@@ -397,6 +442,20 @@ function UserRow({
       {/* Actions */}
       <TableCell>
         <div className="flex items-center justify-end gap-1">
+          {user.is_pending && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="size-8"
+              disabled={resendPending}
+              aria-label={t.user.resendInvite(user.name)}
+              title={t.user.resendInvite(user.name)}
+              onClick={onResendInvite}
+            >
+              <MailIcon aria-hidden="true" className="size-4" />
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"

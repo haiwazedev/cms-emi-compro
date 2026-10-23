@@ -72,14 +72,17 @@ function UserFormDialog({
           <DialogTitle>
             {user ? t.user.editUserTitle : t.user.addUser}
           </DialogTitle>
-          <DialogDescription>{t.user.formDescription}</DialogDescription>
+          <DialogDescription>
+            {user ? t.user.formDescription : t.user.inviteDescription}
+          </DialogDescription>
         </DialogHeader>
 
         <form
-          onSubmit={handleSubmit(({ role, ...values }) =>
+          onSubmit={handleSubmit(({ role, is_active, ...values }) =>
             onSubmit({
               ...values,
               role_id: role === NO_ROLE ? null : Number(role),
+              ...(user && { is_active }),
             }),
           )}
           className="flex flex-col"
@@ -148,27 +151,29 @@ function UserFormDialog({
               />
             </div>
 
-            {/* Status */}
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="user-active">{t.user.status}</Label>
-              <Controller
-                control={control}
-                name="is_active"
-                render={({ field }) => (
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      id="user-active"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={pending}
-                    />
-                    <span className="text-sm">
-                      {field.value ? t.user.active : t.user.inactive}
-                    </span>
-                  </div>
-                )}
-              />
-            </div>
+            {/* Status (edit only) */}
+            {user && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="user-active">{t.user.status}</Label>
+                <Controller
+                  control={control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        id="user-active"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={pending}
+                      />
+                      <span className="text-sm">
+                        {field.value ? t.user.active : t.user.inactive}
+                      </span>
+                    </div>
+                  )}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>

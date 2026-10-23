@@ -938,6 +938,12 @@ const id = {
     actions: 'Aksi',
     active: 'Aktif',
     inactive: 'Nonaktif',
+    pending: 'Menunggu Aktivasi',
+    resendInvite: (name: string) => `Kirim ulang undangan ke ${name}`,
+    inviteDescription:
+      'Pengguna akan menerima email untuk membuat kata sandi dan mengaktifkan akun.',
+    inviteSent: 'Undangan berhasil dikirim ke email pengguna.',
+    inviteResent: 'Undangan berhasil dikirim ulang.',
     neverLoggedIn: '—',
     editUser: (name: string) => `Ubah ${name}`,
     deleteUser: (name: string) => `Hapus ${name}`,
