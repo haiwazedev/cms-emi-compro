@@ -40,6 +40,36 @@ const en: Dictionary = {
     submitting: 'Processing...',
     loginSuccess: 'Signed in successfully.',
     loginFailed: 'Failed to sign in. Please try again.',
+    backToLogin: 'Back to sign in',
+    forgotTitle: 'Forgot Password',
+    forgotDescription:
+      "Enter your account email. We'll send you a link to reset your password.",
+    forgotSubmit: 'Send Link',
+    forgotSent:
+      'If that email is registered, a password reset link has been sent. Check your inbox.',
+    activateTitle: 'Set Password',
+    verifyingLink: 'Checking the link...',
+    activateInviteTitle: 'Activate Account',
+    activateInviteDescription:
+      'Create a password to activate your CMS account.',
+    activateResetTitle: 'Reset Password',
+    activateResetDescription: 'Create a new password for your account.',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
+    passwordHint:
+      'At least 8 characters, with an uppercase letter, a number, and a symbol.',
+    passwordMinLength: 'Password must be at least 8 characters.',
+    passwordMaxLength: 'Password must be at most 128 characters.',
+    passwordUppercase: 'Password must contain an uppercase letter.',
+    passwordNumber: 'Password must contain a number.',
+    passwordSymbol: 'Password must contain a symbol.',
+    passwordMismatch: 'Passwords do not match.',
+    activateSubmit: 'Save Password',
+    activateSuccess: 'Password saved. Please sign in.',
+    invalidLinkTitle: 'Invalid Link',
+    invalidLinkDescription:
+      'This link is invalid, already used, or has expired.',
+    requestNewLink: 'Request a New Link',
   },
   nav: {
     navigation: 'Main navigation',
