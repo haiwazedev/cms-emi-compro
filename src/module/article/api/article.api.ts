@@ -201,3 +201,12 @@ export async function updateArticle(
 export async function deleteArticle(articleId: number) {
   await apiClient.delete<void>('/articles/' + articleId)
 }
+
+export async function bulkDeleteArticles(ids: number[]) {
+  const { data } = await apiClient.post<{ deleted_count: number }>(
+    '/articles/bulk_delete',
+    { ids },
+  )
+
+  return data.deleted_count
+}

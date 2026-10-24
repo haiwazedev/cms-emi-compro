@@ -93,7 +93,9 @@ function DocumentCommitmentFormDialog({
   }
 
   function submitForm(values: DocumentCommitmentFormValues) {
-    setFileError(undefined)
+    // A rejected file stays explained instead of turning into "required".
+    if (fileError) return
+
     if (!isEditing && !selectedFile) {
       setFileError(t.documentCommitment.pdfRequired)
       return

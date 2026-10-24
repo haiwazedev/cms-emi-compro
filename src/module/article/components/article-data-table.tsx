@@ -32,7 +32,11 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
+import type {
+  ColumnDef,
+  OnChangeFn,
+  RowSelectionState,
+} from '@tanstack/react-table'
 import { useMemo } from 'react'
 import {
   ChevronLeftIcon,
@@ -48,11 +52,14 @@ function createArticleColumns(
   onDeleteArticle: (article: ArticleListItem) => void,
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
   compact: boolean,
+  selectable: boolean,
 ): ColumnDef<ArticleListItem>[] {
-  const hiddenColumns = compact ? ['select', 'category', 'languages'] : []
+  const hiddenColumns = [
+    ...(selectable ? [] : ['select']),
+    ...(compact ? ['category', 'languages'] : []),
+  ]
   const columns: ColumnDef<ArticleListItem>[] = [
     {
-      // shortcut: UI-only selection, no bulk actions yet.
       id: 'select',
       header: ({ table }) => (
         <TableCheckbox
@@ -177,10 +184,17 @@ interface ArticleTablePagination {
   onPageSizeChange: (pageSize: number) => void
 }
 
+interface ArticleTableSelection {
+  rowSelection: RowSelectionState
+  onRowSelectionChange: OnChangeFn<RowSelectionState>
+}
+
 interface ArticleDataTableProps {
   articles: ArticleListItem[]
   onDeleteArticle: (article: ArticleListItem) => void
   pagination?: ArticleTablePagination
+  // Row checkboxes for bulk delete; hidden when omitted.
+  selection?: ArticleTableSelection
   // Dashboard layout: category under the title, status instead of category/languages.
   compact?: boolean
 }
@@ -189,10 +203,12 @@ function ArticleDataTable({
   articles,
   onDeleteArticle,
   pagination,
+  selection,
   compact = false,
 }: ArticleDataTableProps) {
   const { canWrite, canDelete } = usePermissions()
   const { locale, t } = useI18n()
+  const selectable = canDelete && selection !== undefined
   const articleColumns = useMemo(
     () =>
       createArticleColumns(
@@ -201,8 +217,9 @@ function ArticleDataTable({
         onDeleteArticle,
         { canWrite, canDelete },
         compact,
+        selectable,
       ),
-    [t, locale, canDelete, canWrite, compact, onDeleteArticle],
+    [t, locale, canDelete, canWrite, compact, selectable, onDeleteArticle],
   )
 
   const table = useReactTable({
@@ -211,6 +228,8 @@ function ArticleDataTable({
     getCoreRowModel: getCoreRowModel(),
     getRowId: (article) => String(article.id),
     manualPagination: true,
+    state: { rowSelection: selection?.rowSelection ?? {} },
+    onRowSelectionChange: selection?.onRowSelectionChange,
   })
 
   return (
@@ -243,7 +262,10 @@ function ArticleDataTable({
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
+            <TableRow
+              key={row.id}
+              className={cn(row.getIsSelected() && 'bg-secondary/5')}
+            >
               {row.getVisibleCells().map((cell) => (
                 <TableCell
                   key={cell.id}

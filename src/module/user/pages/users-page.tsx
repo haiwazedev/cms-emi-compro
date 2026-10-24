@@ -18,9 +18,12 @@ import {
 import { useCurrentUserRecord } from '@/module/user/hooks/use-current-user-record'
 import {
   rolesQueryOptions,
+  userCountQueryOptions,
   userQueryKeys,
   usersQueryOptions,
 } from '@/module/user/queries/user.queries'
+import { getMaxUsers } from '@/module/app_config/api/app-config.api'
+import { appConfigsQueryOptions } from '@/module/app_config/queries/app-config.queries'
 import type { UserSearch } from '@/module/user/schemas/user-search.schema'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -74,6 +77,13 @@ function UsersPage() {
     }),
   )
   const rolesQuery = useQuery(rolesQueryOptions())
+  const { data: userCount } = useQuery(userCountQueryOptions())
+  const { data: maxUsers = null } = useQuery({
+    ...appConfigsQueryOptions(),
+    select: getMaxUsers,
+  })
+  const limitReached =
+    maxUsers !== null && userCount !== undefined && userCount >= maxUsers
   const currentUser = useCurrentUserRecord()
   const [formOpen, setFormOpen] = useState(false)
   const [userToEdit, setUserToEdit] = useState<User>()
@@ -196,13 +206,37 @@ function UsersPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {maxUsers !== null && userCount !== undefined && (
+            <span
+              className={cn(
+                'rounded-full px-3 py-1 text-xs font-semibold',
+                limitReached
+                  ? 'bg-danger/10 text-danger'
+                  : 'bg-secondary/10 text-accent',
+              )}
+            >
+              {t.user.userQuota(userCount, maxUsers)}
+            </span>
+          )}
           <Button asChild variant="outline">
             <Link to="/roles">{t.user.manageRoles}</Link>
           </Button>
-          <Button type="button" onClick={() => openForm()}>
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {t.user.addUser}
-          </Button>
+          <span
+            title={
+              limitReached && maxUsers !== null
+                ? t.user.userLimitReached(maxUsers)
+                : undefined
+            }
+          >
+            <Button
+              type="button"
+              disabled={limitReached}
+              onClick={() => openForm()}
+            >
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {t.user.addUser}
+            </Button>
+          </span>
         </div>
       </header>
 

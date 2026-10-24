@@ -1,3 +1,35 @@
+import type {
+  ActivityAction,
+  ActivityResource,
+} from '@/module/activity_log/api/activity-log.api'
+
+const activityActions: Record<ActivityAction, string> = {
+  CREATE: 'menambahkan',
+  UPDATE: 'memperbarui',
+  DELETE: 'menghapus',
+  REORDER: 'memperbarui urutan',
+  RESEND_INVITE: 'mengirim ulang undangan',
+}
+
+const activityResources: Record<ActivityResource, string> = {
+  ARTICLE: 'artikel',
+  ARTICLE_CATEGORY: 'kategori artikel',
+  BOARD_MEMBER: 'anggota direksi',
+  BOARD_MEMBER_TYPE: 'tipe anggota direksi',
+  CLIENT: 'klien',
+  DIVISION: 'divisi',
+  DOCUMENT_COMMITMENT: 'dokumen',
+  DOCUMENT_COMMITMENT_CATEGORY: 'kategori dokumen',
+  FAQ: 'FAQ',
+  MEDIA: 'media',
+  ROLE: 'peran',
+  ROLE_PERMISSION: 'hak akses peran',
+  SERVICE: 'layanan',
+  SITE_CONTENT: 'konten halaman',
+  SITE_SETTING: 'pengaturan situs',
+  USER: 'pengguna',
+}
+
 const id = {
   common: {
     characterCount: (count: number, max: number) =>
@@ -8,6 +40,13 @@ const id = {
     save: 'Simpan',
     cancel: 'Batal',
     delete: 'Hapus',
+    deleting: 'Menghapus...',
+    deleteSelected: (count: number) => `Hapus ${count} terpilih`,
+    bulkDeleteTitle: 'Hapus item terpilih',
+    bulkDeleteDescription: (count: number) =>
+      `${count} item akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+    bulkDeleted: (count: number) => `${count} item berhasil dihapus.`,
+    bulkDeleteFailed: 'Item terpilih gagal dihapus.',
     edit: 'Edit',
     close: 'Tutup',
     closeNotification: 'Tutup notifikasi',
@@ -17,6 +56,57 @@ const id = {
     justNow: 'baru saja',
     contentLabel: 'Konten:',
     previewEmpty: 'Bagian ini belum lengkap sehingga tidak tampil di situs.',
+  },
+  serverError: {
+    accountInactive: 'Akun Anda tidak aktif.',
+    articleCategorySlugTaken: 'Slug kategori artikel sudah digunakan.',
+    articleSlugTaken: 'Slug artikel sudah digunakan.',
+    defaultLanguageRequired:
+      'Bahasa Indonesia wajib diisi sebelum menambahkan bahasa lain.',
+    emailTaken: 'Email sudah terdaftar.',
+    filenameTaken: 'File dengan nama ini sudah ada.',
+    invalidCredentials: 'Email atau kata sandi salah.',
+    invalidFilename: 'Nama file tidak valid atau terlalu panjang.',
+    invalidImage: 'Isi gambar tidak valid atau tidak sesuai format file.',
+    invalidLink: 'Tautan tidak valid atau sudah kedaluwarsa.',
+    invalidLogo: 'Format logo harus PNG, JPG, JPEG, atau WEBP.',
+    invalidPdf: 'Dokumen harus berupa file PDF yang valid.',
+    invalidPicture: 'Format gambar harus PNG, JPG, atau JPEG.',
+    invalidSvg: 'File SVG tidak valid.',
+    inviteEmailFailed:
+      'Email undangan gagal dikirim. Coba kirim ulang undangan.',
+    languageInactive: 'Bahasa tidak ditemukan atau tidak aktif.',
+    ownAccountDelete: 'Anda tidak dapat menghapus akun Anda sendiri.',
+    ownManageUsers:
+      'Anda tidak dapat menghapus hak kelola pengguna dari peran Anda sendiri.',
+    ownRoleDelete: 'Anda tidak dapat menghapus peran Anda sendiri.',
+    ownRoleOrStatus:
+      'Anda tidak dapat mengubah peran atau menonaktifkan akun Anda sendiri.',
+    roleNameTaken: 'Nama peran sudah digunakan.',
+    userAlreadyActivated: 'Pengguna sudah mengaktifkan akunnya.',
+    // Used when the server message has no translation above.
+    byStatus: (status?: number): string => {
+      switch (status) {
+        case 400:
+          return 'Data yang dikirim tidak valid.'
+        case 401:
+          return 'Sesi Anda telah berakhir. Silakan masuk kembali.'
+        case 403:
+          return 'Anda tidak memiliki izin untuk melakukan tindakan ini.'
+        case 404:
+          return 'Data tidak ditemukan.'
+        case 409:
+          return 'Data bertentangan dengan data yang sudah ada.'
+        case 413:
+          return 'Ukuran file terlalu besar.'
+        case 429:
+          return 'Terlalu banyak percobaan. Silakan coba lagi nanti.'
+        case 503:
+          return 'Layanan sedang tidak tersedia. Silakan coba lagi nanti.'
+        default:
+          return 'Permintaan tidak dapat diselesaikan.'
+      }
+    },
   },
   auth: {
     brandTitle: 'Content',
@@ -115,6 +205,15 @@ const id = {
     loadingActivity: 'Memuat aktivitas…',
     activityFailed: 'Gagal memuat aktivitas',
     noActivity: 'Belum ada aktivitas.',
+    // "menghapus 3 artikel"; the item name, if any, follows.
+    activity: (
+      action: ActivityAction,
+      resource: ActivityResource,
+      itemCount: number | null,
+    ) =>
+      [activityActions[action], itemCount, activityResources[resource]]
+        .filter((part) => part !== null)
+        .join(' '),
     quickAccess: 'Akses Cepat',
     quickLinks: {
       article: 'Tulis artikel baru',
@@ -775,7 +874,6 @@ const id = {
     pageTitle: 'Media Library',
     description: 'Kelola foto dan dokumen yang digunakan di situs.',
     upload: 'Unggah Berkas',
-    uploading: 'Mengunggah...',
     deleteSelected: (count: number) => `Hapus (${count})`,
     searchLabel: 'Cari berkas',
     searchPlaceholder: 'Cari berkas...',
@@ -814,6 +912,26 @@ const id = {
     pictureType: 'GAMBAR',
     documentType: 'DOKUMEN',
     viewMode: 'Tampilan media',
+    uploadTitle: 'Unggah Berkas',
+    editTitle: 'Ubah Berkas',
+    formDescription: 'Atur nama berkas dan teks alternatif media.',
+    file: 'Berkas',
+    dropFile: 'Seret berkas ke sini atau',
+    pickFromDevice: 'pilih dari perangkat',
+    fileHint: 'PNG, JPG, JPEG maksimal 2 MiB · PDF maksimal 5 MiB',
+    pictureFileHint: 'PNG, JPG, JPEG maksimal 2 MiB',
+    filename: 'Nama berkas',
+    alt: 'Teks alternatif (alt)',
+    altHint: 'Jelaskan isi gambar untuk pembaca layar dan mesin pencari.',
+    requiredFile: 'Pilih berkas untuk diunggah.',
+    requiredFilename: 'Nama berkas wajib diisi.',
+    saving: 'Menyimpan...',
+    updateSuccess: 'Berkas berhasil diperbarui.',
+    updateFailed: 'Berkas gagal diperbarui.',
+    editFile: (filename: string) => `Ubah ${filename}`,
+    copyUrl: (filename: string) => `Salin URL ${filename}`,
+    copyUrlSuccess: 'URL berkas berhasil disalin.',
+    copyUrlFailed: 'URL berkas gagal disalin.',
   },
   mediaPicker: {
     title: 'Pilih dari Media Library',
@@ -823,7 +941,6 @@ const id = {
     searchLabel: 'Cari gambar',
     searchPlaceholder: 'Cari berkas...',
     upload: 'Unggah berkas baru',
-    uploading: 'Mengunggah...',
     noPictures: 'Belum ada gambar di Media Library.',
     noSearchResults: 'Tidak ada gambar yang cocok dengan pencarian.',
     selectedCount: (count: number) => `${count} berkas dipilih`,
@@ -929,6 +1046,9 @@ const id = {
     description:
       'Kelola siapa saja yang dapat masuk dan mengubah konten situs.',
     addUser: 'Tambah Pengguna',
+    userQuota: (count: number, max: number) => `${count} / ${max} pengguna`,
+    userLimitReached: (max: number) =>
+      `Batas ${max} pengguna tercapai. Hapus pengguna sebelum menambah yang baru.`,
     manageRoles: 'Kelola Peran',
     registeredUsers: 'Pengguna Terdaftar',
     accountCount: (count: number) => `${count} akun`,

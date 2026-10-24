@@ -1,4 +1,36 @@
+import type {
+  ActivityAction,
+  ActivityResource,
+} from '@/module/activity_log/api/activity-log.api'
 import type { Dictionary } from './id'
+
+const activityActions: Record<ActivityAction, string> = {
+  CREATE: 'added',
+  UPDATE: 'updated',
+  DELETE: 'deleted',
+  REORDER: 'reordered',
+  RESEND_INVITE: 'resent the invite to',
+}
+
+// [singular, plural]
+const activityResources: Record<ActivityResource, [string, string]> = {
+  ARTICLE: ['article', 'articles'],
+  ARTICLE_CATEGORY: ['article category', 'article categories'],
+  BOARD_MEMBER: ['board member', 'board members'],
+  BOARD_MEMBER_TYPE: ['board member type', 'board member types'],
+  CLIENT: ['client', 'clients'],
+  DIVISION: ['division', 'divisions'],
+  DOCUMENT_COMMITMENT: ['document', 'documents'],
+  DOCUMENT_COMMITMENT_CATEGORY: ['document category', 'document categories'],
+  FAQ: ['FAQ', 'FAQs'],
+  MEDIA: ['media file', 'media files'],
+  ROLE: ['role', 'roles'],
+  ROLE_PERMISSION: ['role permissions', 'role permissions'],
+  SERVICE: ['service', 'services'],
+  SITE_CONTENT: ['page content', 'page content'],
+  SITE_SETTING: ['site settings', 'site settings'],
+  USER: ['user', 'users'],
+}
 
 const en: Dictionary = {
   common: {
@@ -10,6 +42,14 @@ const en: Dictionary = {
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
+    deleting: 'Deleting...',
+    deleteSelected: (count: number) => `Delete ${count} selected`,
+    bulkDeleteTitle: 'Delete selected items',
+    bulkDeleteDescription: (count: number) =>
+      `${count} ${count === 1 ? 'item' : 'items'} will be permanently deleted. This action cannot be undone.`,
+    bulkDeleted: (count: number) =>
+      `${count} ${count === 1 ? 'item' : 'items'} deleted successfully.`,
+    bulkDeleteFailed: 'Failed to delete the selected items.',
     edit: 'Edit',
     close: 'Close',
     closeNotification: 'Close notification',
@@ -19,6 +59,55 @@ const en: Dictionary = {
     justNow: 'just now',
     contentLabel: 'Content:',
     previewEmpty: 'This section is incomplete, so it is hidden on the site.',
+  },
+  serverError: {
+    accountInactive: 'Your account is inactive.',
+    articleCategorySlugTaken: 'Article category slug is already in use.',
+    articleSlugTaken: 'Article slug is already in use.',
+    defaultLanguageRequired:
+      'Bahasa Indonesia is required before adding another language.',
+    emailTaken: 'Email is already registered.',
+    filenameTaken: 'A file with this name already exists.',
+    invalidCredentials: 'Invalid email or password.',
+    invalidFilename: 'The filename is invalid or too long.',
+    invalidImage: 'The image content is invalid or does not match its format.',
+    invalidLink: 'This link is invalid or has expired.',
+    invalidLogo: 'Logo must be a PNG, JPG, JPEG, or WEBP file.',
+    invalidPdf: 'Document must be a valid PDF file.',
+    invalidPicture: 'Image must be a PNG, JPG, or JPEG file.',
+    invalidSvg: 'The SVG file is invalid.',
+    inviteEmailFailed:
+      'The invite email could not be sent. Try resending the invite.',
+    languageInactive: 'The language does not exist or is inactive.',
+    ownAccountDelete: 'You cannot delete your own account.',
+    ownManageUsers: 'You cannot remove user management from your own role.',
+    ownRoleDelete: 'You cannot delete your own role.',
+    ownRoleOrStatus: 'You cannot change your own role or deactivate yourself.',
+    roleNameTaken: 'Role name is already in use.',
+    userAlreadyActivated: 'This user has already activated their account.',
+    // Used when the server message has no translation above.
+    byStatus: (status?: number): string => {
+      switch (status) {
+        case 400:
+          return 'The submitted data is invalid.'
+        case 401:
+          return 'Your session has ended. Please sign in again.'
+        case 403:
+          return 'You do not have permission to perform this action.'
+        case 404:
+          return 'The data was not found.'
+        case 409:
+          return 'The data conflicts with existing data.'
+        case 413:
+          return 'The file is too large.'
+        case 429:
+          return 'Too many attempts. Please try again later.'
+        case 503:
+          return 'The service is temporarily unavailable. Please try again later.'
+        default:
+          return 'The request could not be completed.'
+      }
+    },
   },
   auth: {
     brandTitle: 'Content',
@@ -117,6 +206,20 @@ const en: Dictionary = {
     loadingActivity: 'Loading activity…',
     activityFailed: 'Failed to load activity',
     noActivity: 'No activity yet.',
+    // "deleted 3 articles", "reordered clients"; the item name, if any, follows.
+    activity: (
+      action: ActivityAction,
+      resource: ActivityResource,
+      itemCount: number | null,
+    ) => {
+      const [singular, plural] = activityResources[resource]
+      const isPlural =
+        action === 'REORDER' || (itemCount !== null && itemCount !== 1)
+
+      return [activityActions[action], itemCount, isPlural ? plural : singular]
+        .filter((part) => part !== null)
+        .join(' ')
+    },
     quickAccess: 'Quick Access',
     quickLinks: {
       article: 'Write a new article',
@@ -777,7 +880,6 @@ const en: Dictionary = {
     pageTitle: 'Media Library',
     description: 'Manage photos and documents used on the site.',
     upload: 'Upload Files',
-    uploading: 'Uploading...',
     deleteSelected: (count: number) => `Delete (${count})`,
     searchLabel: 'Search files',
     searchPlaceholder: 'Search files...',
@@ -818,6 +920,26 @@ const en: Dictionary = {
     pictureType: 'IMAGE',
     documentType: 'DOCUMENT',
     viewMode: 'Media view',
+    uploadTitle: 'Upload File',
+    editTitle: 'Edit File',
+    formDescription: 'Set the media filename and alternative text.',
+    file: 'File',
+    dropFile: 'Drop a file here or',
+    pickFromDevice: 'pick from your device',
+    fileHint: 'PNG, JPG, JPEG up to 2 MiB · PDF up to 5 MiB',
+    pictureFileHint: 'PNG, JPG, JPEG up to 2 MiB',
+    filename: 'Filename',
+    alt: 'Alternative text (alt)',
+    altHint: 'Describe the image for screen readers and search engines.',
+    requiredFile: 'Choose a file to upload.',
+    requiredFilename: 'Filename is required.',
+    saving: 'Saving...',
+    updateSuccess: 'File updated successfully.',
+    updateFailed: 'Failed to update file.',
+    editFile: (filename: string) => `Edit ${filename}`,
+    copyUrl: (filename: string) => `Copy URL of ${filename}`,
+    copyUrlSuccess: 'File URL copied.',
+    copyUrlFailed: 'Failed to copy file URL.',
   },
   mediaPicker: {
     title: 'Choose from Media Library',
@@ -826,7 +948,6 @@ const en: Dictionary = {
     searchLabel: 'Search images',
     searchPlaceholder: 'Search files...',
     upload: 'Upload new file',
-    uploading: 'Uploading...',
     noPictures: 'No images in the Media Library yet.',
     noSearchResults: 'No images match your search.',
     selectedCount: (count: number) =>
@@ -932,6 +1053,9 @@ const en: Dictionary = {
     pageTitle: 'Users & Access',
     description: 'Manage who can sign in and edit site content.',
     addUser: 'Add User',
+    userQuota: (count: number, max: number) => `${count} / ${max} users`,
+    userLimitReached: (max: number) =>
+      `The limit of ${max} users has been reached. Delete a user before adding another.`,
     manageRoles: 'Manage Roles',
     registeredUsers: 'Registered Users',
     accountCount: (count: number) =>

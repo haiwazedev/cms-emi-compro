@@ -58,10 +58,19 @@ function DashboardRecentActivity() {
                     <span className="text-accent font-semibold">
                       {activity.name}
                     </span>{' '}
-                    {activity.action_type}{' '}
-                    <span className="text-accent font-semibold">
-                      {activity.action_result}
-                    </span>
+                    {t.dashboard.activity(
+                      activity.action,
+                      activity.resource,
+                      activity.item_count,
+                    )}
+                    {activity.action_result && (
+                      <>
+                        {' '}
+                        <span className="text-accent font-semibold">
+                          {activity.action_result}
+                        </span>
+                      </>
+                    )}
                   </p>
                   <time
                     dateTime={activity.created_at}

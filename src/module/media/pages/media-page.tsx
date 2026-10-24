@@ -1,7 +1,7 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   bulkDeleteMedia,
-  getMediaTypeFromFilename,
+  updateMedia,
   uploadMedia,
 } from '@/module/media/api/media.api'
 import type {
@@ -9,13 +9,10 @@ import type {
   MediaSortOrder,
   MediaType,
 } from '@/module/media/api/media.api'
-import {
-  MEDIA_DOCUMENT_MAX_SIZE,
-  MEDIA_ACCEPTED_EXTENSIONS,
-  MEDIA_PICTURE_MAX_SIZE,
-} from '@/module/media/constants/media.constants'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { MediaCard } from '@/module/media/components/media-card'
+import { MediaFormDialog } from '@/module/media/components/media-form-dialog'
+import type { MediaFormSubmit } from '@/module/media/components/media-form-dialog'
 import {
   mediaQueryKeys,
   mediaQueryOptions,
@@ -48,8 +45,7 @@ import {
   Trash2Icon,
   UploadIcon,
 } from 'lucide-react'
-import type { ChangeEvent } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 type TypeFilter = 'ALL' | MediaType
 type ViewMode = 'grid' | 'list'
@@ -66,7 +62,7 @@ function MediaPage() {
     from: '/_authenticated/media',
   })
   const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [formMedia, setFormMedia] = useState<{ media?: Media }>()
   const [view, setView] = useState<ViewMode>('grid')
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set())
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -93,24 +89,24 @@ function MediaPage() {
   const pictures = visibleMedia.filter((item) => item.type === 'PICTURE')
   const documents = visibleMedia.filter((item) => item.type === 'DOCUMENT')
 
-  const uploadMutation = useMutation({
-    mutationFn: ({ file, type }: { file: File; type: MediaType }) =>
-      uploadMedia(file, type),
+  const editing = Boolean(formMedia?.media)
+  const saveMutation = useMutation({
+    mutationFn: ({ file, type, ...fields }: MediaFormSubmit) =>
+      formMedia?.media
+        ? updateMedia(formMedia.media.id, fields)
+        : uploadMedia(file as File, type as MediaType, fields),
     onSuccess: async () => {
+      setFormMedia(undefined)
       await queryClient.invalidateQueries({ queryKey: mediaQueryKeys.all })
       toast.add({
         title: t.common.success,
-        description: t.media.uploadSuccess,
+        description: editing ? t.media.updateSuccess : t.media.uploadSuccess,
         type: 'success',
       })
     },
     onError: (error) => {
-      toast.add({
-        title: t.common.error,
-        description:
-          error instanceof Error ? error.message : t.media.uploadFailed,
-        type: 'error',
-      })
+      const fallback = editing ? t.media.updateFailed : t.media.uploadFailed
+      showError(error instanceof Error ? error.message : fallback)
     },
   })
 
@@ -135,28 +131,6 @@ function MediaPage() {
       })
     },
   })
-
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0]
-    event.currentTarget.value = ''
-
-    if (!file) return
-
-    const type = getMediaTypeFromFilename(file.name)
-    if (!type) {
-      showError(t.media.unsupportedFile)
-      return
-    }
-
-    const maxSize =
-      type === 'PICTURE' ? MEDIA_PICTURE_MAX_SIZE : MEDIA_DOCUMENT_MAX_SIZE
-    if (file.size > maxSize) {
-      showError(t.media.fileTooLarge(type))
-      return
-    }
-
-    uploadMutation.mutate({ file, type })
-  }
 
   function updateTypeFilter(value: TypeFilter) {
     setSelectedIds(new Set())
@@ -207,22 +181,10 @@ function MediaPage() {
               {t.media.deleteSelected(selectedCount)}
             </Button>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={MEDIA_ACCEPTED_EXTENSIONS}
-            className="hidden"
-            aria-label={t.media.upload}
-            onChange={handleFileChange}
-          />
           {canWrite && (
-            <Button
-              type="button"
-              disabled={uploadMutation.isPending}
-              onClick={() => fileInputRef.current?.click()}
-            >
+            <Button type="button" onClick={() => setFormMedia({})}>
               <UploadIcon aria-hidden="true" className="size-4" />
-              {uploadMutation.isPending ? t.media.uploading : t.media.upload}
+              {t.media.upload}
             </Button>
           )}
         </div>
@@ -335,6 +297,9 @@ function MediaPage() {
                 view={view}
                 selectedIds={selectedIds}
                 onSelectionChange={updateSelection}
+                onEdit={
+                  canWrite ? (media) => setFormMedia({ media }) : undefined
+                }
               />
             )}
             {documents.length > 0 && (
@@ -344,6 +309,9 @@ function MediaPage() {
                 view={view}
                 selectedIds={selectedIds}
                 onSelectionChange={updateSelection}
+                onEdit={
+                  canWrite ? (media) => setFormMedia({ media }) : undefined
+                }
               />
             )}
           </div>
@@ -353,6 +321,17 @@ function MediaPage() {
           {t.media.summary(visibleMedia.length, formatTotalSize(totalSize))}
         </footer>
       </section>
+
+      {formMedia && (
+        <MediaFormDialog
+          media={formMedia.media}
+          pending={saveMutation.isPending}
+          onOpenChange={(open) => {
+            if (!open && !saveMutation.isPending) setFormMedia(undefined)
+          }}
+          onSubmit={(fields) => saveMutation.mutate(fields)}
+        />
+      )}
 
       <Dialog
         open={deleteDialogOpen}
@@ -407,12 +386,14 @@ function MediaGroup({
   view,
   selectedIds,
   onSelectionChange,
+  onEdit,
 }: {
   title: string
   items: Media[]
   view: ViewMode
   selectedIds: Set<number>
   onSelectionChange: (mediaId: number, selected: boolean) => void
+  onEdit?: (media: Media) => void
 }) {
   const { t } = useI18n()
   return (
@@ -434,6 +415,7 @@ function MediaGroup({
             view={view}
             selected={selectedIds.has(item.id)}
             onSelectionChange={onSelectionChange}
+            onEdit={onEdit}
           />
         ))}
       </div>

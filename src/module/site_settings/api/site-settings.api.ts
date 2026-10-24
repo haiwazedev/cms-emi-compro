@@ -54,7 +54,6 @@ export type SiteSettings = {
   company_location_lat: number | null
   company_location_long: number | null
   social_medias: SiteSocialMedia[]
-  landing_site_url: string | null
 } & Record<(typeof SETTING_FIELDS)[SiteSettingsField], string | null>
 
 interface SiteSettingsResponse {
@@ -64,7 +63,6 @@ interface SiteSettingsResponse {
 export interface SiteSettingsData {
   values: SiteSettingsFormValues
   unconfigured: SiteSettingsField[]
-  landingSiteUrl: string | null
 }
 
 export async function getSiteSettings(languageId: string) {
@@ -100,7 +98,6 @@ function toSettingsData(settings: SiteSettings): SiteSettingsData {
 
   return {
     unconfigured,
-    landingSiteUrl: settings.landing_site_url || null,
     values: {
       ...SITE_SETTINGS_EMPTY_VALUES,
       companyName: settings.company_name ?? '',

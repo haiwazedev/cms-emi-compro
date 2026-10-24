@@ -6,6 +6,7 @@ export type MediaSortOrder = 'asc' | 'desc'
 export interface Media {
   id: number
   filename: string
+  alt: string | null
   path: string
   extension: string
   type: MediaType
@@ -39,12 +40,29 @@ export async function getMedia(params: MediaListParams) {
   return data.media
 }
 
-export async function uploadMedia(file: File, type: MediaType) {
+export interface MediaWriteFields {
+  filename: string
+  alt: string
+}
+
+export async function uploadMedia(
+  file: File,
+  type: MediaType,
+  fields: MediaWriteFields = { filename: file.name, alt: '' },
+) {
   const formData = new FormData()
   formData.append('type', type)
   formData.append('file', file)
+  formData.append('filename', fields.filename)
+  formData.append('alt', fields.alt)
 
   const { data } = await apiClient.post<MediaResponse>('/media', formData)
+
+  return data.media
+}
+
+export async function updateMedia(id: number, fields: MediaWriteFields) {
+  const { data } = await apiClient.put<MediaResponse>(`/media/${id}`, fields)
 
   return data.media
 }

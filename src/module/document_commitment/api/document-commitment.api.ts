@@ -120,6 +120,15 @@ export async function deleteDocumentCommitment(documentId: number) {
   await apiClient.delete<void>(`/document_commitments/${documentId}`)
 }
 
+export async function bulkDeleteDocumentCommitments(ids: number[]) {
+  const { data } = await apiClient.post<{ deleted_count: number }>(
+    '/document_commitments/bulk_delete',
+    { ids },
+  )
+
+  return data.deleted_count
+}
+
 export async function createDocumentCommitmentCategory(name: string) {
   const { data } = await apiClient.post<DocumentCommitmentCategoryResponse>(
     '/document_commitment_categories',

@@ -1,5 +1,6 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
+  bulkDeleteDocumentCommitments,
   deleteDocumentCommitment,
   createDocumentCommitment,
   updateDocumentCommitment,
@@ -19,6 +20,7 @@ import {
   documentCommitmentsQueryOptions,
 } from '@/module/document_commitment/queries/document-commitment.queries'
 import type { DocumentCommitmentFormValues } from '@/module/document_commitment/schemas/document-commitment-form.schema'
+import { BulkDeleteButton } from '@/shared/components/bulk-delete-button'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -39,6 +41,7 @@ import {
 import { toast } from '@/shared/lib/toast'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { RowSelectionState } from '@tanstack/react-table'
 import { PlusIcon, SearchIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -55,6 +58,7 @@ function DocumentCommitmentsPage() {
   const [documentToEdit, setDocumentToEdit] = useState<DocumentCommitment>()
   const [documentToDelete, setDocumentToDelete] =
     useState<DocumentCommitment | null>(null)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const documentParams = useMemo<DocumentCommitmentListParams>(
     () => ({
@@ -74,6 +78,9 @@ function DocumentCommitmentsPage() {
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
   const documents = documentsQuery.data?.documentCommitments ?? []
   const pagination = documentsQuery.data?.pagination
+  const selectedIds = documents
+    .filter((document) => rowSelection[document.id])
+    .map((document) => document.id)
 
   const saveMutation = useMutation({
     mutationFn: ({
@@ -149,6 +156,40 @@ function DocumentCommitmentsPage() {
           error instanceof Error
             ? error.message
             : t.documentCommitment.documentDeleteFailed,
+        type: 'error',
+      })
+    },
+  })
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: bulkDeleteDocumentCommitments,
+    onSuccess: async (deletedCount, deletedIds) => {
+      setRowSelection({})
+      if (deletedIds.length >= documents.length && page > 1) {
+        await navigate({
+          search: (previous) => ({ ...previous, page: page - 1 }),
+        })
+      }
+      await queryClient.invalidateQueries({
+        queryKey: documentCommitmentQueryKeys.lists(),
+      })
+      for (const documentId of deletedIds) {
+        queryClient.removeQueries({
+          queryKey: [...documentCommitmentQueryKeys.all, 'detail', documentId],
+          exact: true,
+        })
+      }
+      toast.add({
+        title: t.common.success,
+        description: t.common.bulkDeleted(deletedCount),
+        type: 'success',
+      })
+    },
+    onError: (error) => {
+      toast.add({
+        title: t.common.error,
+        description:
+          error instanceof Error ? error.message : t.common.bulkDeleteFailed,
         type: 'error',
       })
     },
@@ -264,9 +305,16 @@ function DocumentCommitmentsPage() {
             </SelectContent>
           </Select>
 
-          <p className="text-muted text-sm lg:ml-auto lg:whitespace-nowrap">
-            {t.documentCommitment.entryCount(pagination?.totalItems ?? 0)}
-          </p>
+          <div className="flex items-center gap-3 lg:ml-auto">
+            <BulkDeleteButton
+              count={selectedIds.length}
+              pending={bulkDeleteMutation.isPending}
+              onConfirm={() => bulkDeleteMutation.mutateAsync(selectedIds)}
+            />
+            <p className="text-muted text-sm lg:whitespace-nowrap">
+              {t.documentCommitment.entryCount(pagination?.totalItems ?? 0)}
+            </p>
+          </div>
         </div>
 
         {categoriesQuery.isError && (
@@ -305,6 +353,8 @@ function DocumentCommitmentsPage() {
             pageCount={pagination?.totalPages ?? 0}
             totalItems={pagination?.totalItems ?? 0}
             deletePending={deleteMutation.isPending}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
             onEdit={openDocumentForm}
             onDelete={setDocumentToDelete}
             onPageIndexChange={(nextPageIndex) =>
