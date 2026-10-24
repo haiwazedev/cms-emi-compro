@@ -10,6 +10,14 @@ const en: Dictionary = {
     save: 'Save',
     cancel: 'Cancel',
     delete: 'Delete',
+    deleting: 'Deleting...',
+    deleteSelected: (count: number) => `Delete ${count} selected`,
+    bulkDeleteTitle: 'Delete selected items',
+    bulkDeleteDescription: (count: number) =>
+      `${count} ${count === 1 ? 'item' : 'items'} will be permanently deleted. This action cannot be undone.`,
+    bulkDeleted: (count: number) =>
+      `${count} ${count === 1 ? 'item' : 'items'} deleted successfully.`,
+    bulkDeleteFailed: 'Failed to delete the selected items.',
     edit: 'Edit',
     close: 'Close',
     closeNotification: 'Close notification',

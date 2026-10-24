@@ -8,6 +8,13 @@ const id = {
     save: 'Simpan',
     cancel: 'Batal',
     delete: 'Hapus',
+    deleting: 'Menghapus...',
+    deleteSelected: (count: number) => `Hapus ${count} terpilih`,
+    bulkDeleteTitle: 'Hapus item terpilih',
+    bulkDeleteDescription: (count: number) =>
+      `${count} item akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.`,
+    bulkDeleted: (count: number) => `${count} item berhasil dihapus.`,
+    bulkDeleteFailed: 'Item terpilih gagal dihapus.',
     edit: 'Edit',
     close: 'Tutup',
     closeNotification: 'Tutup notifikasi',
