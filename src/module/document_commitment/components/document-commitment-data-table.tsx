@@ -28,7 +28,11 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
+import type {
+  ColumnDef,
+  OnChangeFn,
+  RowSelectionState,
+} from '@tanstack/react-table'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -45,9 +49,8 @@ function createColumns(
   onDelete: (document: DocumentCommitment) => void,
   deletePending: boolean,
 ): ColumnDef<DocumentCommitment>[] {
-  return [
+  const columns: ColumnDef<DocumentCommitment>[] = [
     {
-      // shortcut: UI-only selection, no bulk actions yet.
       id: 'select',
       header: ({ table }) => (
         <TableCheckbox
@@ -161,6 +164,11 @@ function createColumns(
       ),
     },
   ]
+
+  // Selection only feeds bulk delete.
+  return canDelete
+    ? columns
+    : columns.filter((column) => column.id !== 'select')
 }
 
 interface DocumentCommitmentDataTableProps {
@@ -170,6 +178,8 @@ interface DocumentCommitmentDataTableProps {
   pageCount: number
   totalItems: number
   deletePending: boolean
+  rowSelection: RowSelectionState
+  onRowSelectionChange: OnChangeFn<RowSelectionState>
   onEdit: (document: DocumentCommitment) => void
   onDelete: (document: DocumentCommitment) => void
   onPageIndexChange: (pageIndex: number) => void
@@ -183,6 +193,8 @@ function DocumentCommitmentDataTable({
   pageCount,
   totalItems,
   deletePending,
+  rowSelection,
+  onRowSelectionChange,
   onEdit,
   onDelete,
   onPageIndexChange,
@@ -209,7 +221,8 @@ function DocumentCommitmentDataTable({
     getRowId: (document) => String(document.id),
     manualPagination: true,
     pageCount,
-    state: { pagination: { pageIndex, pageSize } },
+    state: { pagination: { pageIndex, pageSize }, rowSelection },
+    onRowSelectionChange,
   })
   const start = totalItems === 0 ? 0 : pageIndex * pageSize + 1
   const end = Math.min((pageIndex + 1) * pageSize, totalItems)
