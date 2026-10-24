@@ -30,6 +30,8 @@ export interface User {
   email: string
   role: { id: number; name: string } | null
   is_active: boolean
+  // True until the user accepts the invite and sets a password.
+  is_pending: boolean
   last_signed_in: string | null
 }
 
@@ -53,8 +55,10 @@ export interface UserListResponse {
 }
 
 export type RoleFields = Pick<Role, 'name' | 'description'>
-export type UserFields = Pick<User, 'name' | 'email' | 'is_active'> & {
+// is_active is update-only; new users start inactive until they accept the invite.
+export type UserFields = Pick<User, 'name' | 'email'> & {
   role_id: number | null
+  is_active?: boolean
 }
 
 export async function getRoles() {
@@ -121,6 +125,10 @@ export async function updateUser(userId: number, fields: UserFields) {
     fields,
   )
   return data.user
+}
+
+export async function resendInvite(userId: number): Promise<void> {
+  await apiClient.post(`/users/${userId}/invite`)
 }
 
 export async function deleteUser(userId: number): Promise<void> {

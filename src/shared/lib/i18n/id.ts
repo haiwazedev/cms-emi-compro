@@ -16,6 +16,7 @@ const id = {
     connectionFailed: 'Tidak dapat terhubung ke server. Silakan coba lagi.',
     justNow: 'baru saja',
     contentLabel: 'Konten:',
+    previewEmpty: 'Bagian ini belum lengkap sehingga tidak tampil di situs.',
   },
   auth: {
     brandTitle: 'Content',
@@ -38,6 +39,36 @@ const id = {
     submitting: 'Memproses...',
     loginSuccess: 'Berhasil masuk.',
     loginFailed: 'Gagal masuk. Silakan coba lagi.',
+    backToLogin: 'Kembali ke halaman masuk',
+    forgotTitle: 'Lupa Kata Sandi',
+    forgotDescription:
+      'Masukkan email akun Anda. Kami akan mengirim tautan untuk mengatur ulang kata sandi.',
+    forgotSubmit: 'Kirim Tautan',
+    forgotSent:
+      'Jika email tersebut terdaftar, tautan untuk mengatur ulang kata sandi telah dikirim. Periksa kotak masuk Anda.',
+    activateTitle: 'Atur Kata Sandi',
+    verifyingLink: 'Memeriksa tautan...',
+    activateInviteTitle: 'Aktifkan Akun',
+    activateInviteDescription:
+      'Buat kata sandi untuk mengaktifkan akun CMS Anda.',
+    activateResetTitle: 'Atur Ulang Kata Sandi',
+    activateResetDescription: 'Buat kata sandi baru untuk akun Anda.',
+    newPassword: 'Kata Sandi Baru',
+    confirmPassword: 'Konfirmasi Kata Sandi',
+    passwordHint:
+      'Minimal 8 karakter, dengan huruf kapital, angka, dan simbol.',
+    passwordMinLength: 'Kata sandi minimal 8 karakter.',
+    passwordMaxLength: 'Kata sandi maksimal 128 karakter.',
+    passwordUppercase: 'Kata sandi harus mengandung huruf kapital.',
+    passwordNumber: 'Kata sandi harus mengandung angka.',
+    passwordSymbol: 'Kata sandi harus mengandung simbol.',
+    passwordMismatch: 'Konfirmasi kata sandi tidak cocok.',
+    activateSubmit: 'Simpan Kata Sandi',
+    activateSuccess: 'Kata sandi berhasil disimpan. Silakan masuk.',
+    invalidLinkTitle: 'Tautan Tidak Valid',
+    invalidLinkDescription:
+      'Tautan ini tidak valid, sudah digunakan, atau sudah kedaluwarsa.',
+    requestNewLink: 'Minta Tautan Baru',
   },
   nav: {
     navigation: 'Navigasi utama',
@@ -619,7 +650,11 @@ const id = {
     description:
       'Single Type - halaman utama situs PT Energy Management Indonesia (Persero).',
     preview: 'Pratinjau',
-    previewDisabled: 'Fitur pratinjau belum tersedia.',
+    previewDescription:
+      'Pratinjau Beranda berdasarkan perubahan yang belum disimpan.',
+    previewShowSlide: (index: number) => `Tampilkan slide ${index}`,
+    previewPreviousSlide: 'Slide sebelumnya',
+    previewNextSlide: 'Slide berikutnya',
     savePublish: 'Simpan & Terbitkan',
     saving: 'Menyimpan...',
     saveSuccess: 'Konten Beranda berhasil disimpan dan diterbitkan.',
@@ -674,7 +709,8 @@ const id = {
     pageTitle: 'Tentang Kami',
     description: 'Single Type - halaman profil perusahaan.',
     preview: 'Pratinjau',
-    previewDisabled: 'Fitur pratinjau belum tersedia.',
+    previewDescription:
+      'Pratinjau Tentang Kami berdasarkan perubahan yang belum disimpan.',
     savePublish: 'Simpan & Terbitkan',
     saving: 'Menyimpan...',
     saveSuccess: 'Konten Tentang Kami berhasil disimpan dan diterbitkan.',
@@ -908,6 +944,12 @@ const id = {
     actions: 'Aksi',
     active: 'Aktif',
     inactive: 'Nonaktif',
+    pending: 'Menunggu Aktivasi',
+    resendInvite: (name: string) => `Kirim ulang undangan ke ${name}`,
+    inviteDescription:
+      'Pengguna akan menerima email untuk membuat kata sandi dan mengaktifkan akun.',
+    inviteSent: 'Undangan berhasil dikirim ke email pengguna.',
+    inviteResent: 'Undangan berhasil dikirim ulang.',
     neverLoggedIn: '—',
     editUser: (name: string) => `Ubah ${name}`,
     deleteUser: (name: string) => `Hapus ${name}`,

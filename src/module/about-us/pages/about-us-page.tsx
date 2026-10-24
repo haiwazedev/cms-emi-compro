@@ -5,6 +5,7 @@ import type {
   AboutUsContentRecord,
   AboutUsContentWriteItem,
 } from '@/module/about-us/api/about-us.api'
+import { AboutUsPreviewDialog } from '@/module/about-us/components/about-us-preview-dialog'
 import { SortableAboutUsItem } from '@/module/about-us/components/sortable-about-us-item'
 import type { Dictionary } from '@/shared/lib/i18n/id'
 import {
@@ -165,6 +166,7 @@ function AboutUsEditor({
   const [draft, setDraft] = useState<AboutUsDraft | null>(null)
   const [savedDraft, setSavedDraft] = useState<AboutUsDraft | null>(null)
   const [photoPickerOpen, setPhotoPickerOpen] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [itemDialog, setItemDialog] = useState<ItemDialogState | null>(null)
   const [addedLanguageIds, setAddedLanguageIds] = useState<string[]>([])
 
@@ -455,8 +457,7 @@ function AboutUsEditor({
             <Button
               type="button"
               variant="outline"
-              disabled
-              title={t.aboutUs.previewDisabled}
+              onClick={() => setPreviewOpen(true)}
             >
               {t.aboutUs.preview}
             </Button>
@@ -759,6 +760,13 @@ function AboutUsEditor({
             </SidebarCard>
           </aside>
         </div>
+        {previewOpen && (
+          <AboutUsPreviewDialog
+            onOpenChange={setPreviewOpen}
+            draft={editorDraft}
+            languageId={languageId}
+          />
+        )}
       </div>
     </DragDropProvider>
   )

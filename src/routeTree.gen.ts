@@ -28,6 +28,8 @@ import { Route as AuthenticatedMediaRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated.roles'
 import { Route as AuthenticatedSite_settingsRouteImport } from './routes/_authenticated.site_settings'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated.users'
+import { Route as AuthActivateRouteImport } from './routes/auth.activate'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth.forgot-password'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthenticatedArticlesCreateRouteImport } from './routes/_authenticated/articles.create'
 import { Route as AuthenticatedArticlesArticleIdEditRouteImport } from './routes/_authenticated/articles.$articleId.edit'
@@ -132,6 +134,16 @@ const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthActivateRoute = AuthActivateRouteImport.update({
+  id: '/auth/activate',
+  path: '/auth/activate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
   id: '/auth/login',
   path: '/auth/login',
@@ -169,6 +181,8 @@ export interface FileRoutesByFullPath {
   '/roles': typeof AuthenticatedRolesRoute
   '/site_settings': typeof AuthenticatedSite_settingsRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/auth/activate': typeof AuthActivateRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -192,6 +206,8 @@ export interface FileRoutesByTo {
   '/roles': typeof AuthenticatedRolesRoute
   '/site_settings': typeof AuthenticatedSite_settingsRoute
   '/users': typeof AuthenticatedUsersRoute
+  '/auth/activate': typeof AuthActivateRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -217,6 +233,8 @@ export interface FileRoutesById {
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/site_settings': typeof AuthenticatedSite_settingsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
+  '/auth/activate': typeof AuthActivateRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/_authenticated/articles/create': typeof AuthenticatedArticlesCreateRoute
   '/_authenticated/articles/$articleId/edit': typeof AuthenticatedArticlesArticleIdEditRoute
@@ -242,6 +260,8 @@ export interface FileRouteTypes {
     | '/roles'
     | '/site_settings'
     | '/users'
+    | '/auth/activate'
+    | '/auth/forgot-password'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -265,6 +285,8 @@ export interface FileRouteTypes {
     | '/roles'
     | '/site_settings'
     | '/users'
+    | '/auth/activate'
+    | '/auth/forgot-password'
     | '/auth/login'
     | '/articles/create'
     | '/articles/$articleId/edit'
@@ -289,6 +311,8 @@ export interface FileRouteTypes {
     | '/_authenticated/roles'
     | '/_authenticated/site_settings'
     | '/_authenticated/users'
+    | '/auth/activate'
+    | '/auth/forgot-password'
     | '/auth/login'
     | '/_authenticated/articles/create'
     | '/_authenticated/articles/$articleId/edit'
@@ -297,6 +321,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthActivateRoute: typeof AuthActivateRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
@@ -435,6 +461,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/auth/activate': {
+      id: '/auth/activate'
+      path: '/auth/activate'
+      fullPath: '/auth/activate'
+      preLoaderRoute: typeof AuthActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/login': {
       id: '/auth/login'
       path: '/auth/login'
@@ -524,6 +564,8 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthActivateRoute: AuthActivateRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
 }
 export const routeTree = rootRouteImport

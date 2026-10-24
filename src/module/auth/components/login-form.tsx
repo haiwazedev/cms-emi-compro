@@ -1,15 +1,13 @@
 import { login } from '@/module/auth/api/auth.api'
 import { authQueryKey } from '@/module/auth/queries/auth.queries'
-import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
-import { Label } from '@/shared/components/ui/label'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { toast } from '@/shared/lib/toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
-import { ArrowRightIcon, LoaderCircleIcon } from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
+import { AuthField } from './auth-field'
+import { AuthSubmitButton } from './auth-submit-button'
 import {
   createLoginSchema,
   type LoginFormValues,
@@ -59,75 +57,37 @@ function LoginForm() {
         loginMutation.mutate({ email, password }),
       )}
     >
-      <div className="space-y-2">
-        <Label htmlFor="email" className="text-accent">
-          {t.auth.email} <span className="text-danger">*</span>
-        </Label>
-        <Input
-          id="email"
-          type="email"
-          required
-          autoComplete="username"
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? 'email-error' : undefined}
-          className="h-14 rounded-xl px-4 text-base"
-          {...register('email')}
-        />
-        {errors.email && (
-          <p id="email-error" role="alert" className="text-danger text-sm">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      <AuthField
+        id="email"
+        type="email"
+        autoComplete="username"
+        label={t.auth.email}
+        error={errors.email?.message}
+        {...register('email')}
+      />
 
-      <div className="space-y-2">
-        <Label htmlFor="password" className="text-accent">
-          {t.auth.password} <span className="text-danger">*</span>
-        </Label>
-        <Input
-          id="password"
-          type="password"
-          required
-          autoComplete="current-password"
-          aria-invalid={Boolean(errors.password)}
-          aria-describedby={errors.password ? 'password-error' : undefined}
-          className="h-14 rounded-xl px-4 text-base"
-          {...register('password')}
-        />
-        {errors.password && (
-          <p id="password-error" role="alert" className="text-danger text-sm">
-            {errors.password.message}
-          </p>
-        )}
-      </div>
+      <AuthField
+        id="password"
+        type="password"
+        autoComplete="current-password"
+        label={t.auth.password}
+        error={errors.password?.message}
+        {...register('password')}
+      />
 
       <div className="flex justify-end">
-        <span className="text-secondary text-sm font-medium">
+        <Link
+          to="/auth/forgot-password"
+          className="text-secondary text-sm font-medium hover:underline"
+        >
           {t.auth.forgotPassword}
-        </span>
+        </Link>
       </div>
 
-      <Button
-        type="submit"
-        size="lg"
-        disabled={loginMutation.isPending}
-        className="h-14 w-full rounded-xl text-base"
-      >
-        {loginMutation.isPending ? (
-          <>
-            {t.auth.submitting}
-            <LoaderCircleIcon
-              aria-hidden="true"
-              className="size-4 animate-spin"
-            />
-          </>
-        ) : (
-          <>
-            {t.auth.submit}
-            <ArrowRightIcon aria-hidden="true" className="size-4" />
-          </>
-        )}
-      </Button>
+      <AuthSubmitButton
+        label={t.auth.submit}
+        pending={loginMutation.isPending}
+      />
     </form>
   )
 }

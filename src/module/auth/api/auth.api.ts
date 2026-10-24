@@ -26,6 +26,28 @@ export async function login(credentials: LoginCredentials) {
   return data.user
 }
 
+export type ActivationPurpose = 'INVITE' | 'RESET'
+
+export async function forgotPassword(email: string): Promise<void> {
+  await apiClient.post('/auth/forgot-password', { email })
+}
+
+export async function verifyActivationToken(token: string) {
+  const { data } = await apiClient.post<{ purpose: ActivationPurpose }>(
+    '/auth/activate/verify',
+    { token },
+  )
+
+  return data.purpose
+}
+
+export async function activateAccount(
+  token: string,
+  password: string,
+): Promise<void> {
+  await apiClient.post('/auth/activate', { token, password })
+}
+
 export async function logout(): Promise<void> {
   await apiClient.post('/auth/logout')
 }
