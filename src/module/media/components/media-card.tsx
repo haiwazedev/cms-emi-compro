@@ -1,15 +1,19 @@
 import type { Media } from '@/module/media/api/media.api'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
+import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { toast } from '@/shared/lib/toast'
 import { cn } from '@/shared/lib/utils'
-import { FileTextIcon } from 'lucide-react'
+import { FileTextIcon, LinkIcon, PencilIcon } from 'lucide-react'
+import type { ComponentProps } from 'react'
 
 interface MediaCardProps {
   media: Media
   view: 'grid' | 'list'
   selected: boolean
   onSelectionChange: (mediaId: number, selected: boolean) => void
+  onEdit?: (media: Media) => void
 }
 
 function MediaCard({
@@ -17,9 +21,27 @@ function MediaCard({
   view,
   selected,
   onSelectionChange,
+  onEdit,
 }: MediaCardProps) {
   const { t } = useI18n()
   const isPicture = media.type === 'PICTURE'
+
+  async function copyUrl() {
+    try {
+      await navigator.clipboard.writeText(getMediaAssetUrl(media.path))
+      toast.add({
+        title: t.common.success,
+        description: t.media.copyUrlSuccess,
+        type: 'success',
+      })
+    } catch {
+      toast.add({
+        title: t.common.error,
+        description: t.media.copyUrlFailed,
+        type: 'error',
+      })
+    }
+  }
 
   return (
     <article
@@ -40,7 +62,7 @@ function MediaCard({
         {isPicture ? (
           <img
             src={getMediaAssetUrl(media.path)}
-            alt=""
+            alt={media.alt ?? ''}
             loading="lazy"
             className="size-full object-cover"
           />
@@ -50,6 +72,24 @@ function MediaCard({
             className="text-foreground/35 size-8"
           />
         )}
+        <div className="absolute top-2 left-2 flex gap-1">
+          {onEdit && (
+            <MediaCardAction
+              aria-label={t.media.editFile(media.filename)}
+              title={t.common.edit}
+              onClick={() => onEdit(media)}
+            >
+              <PencilIcon aria-hidden="true" className="size-3.5" />
+            </MediaCardAction>
+          )}
+          <MediaCardAction
+            aria-label={t.media.copyUrl(media.filename)}
+            title={t.media.copyUrl(media.filename)}
+            onClick={() => void copyUrl()}
+          >
+            <LinkIcon aria-hidden="true" className="size-3.5" />
+          </MediaCardAction>
+        </div>
         <label className="absolute top-2 right-2 flex size-7 cursor-pointer items-center justify-center rounded-full bg-transparent">
           <Checkbox
             checked={selected}
@@ -73,6 +113,18 @@ function MediaCard({
         </p>
       </div>
     </article>
+  )
+}
+
+function MediaCardAction(props: ComponentProps<typeof Button>) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      className="bg-background/90 size-7 rounded-full"
+      {...props}
+    />
   )
 }
 
