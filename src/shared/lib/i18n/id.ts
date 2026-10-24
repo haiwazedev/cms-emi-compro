@@ -57,6 +57,57 @@ const id = {
     contentLabel: 'Konten:',
     previewEmpty: 'Bagian ini belum lengkap sehingga tidak tampil di situs.',
   },
+  serverError: {
+    accountInactive: 'Akun Anda tidak aktif.',
+    articleCategorySlugTaken: 'Slug kategori artikel sudah digunakan.',
+    articleSlugTaken: 'Slug artikel sudah digunakan.',
+    defaultLanguageRequired:
+      'Bahasa Indonesia wajib diisi sebelum menambahkan bahasa lain.',
+    emailTaken: 'Email sudah terdaftar.',
+    filenameTaken: 'File dengan nama ini sudah ada.',
+    invalidCredentials: 'Email atau kata sandi salah.',
+    invalidFilename: 'Nama file tidak valid atau terlalu panjang.',
+    invalidImage: 'Isi gambar tidak valid atau tidak sesuai format file.',
+    invalidLink: 'Tautan tidak valid atau sudah kedaluwarsa.',
+    invalidLogo: 'Format logo harus PNG, JPG, JPEG, atau WEBP.',
+    invalidPdf: 'Dokumen harus berupa file PDF yang valid.',
+    invalidPicture: 'Format gambar harus PNG, JPG, atau JPEG.',
+    invalidSvg: 'File SVG tidak valid.',
+    inviteEmailFailed:
+      'Email undangan gagal dikirim. Coba kirim ulang undangan.',
+    languageInactive: 'Bahasa tidak ditemukan atau tidak aktif.',
+    ownAccountDelete: 'Anda tidak dapat menghapus akun Anda sendiri.',
+    ownManageUsers:
+      'Anda tidak dapat menghapus hak kelola pengguna dari peran Anda sendiri.',
+    ownRoleDelete: 'Anda tidak dapat menghapus peran Anda sendiri.',
+    ownRoleOrStatus:
+      'Anda tidak dapat mengubah peran atau menonaktifkan akun Anda sendiri.',
+    roleNameTaken: 'Nama peran sudah digunakan.',
+    userAlreadyActivated: 'Pengguna sudah mengaktifkan akunnya.',
+    // Used when the server message has no translation above.
+    byStatus: (status?: number): string => {
+      switch (status) {
+        case 400:
+          return 'Data yang dikirim tidak valid.'
+        case 401:
+          return 'Sesi Anda telah berakhir. Silakan masuk kembali.'
+        case 403:
+          return 'Anda tidak memiliki izin untuk melakukan tindakan ini.'
+        case 404:
+          return 'Data tidak ditemukan.'
+        case 409:
+          return 'Data bertentangan dengan data yang sudah ada.'
+        case 413:
+          return 'Ukuran file terlalu besar.'
+        case 429:
+          return 'Terlalu banyak percobaan. Silakan coba lagi nanti.'
+        case 503:
+          return 'Layanan sedang tidak tersedia. Silakan coba lagi nanti.'
+        default:
+          return 'Permintaan tidak dapat diselesaikan.'
+      }
+    },
+  },
   auth: {
     brandTitle: 'Content',
     brandTitleAccent: 'Management System',

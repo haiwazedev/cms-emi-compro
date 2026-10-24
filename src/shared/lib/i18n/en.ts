@@ -60,6 +60,55 @@ const en: Dictionary = {
     contentLabel: 'Content:',
     previewEmpty: 'This section is incomplete, so it is hidden on the site.',
   },
+  serverError: {
+    accountInactive: 'Your account is inactive.',
+    articleCategorySlugTaken: 'Article category slug is already in use.',
+    articleSlugTaken: 'Article slug is already in use.',
+    defaultLanguageRequired:
+      'Bahasa Indonesia is required before adding another language.',
+    emailTaken: 'Email is already registered.',
+    filenameTaken: 'A file with this name already exists.',
+    invalidCredentials: 'Invalid email or password.',
+    invalidFilename: 'The filename is invalid or too long.',
+    invalidImage: 'The image content is invalid or does not match its format.',
+    invalidLink: 'This link is invalid or has expired.',
+    invalidLogo: 'Logo must be a PNG, JPG, JPEG, or WEBP file.',
+    invalidPdf: 'Document must be a valid PDF file.',
+    invalidPicture: 'Image must be a PNG, JPG, or JPEG file.',
+    invalidSvg: 'The SVG file is invalid.',
+    inviteEmailFailed:
+      'The invite email could not be sent. Try resending the invite.',
+    languageInactive: 'The language does not exist or is inactive.',
+    ownAccountDelete: 'You cannot delete your own account.',
+    ownManageUsers: 'You cannot remove user management from your own role.',
+    ownRoleDelete: 'You cannot delete your own role.',
+    ownRoleOrStatus: 'You cannot change your own role or deactivate yourself.',
+    roleNameTaken: 'Role name is already in use.',
+    userAlreadyActivated: 'This user has already activated their account.',
+    // Used when the server message has no translation above.
+    byStatus: (status?: number): string => {
+      switch (status) {
+        case 400:
+          return 'The submitted data is invalid.'
+        case 401:
+          return 'Your session has ended. Please sign in again.'
+        case 403:
+          return 'You do not have permission to perform this action.'
+        case 404:
+          return 'The data was not found.'
+        case 409:
+          return 'The data conflicts with existing data.'
+        case 413:
+          return 'The file is too large.'
+        case 429:
+          return 'Too many attempts. Please try again later.'
+        case 503:
+          return 'The service is temporarily unavailable. Please try again later.'
+        default:
+          return 'The request could not be completed.'
+      }
+    },
+  },
   auth: {
     brandTitle: 'Content',
     brandTitleAccent: 'Management System',

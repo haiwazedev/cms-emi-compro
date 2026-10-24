@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { DICTIONARIES, type Locale } from './i18n/i18n-context'
+import { SERVER_ERROR_KEYS } from './server-error-keys'
 
 interface ApiErrorResponse {
   message?: string
@@ -30,15 +31,20 @@ apiClient.interceptors.response.use(
     }
 
     // shortcut: reads the locale from <html lang> (kept in sync by I18nProvider) since this runs outside React.
-    const { common } =
+    const { common, serverError } =
       DICTIONARIES[document.documentElement.lang as Locale] ?? DICTIONARIES.id
-    const message =
-      typeof error.response?.data?.message === 'string'
-        ? error.response.data.message
-        : error.response
-          ? common.requestFailed
-          : common.connectionFailed
+    const status = error.response?.status
+    const serverMessage = error.response?.data?.message
+    const key =
+      typeof serverMessage === 'string'
+        ? SERVER_ERROR_KEYS[serverMessage]
+        : undefined
+    const message = !error.response
+      ? common.connectionFailed
+      : key
+        ? serverError[key]
+        : serverError.byStatus(status)
 
-    return Promise.reject(new ApiError(message, error.response?.status))
+    return Promise.reject(new ApiError(message, status))
   },
 )
