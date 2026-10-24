@@ -1,4 +1,36 @@
+import type {
+  ActivityAction,
+  ActivityResource,
+} from '@/module/activity_log/api/activity-log.api'
 import type { Dictionary } from './id'
+
+const activityActions: Record<ActivityAction, string> = {
+  CREATE: 'added',
+  UPDATE: 'updated',
+  DELETE: 'deleted',
+  REORDER: 'reordered',
+  RESEND_INVITE: 'resent the invite to',
+}
+
+// [singular, plural]
+const activityResources: Record<ActivityResource, [string, string]> = {
+  ARTICLE: ['article', 'articles'],
+  ARTICLE_CATEGORY: ['article category', 'article categories'],
+  BOARD_MEMBER: ['board member', 'board members'],
+  BOARD_MEMBER_TYPE: ['board member type', 'board member types'],
+  CLIENT: ['client', 'clients'],
+  DIVISION: ['division', 'divisions'],
+  DOCUMENT_COMMITMENT: ['document', 'documents'],
+  DOCUMENT_COMMITMENT_CATEGORY: ['document category', 'document categories'],
+  FAQ: ['FAQ', 'FAQs'],
+  MEDIA: ['media file', 'media files'],
+  ROLE: ['role', 'roles'],
+  ROLE_PERMISSION: ['role permissions', 'role permissions'],
+  SERVICE: ['service', 'services'],
+  SITE_CONTENT: ['page content', 'page content'],
+  SITE_SETTING: ['site settings', 'site settings'],
+  USER: ['user', 'users'],
+}
 
 const en: Dictionary = {
   common: {
@@ -125,6 +157,20 @@ const en: Dictionary = {
     loadingActivity: 'Loading activity…',
     activityFailed: 'Failed to load activity',
     noActivity: 'No activity yet.',
+    // "deleted 3 articles", "reordered clients"; the item name, if any, follows.
+    activity: (
+      action: ActivityAction,
+      resource: ActivityResource,
+      itemCount: number | null,
+    ) => {
+      const [singular, plural] = activityResources[resource]
+      const isPlural =
+        action === 'REORDER' || (itemCount !== null && itemCount !== 1)
+
+      return [activityActions[action], itemCount, isPlural ? plural : singular]
+        .filter((part) => part !== null)
+        .join(' ')
+    },
     quickAccess: 'Quick Access',
     quickLinks: {
       article: 'Write a new article',

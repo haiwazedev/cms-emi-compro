@@ -1,3 +1,35 @@
+import type {
+  ActivityAction,
+  ActivityResource,
+} from '@/module/activity_log/api/activity-log.api'
+
+const activityActions: Record<ActivityAction, string> = {
+  CREATE: 'menambahkan',
+  UPDATE: 'memperbarui',
+  DELETE: 'menghapus',
+  REORDER: 'memperbarui urutan',
+  RESEND_INVITE: 'mengirim ulang undangan',
+}
+
+const activityResources: Record<ActivityResource, string> = {
+  ARTICLE: 'artikel',
+  ARTICLE_CATEGORY: 'kategori artikel',
+  BOARD_MEMBER: 'anggota direksi',
+  BOARD_MEMBER_TYPE: 'tipe anggota direksi',
+  CLIENT: 'klien',
+  DIVISION: 'divisi',
+  DOCUMENT_COMMITMENT: 'dokumen',
+  DOCUMENT_COMMITMENT_CATEGORY: 'kategori dokumen',
+  FAQ: 'FAQ',
+  MEDIA: 'media',
+  ROLE: 'peran',
+  ROLE_PERMISSION: 'hak akses peran',
+  SERVICE: 'layanan',
+  SITE_CONTENT: 'konten halaman',
+  SITE_SETTING: 'pengaturan situs',
+  USER: 'pengguna',
+}
+
 const id = {
   common: {
     characterCount: (count: number, max: number) =>
@@ -122,6 +154,15 @@ const id = {
     loadingActivity: 'Memuat aktivitas…',
     activityFailed: 'Gagal memuat aktivitas',
     noActivity: 'Belum ada aktivitas.',
+    // "menghapus 3 artikel"; the item name, if any, follows.
+    activity: (
+      action: ActivityAction,
+      resource: ActivityResource,
+      itemCount: number | null,
+    ) =>
+      [activityActions[action], itemCount, activityResources[resource]]
+        .filter((part) => part !== null)
+        .join(' '),
     quickAccess: 'Akses Cepat',
     quickLinks: {
       article: 'Tulis artikel baru',
