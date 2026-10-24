@@ -1,8 +1,10 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import {
   articleCategoriesQueryOptions,
+  articleQueryKeys,
   articlesQueryOptions,
 } from '@/module/article/queries/article.queries'
+import { bulkDeleteArticles } from '@/module/article/api/article.api'
 import type {
   ArticleListItem,
   ArticleListParams,
@@ -12,6 +14,7 @@ import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { ArticleDataTable } from '@/module/article/components/article-data-table'
 import { ArticleDeleteDialog } from '@/module/article/components/article-delete-dialog'
 import { ArticleLanguageLegend } from '@/module/article/components/article-language-pills'
+import { BulkDeleteButton } from '@/shared/components/bulk-delete-button'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import {
@@ -21,8 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
+import { toast } from '@/shared/lib/toast'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { RowSelectionState } from '@tanstack/react-table'
 import { PlusIcon, SearchIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -33,6 +38,7 @@ function ArticlesPage() {
   const { t } = useI18n()
   const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/articles' })
+  const queryClient = useQueryClient()
   const searchParams = useSearch({ from: '/_authenticated/articles' })
   const { page, limit, search, article_category_id, status, sort_order } =
     searchParams
@@ -56,6 +62,10 @@ function ArticlesPage() {
   const pagination = articlesQuery.data?.pagination
   const [articleToDelete, setArticleToDelete] =
     useState<ArticleListItem | null>(null)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const selectedIds = articles
+    .filter((article) => rowSelection[article.id])
+    .map((article) => article.id)
 
   const requestArticleDelete = useCallback((article: ArticleListItem) => {
     setArticleToDelete(article)
@@ -63,14 +73,45 @@ function ArticlesPage() {
 
   const closeDeleteDialog = useCallback(() => setArticleToDelete(null), [])
 
-  // Deleting the last row of a page moves back one page.
-  async function goToPreviousPageIfEmpty() {
-    if (articles.length === 1 && page > 1) {
+  // Deleting every row of a page moves back one page.
+  async function goToPreviousPageIfEmpty(deletedCount = 1) {
+    if (deletedCount >= articles.length && page > 1) {
       await navigate({
         search: (previous) => ({ ...previous, page: page - 1 }),
       })
     }
   }
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: bulkDeleteArticles,
+    onSuccess: async (deletedCount, deletedIds) => {
+      setRowSelection({})
+      for (const articleId of deletedIds) {
+        queryClient.removeQueries({
+          queryKey: articleQueryKeys.detail(articleId),
+          exact: true,
+        })
+      }
+      await goToPreviousPageIfEmpty(deletedIds.length)
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: articleQueryKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: articleQueryKeys.counts() }),
+      ])
+      toast.add({
+        title: t.common.success,
+        description: t.common.bulkDeleted(deletedCount),
+        type: 'success',
+      })
+    },
+    onError: (error) => {
+      toast.add({
+        title: t.common.error,
+        description:
+          error instanceof Error ? error.message : t.common.bulkDeleteFailed,
+        type: 'error',
+      })
+    },
+  })
 
   function updateCategory(value: string) {
     void navigate({
@@ -226,9 +267,16 @@ function ArticlesPage() {
             </SelectContent>
           </Select>
 
-          <p className="text-muted text-sm lg:ml-auto lg:whitespace-nowrap">
-            {t.article.entryCount(pagination?.totalItems ?? 0)}
-          </p>
+          <div className="flex items-center gap-3 lg:ml-auto">
+            <BulkDeleteButton
+              count={selectedIds.length}
+              pending={bulkDeleteMutation.isPending}
+              onConfirm={() => bulkDeleteMutation.mutateAsync(selectedIds)}
+            />
+            <p className="text-muted text-sm lg:whitespace-nowrap">
+              {t.article.entryCount(pagination?.totalItems ?? 0)}
+            </p>
+          </div>
         </div>
 
         {/* Article Language Status Legend */}
@@ -264,6 +312,10 @@ function ArticlesPage() {
           <ArticleDataTable
             articles={articles}
             onDeleteArticle={requestArticleDelete}
+            selection={{
+              rowSelection,
+              onRowSelectionChange: setRowSelection,
+            }}
             pagination={{
               pageIndex: page - 1,
               pageSize: limit,
