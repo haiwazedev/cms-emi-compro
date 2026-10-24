@@ -40,6 +40,7 @@ function ClientFormDialog({
   const [previewUrl, setPreviewUrl] = useState<string>()
   const [dragging, setDragging] = useState(false)
   const [formError, setFormError] = useState<string>()
+  const [logoError, setLogoError] = useState<string>()
 
   const logoUrl =
     previewUrl ?? (client && getMediaAssetUrl(client.logo_filepath))
@@ -54,17 +55,19 @@ function ClientFormDialog({
     if (!file) return
 
     const extension = '.' + file.name.split('.').at(-1)?.toLowerCase()
+    setFormError(undefined)
+
     if (!CLIENT_LOGO_ACCEPT.split(',').includes(extension)) {
-      setFormError(t.client.unsupportedLogo)
+      setLogoError(t.client.unsupportedLogo)
       return
     }
 
     if (file.size > CLIENT_LOGO_MAX_SIZE) {
-      setFormError(t.client.logoTooLarge)
+      setLogoError(t.client.logoTooLarge)
       return
     }
 
-    setFormError(undefined)
+    setLogoError(undefined)
     setLogoFile(file)
     setPreviewUrl(URL.createObjectURL(file))
   }
@@ -82,6 +85,11 @@ function ClientFormDialog({
       setFormError(t.client.requiredName)
       return
     }
+
+    setFormError(undefined)
+
+    // A rejected file stays explained instead of turning into "required".
+    if (logoError) return
 
     if (!logoUrl) {
       setFormError(t.client.requiredLogo)
@@ -177,9 +185,9 @@ function ClientFormDialog({
               <p className="text-foreground/55 text-xs">{t.client.logoHint}</p>
             </div>
 
-            {formError && (
+            {(formError ?? logoError) && (
               <p role="alert" className="text-danger text-sm">
-                {formError}
+                {formError ?? logoError}
               </p>
             )}
           </div>
