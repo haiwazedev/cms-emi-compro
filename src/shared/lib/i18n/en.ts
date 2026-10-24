@@ -958,6 +958,9 @@ const en: Dictionary = {
     pageTitle: 'Users & Access',
     description: 'Manage who can sign in and edit site content.',
     addUser: 'Add User',
+    userQuota: (count: number, max: number) => `${count} / ${max} users`,
+    userLimitReached: (max: number) =>
+      `The limit of ${max} users has been reached. Delete a user before adding another.`,
     manageRoles: 'Manage Roles',
     registeredUsers: 'Registered Users',
     accountCount: (count: number) =>

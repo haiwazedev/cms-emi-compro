@@ -3,6 +3,7 @@ import {
   getPermissions,
   getRolePermissions,
   getRoles,
+  getUserCount,
   getUsers,
 } from '../api/user.api'
 import type { UserListParams } from '../api/user.api'
@@ -11,6 +12,7 @@ export const userQueryKeys = {
   all: ['users'] as const,
   lists: () => [...userQueryKeys.all, 'list'] as const,
   list: (params: UserListParams) => [...userQueryKeys.lists(), params] as const,
+  count: () => [...userQueryKeys.all, 'count'] as const,
   roles: () => ['roles'] as const,
   permissions: () => ['permissions'] as const,
   rolePermissions: () => ['role_permissions'] as const,
@@ -21,6 +23,13 @@ export function usersQueryOptions(params: UserListParams) {
     queryKey: userQueryKeys.list(params),
     queryFn: () => getUsers(params),
     staleTime: 30_000,
+  })
+}
+
+export function userCountQueryOptions() {
+  return queryOptions({
+    queryKey: userQueryKeys.count(),
+    queryFn: getUserCount,
   })
 }
 

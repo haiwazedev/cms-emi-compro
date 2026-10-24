@@ -954,6 +954,9 @@ const id = {
     description:
       'Kelola siapa saja yang dapat masuk dan mengubah konten situs.',
     addUser: 'Tambah Pengguna',
+    userQuota: (count: number, max: number) => `${count} / ${max} pengguna`,
+    userLimitReached: (max: number) =>
+      `Batas ${max} pengguna tercapai. Hapus pengguna sebelum menambah yang baru.`,
     manageRoles: 'Kelola Peran',
     registeredUsers: 'Pengguna Terdaftar',
     accountCount: (count: number) => `${count} akun`,

@@ -114,6 +114,12 @@ export async function getUsers(params: UserListParams) {
   return data
 }
 
+// All users, pending invites included.
+export async function getUserCount() {
+  const { data } = await apiClient.get<{ total: number }>('/users/count')
+  return data.total
+}
+
 export async function createUser(fields: UserFields) {
   const { data } = await apiClient.post<{ user: User }>('/users', fields)
   return data.user
