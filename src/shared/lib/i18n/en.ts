@@ -777,7 +777,6 @@ const en: Dictionary = {
     pageTitle: 'Media Library',
     description: 'Manage photos and documents used on the site.',
     upload: 'Upload Files',
-    uploading: 'Uploading...',
     deleteSelected: (count: number) => `Delete (${count})`,
     searchLabel: 'Search files',
     searchPlaceholder: 'Search files...',
@@ -846,7 +845,6 @@ const en: Dictionary = {
     searchLabel: 'Search images',
     searchPlaceholder: 'Search files...',
     upload: 'Upload new file',
-    uploading: 'Uploading...',
     noPictures: 'No images in the Media Library yet.',
     noSearchResults: 'No images match your search.',
     selectedCount: (count: number) =>

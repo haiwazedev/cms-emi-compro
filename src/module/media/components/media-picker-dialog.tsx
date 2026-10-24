@@ -1,10 +1,7 @@
-import {
-  getMediaAssetUrl,
-  getMediaTypeFromFilename,
-  uploadMedia,
-} from '@/module/media/api/media.api'
+import { getMediaAssetUrl, uploadMedia } from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
-import { MEDIA_PICTURE_MAX_SIZE } from '@/module/media/constants/media.constants'
+import { MediaFormDialog } from '@/module/media/components/media-form-dialog'
+import type { MediaFormSubmit } from '@/module/media/components/media-form-dialog'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   mediaQueryKeys,
@@ -22,14 +19,8 @@ import {
 import { Input } from '@/shared/components/ui/input'
 import { toast } from '@/shared/lib/toast'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  CheckIcon,
-  LoaderCircleIcon,
-  SearchIcon,
-  UploadIcon,
-} from 'lucide-react'
-import type { ChangeEvent } from 'react'
-import { useMemo, useRef, useState } from 'react'
+import { CheckIcon, SearchIcon, UploadIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { cn } from '@/shared/lib/utils'
 
 interface MediaPickerDialogBaseProps {
@@ -83,7 +74,7 @@ function MediaPickerDialog({
     [multipleSelectedMediaIds, selectionMode, singleSelectedMediaId],
   )
   const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [pendingMediaIds, setPendingMediaIds] = useState(selectedMediaIds)
   const mediaQuery = useQuery({
@@ -102,8 +93,10 @@ function MediaPickerDialog({
     mediaQuery.data?.filter((media) => pendingMediaIds.includes(media.id)) ?? []
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadMedia(file, 'PICTURE'),
+    mutationFn: ({ file, ...fields }: MediaFormSubmit) =>
+      uploadMedia(file as File, 'PICTURE', fields),
     onSuccess: async (media) => {
+      setUploadOpen(false)
       setSearch('')
       setPendingMediaIds((current) =>
         selectionMode === 'multiple'
@@ -128,33 +121,6 @@ function MediaPickerDialog({
       })
     },
   })
-
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0]
-    event.currentTarget.value = ''
-
-    if (!file) return
-
-    if (getMediaTypeFromFilename(file.name) !== 'PICTURE') {
-      toast.add({
-        title: t.common.error,
-        description: t.mediaPicker.unsupportedFile,
-        type: 'error',
-      })
-      return
-    }
-
-    if (file.size > MEDIA_PICTURE_MAX_SIZE) {
-      toast.add({
-        title: t.common.error,
-        description: t.media.fileTooLarge('PICTURE'),
-        type: 'error',
-      })
-      return
-    }
-
-    uploadMutation.mutate(file)
-  }
 
   function useSelectedMedia() {
     if (selectionProps.selectionMode === 'multiple') {
@@ -199,31 +165,13 @@ function MediaPickerDialog({
             />
           </label>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-            className="hidden"
-            aria-label={t.mediaPicker.upload}
-            onChange={handleFileChange}
-          />
           <Button
             type="button"
             variant="outline"
-            disabled={uploadMutation.isPending}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setUploadOpen(true)}
           >
-            {uploadMutation.isPending ? (
-              <LoaderCircleIcon
-                aria-hidden="true"
-                className="size-4 animate-spin"
-              />
-            ) : (
-              <UploadIcon aria-hidden="true" className="size-4" />
-            )}
-            {uploadMutation.isPending
-              ? t.mediaPicker.uploading
-              : t.mediaPicker.upload}
+            <UploadIcon aria-hidden="true" className="size-4" />
+            {t.mediaPicker.upload}
           </Button>
         </div>
 
@@ -309,6 +257,17 @@ function MediaPickerDialog({
             </Button>
           </div>
         </DialogFooter>
+
+        {uploadOpen && (
+          <MediaFormDialog
+            pictureOnly
+            pending={uploadMutation.isPending}
+            onOpenChange={(open) => {
+              if (!open && !uploadMutation.isPending) setUploadOpen(false)
+            }}
+            onSubmit={(fields) => uploadMutation.mutate(fields)}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -338,7 +297,7 @@ function MediaPickerCard({
       <span className="bg-primary relative flex aspect-video w-full items-center justify-center overflow-hidden">
         <img
           src={getMediaAssetUrl(media.path)}
-          alt=""
+          alt={media.alt ?? ''}
           loading="lazy"
           className="size-full object-cover"
         />
