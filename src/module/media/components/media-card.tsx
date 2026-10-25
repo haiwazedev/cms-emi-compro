@@ -1,5 +1,8 @@
 import type { Media } from '@/module/media/api/media.api'
-import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import {
+  getMediaAssetUrl,
+  hasMediaDimensions,
+} from '@/module/media/api/media.api'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
@@ -106,7 +109,7 @@ function MediaCard({
           {media.filename}
         </p>
         <p className="text-foreground/55 text-xs">
-          {isPicture && media.metadata
+          {isPicture && hasMediaDimensions(media.metadata)
             ? `${media.metadata.width} × ${media.metadata.height} · `
             : `${media.extension.toUpperCase()} · `}
           {formatFileSize(media.size)}

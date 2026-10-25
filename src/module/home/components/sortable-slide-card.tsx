@@ -1,4 +1,7 @@
-import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import {
+  getMediaAssetUrl,
+  hasMediaDimensions,
+} from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { HomeSlideDraft } from '@/module/home/types/home.types'
@@ -221,7 +224,7 @@ function SortableSlideCard({
                 {media && (
                   <p className="text-muted text-xs">
                     {media.filename}
-                    {media.metadata
+                    {hasMediaDimensions(media.metadata)
                       ? ` · ${media.metadata.width}×${media.metadata.height}`
                       : ''}
                   </p>

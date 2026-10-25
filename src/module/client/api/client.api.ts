@@ -7,7 +7,7 @@ export interface Client {
   logo_filepath: string
   logo_extension: string
   logo_size: number
-  logo_metadata: { width: number; height: number }
+  logo_metadata: { width?: number; height?: number }
   sort_order: number
   created_at: string
   created_by: string

@@ -3,6 +3,11 @@ import { apiClient } from '@/shared/lib/api-client'
 export type MediaType = 'PICTURE' | 'DOCUMENT'
 export type MediaSortOrder = 'asc' | 'desc'
 
+export interface MediaImageMetadata {
+  width?: number
+  height?: number
+}
+
 export interface Media {
   id: number
   filename: string
@@ -11,7 +16,7 @@ export interface Media {
   extension: string
   type: MediaType
   size: number
-  metadata: { width: number; height: number } | null
+  metadata: MediaImageMetadata | null
   created_by: string
   created_at: string
 }
@@ -79,7 +84,13 @@ export async function bulkDeleteMedia(ids: number[]) {
 export function getMediaTypeFromFilename(filename: string): MediaType | null {
   const extension = filename.split('.').at(-1)?.toLowerCase()
 
-  if (extension === 'png' || extension === 'jpg' || extension === 'jpeg') {
+  if (
+    extension === 'png' ||
+    extension === 'jpg' ||
+    extension === 'jpeg' ||
+    extension === 'webp' ||
+    extension === 'svg'
+  ) {
     return 'PICTURE'
   }
 
@@ -88,6 +99,12 @@ export function getMediaTypeFromFilename(filename: string): MediaType | null {
   }
 
   return null
+}
+
+export function hasMediaDimensions(
+  metadata: Media['metadata'],
+): metadata is { width: number; height: number } {
+  return metadata?.width !== undefined && metadata.height !== undefined
 }
 
 export function getMediaAssetUrl(path: string) {

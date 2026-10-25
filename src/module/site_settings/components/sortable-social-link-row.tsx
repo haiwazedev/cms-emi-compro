@@ -65,6 +65,7 @@ function SortableSocialLinkRow({
               onChange={field.onChange}
               extensions={SITE_SETTINGS_ICON_TYPES}
               maxSize={SITE_SETTINGS_ICON_MAX_SIZE}
+              hint={t.siteSettings.iconHelp}
               previewClassName="size-9 p-1.5"
             />
           )}

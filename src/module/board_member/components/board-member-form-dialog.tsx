@@ -102,9 +102,14 @@ function BoardMemberFormDialog({
     if (!file) return
 
     const extension = file.name.split('.').pop()?.toLowerCase()
-    const validExtension = ['png', 'jpg', 'jpeg'].includes(extension ?? '')
+    const validExtension = ['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(
+      extension ?? '',
+    )
     const validMimeType =
-      !file.type || ['image/png', 'image/jpeg'].includes(file.type)
+      !file.type ||
+      ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'].includes(
+        file.type,
+      )
 
     if (!validExtension || !validMimeType) {
       setPhotoError(t.boardMember.photoInvalid)
@@ -289,7 +294,7 @@ function BoardMemberFormDialog({
                 ref={fileInputRef}
                 id="board-member-photo"
                 type="file"
-                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml"
                 disabled={pending}
                 onChange={(event) => {
                   handlePhotoChange(event.currentTarget.files?.[0])

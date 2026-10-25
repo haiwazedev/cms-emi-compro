@@ -25,7 +25,10 @@ import {
   findDefaultLanguage,
 } from '@/module/language/constants/language.constants'
 import { languagesQueryOptions } from '@/module/language/queries/language.queries'
-import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import {
+  getMediaAssetUrl,
+  hasMediaDimensions,
+} from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import { mediaQueryOptions } from '@/module/media/queries/media.queries'
@@ -560,7 +563,7 @@ function AboutUsEditor({
                       {selectedPhoto && (
                         <p className="text-muted text-xs">
                           {selectedPhoto.filename}
-                          {selectedPhoto.metadata
+                          {hasMediaDimensions(selectedPhoto.metadata)
                             ? ` · ${selectedPhoto.metadata.width}×${selectedPhoto.metadata.height}`
                             : ''}
                         </p>

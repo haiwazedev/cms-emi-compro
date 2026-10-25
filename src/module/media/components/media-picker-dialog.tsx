@@ -1,4 +1,8 @@
-import { getMediaAssetUrl, uploadMedia } from '@/module/media/api/media.api'
+import {
+  getMediaAssetUrl,
+  hasMediaDimensions,
+  uploadMedia,
+} from '@/module/media/api/media.api'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaFormDialog } from '@/module/media/components/media-form-dialog'
 import type { MediaFormSubmit } from '@/module/media/components/media-form-dialog'
@@ -317,7 +321,7 @@ function MediaPickerCard({
           {media.filename}
         </span>
         <span className="text-foreground/55 text-xs">
-          {media.metadata
+          {hasMediaDimensions(media.metadata)
             ? `${media.metadata.width} × ${media.metadata.height} · `
             : ''}
           {formatFileSize(media.size)}

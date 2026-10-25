@@ -12,6 +12,7 @@ interface ImageFileFieldProps {
   onChange: (value: SiteSettingsImage) => void
   extensions: string[]
   maxSize: number
+  hint?: string
   previewClassName?: string
   disabled?: boolean
 }
@@ -23,6 +24,7 @@ function ImageFileField({
   onChange,
   extensions,
   maxSize,
+  hint,
   previewClassName,
   disabled = false,
 }: ImageFileFieldProps) {
@@ -99,6 +101,7 @@ function ImageFileField({
           {error}
         </p>
       )}
+      {hint && <p className="text-foreground/55 text-xs">{hint}</p>}
     </div>
   )
 }

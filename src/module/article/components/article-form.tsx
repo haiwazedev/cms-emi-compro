@@ -12,7 +12,10 @@ import { ArticleRichTextEditor } from '@/module/article/components/article-rich-
 import type { Dictionary } from '@/shared/lib/i18n/id'
 import type { Language } from '@/module/language/api/language.api'
 import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
-import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import {
+  getMediaAssetUrl,
+  hasMediaDimensions,
+} from '@/module/media/api/media.api'
 import { formatRelativeTime } from '@/module/user/constants/user.constants'
 import type { Media } from '@/module/media/api/media.api'
 import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
@@ -677,7 +680,7 @@ function ArticleForm({
                     <span className="min-w-0 flex-1 truncate">
                       {selectedPhoto.filename}
                     </span>
-                    {selectedPhoto.metadata && (
+                    {hasMediaDimensions(selectedPhoto.metadata) && (
                       <>
                         <span aria-hidden="true">·</span>
                         <span className="shrink-0">

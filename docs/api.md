@@ -30,6 +30,19 @@ is unavailable or not configured. Invite and password reset emails require
 Resend); the
 server does not start without them.
 
+Operational logs are written as structured JSON to stdout. OpenObserve delivery
+is optional and uses the JSON ingestion API. Configure `OPENOBSERVE_URL` with
+the OpenObserve base URL, plus `OPENOBSERVE_ORG`, `OPENOBSERVE_USERNAME`, and
+`OPENOBSERVE_PASSWORD` to enable remote delivery. `OPENOBSERVE_STREAM` defaults
+to `pln_emi_server`; `LOG_LEVEL` defaults to `info`. Leave all OpenObserve
+settings unset to use stdout only. Incomplete or unavailable OpenObserve
+configuration does not prevent the server from starting or handling requests.
+Existing business activity actions are also sent as structured OpenObserve
+events with actor, action, resource, and available item name or count. Failed
+requests include the route, status, and safe error reason; validation failures
+may include a field path. Request bodies, query values, headers, cookies, and
+credentials are not included in request logs.
+
 ## Swagger
 
 Interactive API documentation is served at `GET /documentation`, and the raw
@@ -60,7 +73,7 @@ Bearer JWTs are no longer accepted. Sign in again to create a session.
 For Fetch examples, define the base URL once:
 
 ```js
-const API_BASE_URL = 'http://localhost:8000'
+const API_BASE_URL = 'http://localhost:8000';
 ```
 
 ## Login
@@ -107,12 +120,12 @@ const response = await fetch(`${API_BASE_URL}/auth/login`, {
     email: 'ari@example.com',
     password: 'correct-horse-battery-staple',
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -158,12 +171,12 @@ without a role. Use `permissions` to hide actions the user cannot perform.
 ```js
 const response = await fetch(`${API_BASE_URL}/auth/me`, {
   credentials: 'include',
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 
-const { user } = data
+const { user } = data;
 ```
 
 ### cURL example
@@ -193,11 +206,11 @@ with no response body.
 const response = await fetch(`${API_BASE_URL}/auth/logout`, {
   method: 'POST',
   credentials: 'include',
-})
+});
 
 if (!response.ok) {
-  const data = await response.json()
-  throw new Error(data.message)
+  const data = await response.json();
+  throw new Error(data.message);
 }
 ```
 
@@ -732,10 +745,10 @@ const response = await fetch(`${API_BASE_URL}/articles`, {
     issue_date: '2026-10-10',
     primary_photo: 18,
   }),
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 ## Divisions and Services
@@ -1052,8 +1065,9 @@ list length; invalid positions return `400 Bad Request`.
 
 Requests without a photo use JSON. To upload or replace a photo, send
 `multipart/form-data` with the same fields and an optional file field named
-`photo`. Photos may be PNG, JPG, or JPEG files up to 5 MiB. The server checks
-the image content and stores it in the SeaweedFS bucket under
+`photo`. Photos may be PNG, JPG, JPEG, WEBP, or SVG files up to 5 MiB. The
+server checks raster content against the extension, sanitizes SVG files, and
+stores the file in the SeaweedFS bucket under
 `board_member/{memberId}.{extension}`. The `photo` response field contains the
 public path `/public/board_member/{memberId}.{extension}`. Omitting `photo`
 during an update keeps the current photo.
@@ -1103,23 +1117,23 @@ A member response includes every available translation:
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Ari Putra')
-formData.append('company_name', 'PLN Energi Primer Indonesia')
-formData.append('language_id', 'en')
-formData.append('role', 'President Director')
-formData.append('board_member_type_id', '3')
-formData.append('description', 'Leads the company.')
-formData.append('photo', imageFile)
+const formData = new FormData();
+formData.append('name', 'Ari Putra');
+formData.append('company_name', 'PLN Energi Primer Indonesia');
+formData.append('language_id', 'en');
+formData.append('role', 'President Director');
+formData.append('board_member_type_id', '3');
+formData.append('description', 'Leads the company.');
+formData.append('photo', imageFile);
 
 const response = await fetch(`${API_BASE_URL}/board_members`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1150,15 +1164,16 @@ uploaded filename lowercased with non-alphanumeric characters replaced by `-`.
 `path` is its public path and identifies the stored file; it never changes, so
 renaming media keeps existing links working.
 
-| Type       | Accepted extensions  | Maximum size |
-| ---------- | -------------------- | ------------ |
-| `PICTURE`  | `png`, `jpg`, `jpeg` | 2 MiB        |
-| `DOCUMENT` | `pdf`                | 5 MiB        |
+| Type       | Accepted extensions                 | Maximum size |
+| ---------- | ----------------------------------- | ------------ |
+| `PICTURE`  | `png`, `jpg`, `jpeg`, `webp`, `svg` | 2 MiB        |
+| `DOCUMENT` | `pdf`                               | 5 MiB        |
 
-The server checks file content against the extension. Picture metadata contains
-its pixel `width` and `height`; document metadata is `null`. `size` is the file
-size rounded up to an integer number of KB (1024 bytes). `created_by` is the authenticated
-user's name.
+The server checks raster content against the extension and sanitizes SVG files.
+Raster picture metadata contains its pixel `width` and `height`; SVG picture
+metadata is `{}`; document metadata is `null`. `size` is the stored file size
+rounded up to an integer number of KB (1024 bytes). `created_by` is the
+authenticated user's name.
 
 A successful upload returns `201 Created`:
 
@@ -1182,20 +1197,20 @@ A successful upload returns `201 Created`:
 Example browser request:
 
 ```js
-const formData = new FormData()
-formData.append('type', 'PICTURE')
-formData.append('file', imageFile)
-formData.append('filename', 'company-news.jpg')
-formData.append('alt', 'Company news event')
+const formData = new FormData();
+formData.append('type', 'PICTURE');
+formData.append('file', imageFile);
+formData.append('filename', 'company-news.jpg');
+formData.append('alt', 'Company news event');
 
 const response = await fetch(`${API_BASE_URL}/media`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1365,20 +1380,20 @@ sets `updated_at` and `updated_by` to the current time and authenticated user's
 name.
 
 ```js
-const formData = new FormData()
-formData.append('document_commitment_category_id', '2')
-formData.append('title', 'Board decision 2026-10')
-formData.append('status', 'PUBLISHED')
-formData.append('file', pdfFile)
+const formData = new FormData();
+formData.append('document_commitment_category_id', '2');
+formData.append('title', 'Board decision 2026-10');
+formData.append('status', 'PUBLISHED');
+formData.append('file', pdfFile);
 
 const response = await fetch(`${API_BASE_URL}/document_commitments`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 `GET /document_commitments` accepts these optional query parameters:
@@ -1559,8 +1574,8 @@ const response = await fetch(`${API_BASE_URL}/faqs/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ faq_ids: [3, 1, 2, 4] }),
-})
-const { faqs } = await response.json()
+});
+const { faqs } = await response.json();
 ```
 
 ## Clients
@@ -1584,10 +1599,10 @@ logos shown in the "Klien Kami" section of the home page.
 
 Create and update requests use `multipart/form-data` with these fields:
 
-| Field  | Type   | Rules                                                                        |
-| ------ | ------ | ---------------------------------------------------------------------------- |
-| `name` | string | Required on create; trimmed; 1–200 characters.                               |
-| `logo` | file   | Required on create; PNG, JPG, JPEG, or WEBP; maximum 5 MiB; content-checked. |
+| Field  | Type   | Rules                                                                             |
+| ------ | ------ | --------------------------------------------------------------------------------- |
+| `name` | string | Required on create; trimmed; 1–200 characters.                                    |
+| `logo` | file   | Required on create; PNG, JPG, JPEG, WEBP, or SVG; maximum 5 MiB; content-checked. |
 
 On update, omitted fields remain unchanged; a request with neither `name` nor
 `logo` returns `400 Bad Request`. Uploading a new `logo` replaces the previous
@@ -1605,27 +1620,28 @@ The response also includes:
 - `logo_filename`: the stored filename.
 - `logo_filepath`: the public path; build the logo URL from it, as described
   under [Public Static Assets](#public-static-assets).
-- `logo_extension`: `png`, `jpg`, `jpeg`, or `webp`.
+- `logo_extension`: `png`, `jpg`, `jpeg`, `webp`, or `svg`.
 - `logo_size`: the file size rounded up to KiB (1024 bytes).
-- `logo_metadata`: the pixel `width` and `height`.
+- `logo_metadata`: the pixel `width` and `height` for raster images, or `{}` for SVG.
 
-Upload logos as transparent PNG or WEBP files.
+Raster logo content is checked against its extension. SVG logos are sanitized
+before storage.
 
 Example browser upload:
 
 ```js
-const formData = new FormData()
-formData.append('name', 'Accenture')
-formData.append('logo', logoFile)
+const formData = new FormData();
+formData.append('name', 'Accenture');
+formData.append('logo', logoFile);
 
 const response = await fetch(`${API_BASE_URL}/clients`, {
   method: 'POST',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 Do not set the multipart `Content-Type` header manually; the browser adds its
@@ -1673,8 +1689,8 @@ const response = await fetch(`${API_BASE_URL}/clients/reorder`, {
   credentials: 'include',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ client_ids: [3, 1, 2, 4] }),
-})
-const { clients } = await response.json()
+});
+const { clients } = await response.json();
 ```
 
 ## Inboxes
@@ -1770,8 +1786,8 @@ parameters return `400 Bad Request`; a missing inbox returns `404 Not Found`.
 ```ts
 const response = await fetch(`${API_BASE_URL}/inboxes?page=1&search=budi`, {
   credentials: 'include',
-})
-const { inboxes, pagination } = await response.json()
+});
+const { inboxes, pagination } = await response.json();
 ```
 
 ## Site Settings
@@ -1801,12 +1817,12 @@ language is also `null`. The CMS disables inputs whose key is `null`.
 
 `PUT /site_settings` uses `multipart/form-data`:
 
-| Field            | Type        | Rules                                                                                 |
-| ---------------- | ----------- | ------------------------------------------------------------------------------------- |
-| `data`           | JSON string | Required; the settings payload below.                                                 |
-| `danantara_logo` | file        | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 2 MiB. Omit to keep the current logo. |
-| `pln_logo`       | file        | Optional; same rules as `danantara_logo`.                                             |
-| `social_icons`   | file[]      | Optional; SVG only; maximum 1 MiB each; up to 20. Each must be referenced by an item. |
+| Field            | Type        | Rules                                                                                                     |
+| ---------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
+| `data`           | JSON string | Required; the settings payload below.                                                                     |
+| `danantara_logo` | file        | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 2 MiB. Omit to keep the current logo.                     |
+| `pln_logo`       | file        | Optional; same rules as `danantara_logo`.                                                                 |
+| `social_icons`   | file[]      | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 1 MiB each; up to 20. Each must be referenced by an item. |
 
 The `data` payload:
 
@@ -1845,9 +1861,10 @@ save succeeds.
 
 Uploaded SVG files are sanitized: scripts, event handlers, `foreignObject`, and
 `javascript:` links are removed, and a file with no valid `<svg>` left returns
-`400 Bad Request`. Logos are stored at `/public/site-logo-{name}-{random}.{extension}`
-and icons at `/public/site-social-medias/site-social-media-{name}-{random}.svg`.
-Both paths resolve to objects in the configured SeaweedFS bucket.
+`400 Bad Request`. Raster content is checked against its extension. Logos are
+stored at `/public/site-logo-{name}-{random}.{extension}` and icons at
+`/public/site-social-medias/site-social-media-{name}-{random}.{extension}`. Both
+paths resolve to objects in the configured SeaweedFS bucket.
 Only the logo filepath is kept. `icon_metadata` is the pixel `width` and
 `height` for raster images and `{}` for SVG.
 
@@ -1862,7 +1879,7 @@ language has no rows.
 Example browser request:
 
 ```js
-const formData = new FormData()
+const formData = new FormData();
 formData.append(
   'data',
   JSON.stringify({
@@ -1894,18 +1911,18 @@ formData.append(
       },
     ],
   }),
-)
-formData.append('pln_logo', plnLogoFile)
-formData.append('social_icons', youtubeIconFile)
+);
+formData.append('pln_logo', plnLogoFile);
+formData.append('social_icons', youtubeIconFile);
 
 const response = await fetch(`${API_BASE_URL}/site_settings`, {
   method: 'PUT',
   credentials: 'include',
   body: formData,
-})
+});
 
-const data = await response.json()
-if (!response.ok) throw new Error(data.message)
+const data = await response.json();
+if (!response.ok) throw new Error(data.message);
 ```
 
 The response shape is:
@@ -2255,14 +2272,14 @@ failures return `503 Service Unavailable`.
 
 ## Article, Category, Media, and Document Commitment Errors
 
-| Status                  | Description                                                                              |
-| ----------------------- | ---------------------------------------------------------------------------------------- |
-| `400 Bad Request`       | Invalid ID, body or query value, category, media or language reference, or uploaded PDF. |
-| `401 Unauthorized`      | A write request does not have a valid session.                                           |
-| `403 Forbidden`         | A write request has a missing or disallowed `Origin`/`Referer`.                          |
-| `404 Not Found`         | The requested article, category, media, or document commitment does not exist.           |
-| `409 Conflict`          | Article slug, category slug, media filename, or document filename is already in use.     |
-| `413 Payload Too Large` | An uploaded file exceeds the limit for its media type or document commitment.            |
+| Status                  | Description                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| `400 Bad Request`       | Invalid ID, body or query value, category, media or language reference, or uploaded image or PDF. |
+| `401 Unauthorized`      | A write request does not have a valid session.                                                    |
+| `403 Forbidden`         | A write request has a missing or disallowed `Origin`/`Referer`.                                   |
+| `404 Not Found`         | The requested article, category, media, or document commitment does not exist.                    |
+| `409 Conflict`          | Article slug, category slug, media filename, or document filename is already in use.              |
+| `413 Payload Too Large` | An uploaded file exceeds the limit for its media type or document commitment.                     |
 
 ## Health Check
 
