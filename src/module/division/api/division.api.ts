@@ -6,6 +6,7 @@ export type DivisionStatus = 'DRAFT' | 'PUBLISHED'
 export interface DivisionContent {
   language_id: string
   name: string
+  slug: string
   abbr: string
   description: string | null
 }
@@ -49,6 +50,7 @@ export interface ServiceDetails extends Service {
 export interface DivisionWriteFields {
   language_id: string
   name: string
+  slug: string
   abbr: string
   description: string | null
   icon_svg: string | null

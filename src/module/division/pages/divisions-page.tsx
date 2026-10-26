@@ -138,6 +138,11 @@ function DivisionsContent({
   )
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
 
+  function openDivisionDialog(dialog: DivisionDialogState) {
+    saveDivisionMutation.reset()
+    setDivisionDialog(dialog)
+  }
+
   const divisions = divisionsQuery.data ?? []
   const services = servicesQuery.data ?? []
   const selectedDivision =
@@ -368,7 +373,7 @@ function DivisionsContent({
                 type="button"
                 variant="outline"
                 disabled={divisionReorderPending}
-                onClick={() => setDivisionDialog({})}
+                onClick={() => openDivisionDialog({})}
               >
                 <PlusIcon aria-hidden="true" className="size-4" />
                 {t.division.addDivision}
@@ -472,7 +477,7 @@ function DivisionsContent({
                       selected={division.id === selectedDivision?.id}
                       disabled={divisionReorderPending}
                       onSelect={() => setSelectedDivisionId(division.id)}
-                      onEdit={() => setDivisionDialog({ division })}
+                      onEdit={() => openDivisionDialog({ division })}
                       onDelete={() =>
                         setDeleteTarget({ kind: 'division', record: division })
                       }
@@ -600,8 +605,10 @@ function DivisionsContent({
             division={divisionDialog.division}
             languageId={languageId}
             pending={saveDivisionMutation.isPending}
+            slugError={getConflictMessage(saveDivisionMutation.error)}
             onOpenChange={(open) => {
               if (!open && !saveDivisionMutation.isPending) {
+                saveDivisionMutation.reset()
                 setDivisionDialog(null)
               }
             }}
@@ -712,6 +719,12 @@ function DivisionsContent({
       </div>
     </DragDropProvider>
   )
+}
+
+function getConflictMessage(error: unknown): string | undefined {
+  return error instanceof Error && 'status' in error && error.status === 409
+    ? error.message
+    : undefined
 }
 
 function SectionMessage({

@@ -13,6 +13,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { slugify } from '@/shared/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoaderCircleIcon } from 'lucide-react'
 import { useEffect } from 'react'
@@ -23,7 +24,8 @@ interface DocumentCommitmentCategoryFormDialogProps {
   onOpenChange: (open: boolean) => void
   category?: DocumentCommitmentCategory
   pending: boolean
-  onSubmit: (name: string) => void
+  slugError?: string
+  onSubmit: (values: DocumentCommitmentCategoryFormValues) => void
 }
 
 function DocumentCommitmentCategoryFormDialog({
@@ -31,24 +33,34 @@ function DocumentCommitmentCategoryFormDialog({
   onOpenChange,
   category,
   pending,
+  slugError,
   onSubmit,
 }: DocumentCommitmentCategoryFormDialogProps) {
   const { t } = useI18n()
   const {
     control,
-    formState: { errors },
+    formState: { dirtyFields, errors },
     handleSubmit,
     register,
     reset,
+    setValue,
   } = useForm<DocumentCommitmentCategoryFormValues>({
     resolver: zodResolver(createDocumentCommitmentCategoryFormSchema(t)),
-    defaultValues: { name: category?.name ?? '' },
+    defaultValues: { name: category?.name ?? '', slug: category?.slug ?? '' },
   })
   const nameValue = useWatch({ control, name: 'name' })
 
   useEffect(() => {
-    if (open) reset({ name: category?.name ?? '' })
+    if (open) {
+      reset({ name: category?.name ?? '', slug: category?.slug ?? '' })
+    }
   }, [category, open, reset])
+
+  useEffect(() => {
+    if (!category && !dirtyFields.slug) {
+      setValue('slug', slugify(nameValue), { shouldValidate: true })
+    }
+  }, [category, dirtyFields.slug, nameValue, setValue])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,10 +76,7 @@ function DocumentCommitmentCategoryFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit((values) => onSubmit(values.name))}
-          className="flex flex-col"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
           <div className="flex flex-col gap-2 px-5 py-5">
             <Label htmlFor="document-commitment-category-name">
               {t.documentCommitment.categoryName}
@@ -86,6 +95,29 @@ function DocumentCommitmentCategoryFormDialog({
             {errors.name?.message && (
               <p role="alert" className="text-danger text-sm">
                 {errors.name.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 px-5 pb-5">
+            <Label htmlFor="document-commitment-category-slug">
+              {t.documentCommitment.categorySlug}
+            </Label>
+            <Input
+              id="document-commitment-category-slug"
+              maxLength={100}
+              disabled={pending}
+              aria-invalid={Boolean(errors.slug)}
+              {...register('slug')}
+            />
+            {errors.slug?.message && (
+              <p role="alert" className="text-danger text-sm">
+                {errors.slug.message}
+              </p>
+            )}
+            {slugError && (
+              <p role="alert" className="text-danger text-sm">
+                {slugError}
               </p>
             )}
           </div>

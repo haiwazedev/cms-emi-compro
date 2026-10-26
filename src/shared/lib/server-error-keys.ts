@@ -11,6 +11,9 @@ export const SERVER_ERROR_KEYS: Record<string, ServerErrorKey> = {
   'A logo with this filename already exists.': 'filenameTaken',
   'Article category slug is already in use.': 'articleCategorySlugTaken',
   'Article slug is already in use.': 'articleSlugTaken',
+  'Document commitment category slug is already in use.':
+    'documentCommitmentCategorySlugTaken',
+  'Division slug is already in use for this language.': 'divisionSlugTaken',
   'Bahasa Indonesia is required before adding another language.':
     'defaultLanguageRequired',
   'Document must be a valid PDF file.': 'invalidPdf',

@@ -5,6 +5,7 @@ export type DocumentCommitmentStatus = 'DRAFT' | 'PUBLISHED'
 export interface DocumentCommitmentCategory {
   id: number
   name: string
+  slug: string
 }
 
 export interface DocumentCommitment {
@@ -129,10 +130,13 @@ export async function bulkDeleteDocumentCommitments(ids: number[]) {
   return data.deleted_count
 }
 
-export async function createDocumentCommitmentCategory(name: string) {
+export async function createDocumentCommitmentCategory(fields: {
+  name: string
+  slug: string
+}) {
   const { data } = await apiClient.post<DocumentCommitmentCategoryResponse>(
     '/document_commitment_categories',
-    { name },
+    fields,
   )
 
   return data.documentCommitmentCategory
@@ -140,11 +144,11 @@ export async function createDocumentCommitmentCategory(name: string) {
 
 export async function updateDocumentCommitmentCategory(
   categoryId: number,
-  name: string,
+  fields: { name: string; slug: string },
 ) {
   const { data } = await apiClient.put<DocumentCommitmentCategoryResponse>(
     `/document_commitment_categories/${categoryId}`,
-    { name },
+    fields,
   )
 
   return data.documentCommitmentCategory

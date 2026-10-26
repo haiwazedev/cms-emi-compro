@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { slugify } from '@/shared/lib/utils'
 import { LoaderCircleIcon, UploadIcon } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useRef, useState } from 'react'
@@ -34,6 +35,7 @@ interface DivisionFormDialogProps {
   division?: Division
   languageId: string
   pending: boolean
+  slugError?: string
   onSubmit: (fields: DivisionWriteFields) => void
 }
 
@@ -43,6 +45,7 @@ function DivisionFormDialog({
   division,
   languageId,
   pending,
+  slugError,
   onSubmit,
 }: DivisionFormDialogProps) {
   const { t } = useI18n()
@@ -52,6 +55,10 @@ function DivisionFormDialog({
   )
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [name, setName] = useState(content?.name ?? '')
+  const [slug, setSlug] = useState(content?.slug ?? '')
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(
+    Boolean(content?.slug),
+  )
   const [abbreviation, setAbbreviation] = useState(content?.abbr ?? '')
   const [description, setDescription] = useState(content?.description ?? '')
   const [status, setStatus] = useState<DivisionStatus>(
@@ -110,9 +117,15 @@ function DivisionFormDialog({
       return
     }
 
+    if (!slug.trim()) {
+      setFormError(t.division.requiredSlug)
+      return
+    }
+
     onSubmit({
       language_id: languageId,
       name: name.trim(),
+      slug: slug.trim(),
       abbr: abbreviation.trim(),
       description: description.trim() || null,
       icon_svg: iconSvg,
@@ -141,11 +154,35 @@ function DivisionFormDialog({
                 maxLength={200}
                 disabled={pending}
                 value={name}
-                onChange={(event) => setName(event.currentTarget.value)}
+                onChange={(event) => {
+                  const value = event.currentTarget.value
+                  setName(value)
+                  if (!slugManuallyEdited) setSlug(slugify(value))
+                }}
               />
               <p className="text-foreground/55 text-xs">
                 {t.common.characterCount(name.length, 200)}
               </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="division-slug">{t.division.slug}</Label>
+              <Input
+                id="division-slug"
+                required
+                maxLength={255}
+                disabled={pending}
+                value={slug}
+                onChange={(event) => {
+                  setSlugManuallyEdited(true)
+                  setSlug(event.currentTarget.value)
+                }}
+              />
+              {slugError && (
+                <p role="alert" className="text-danger text-sm">
+                  {slugError}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">

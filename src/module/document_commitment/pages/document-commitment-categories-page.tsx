@@ -39,13 +39,15 @@ function DocumentCommitmentCategoriesPage() {
     mutationFn: ({
       categoryId,
       name,
+      slug,
     }: {
       categoryId?: number
       name: string
+      slug: string
     }) =>
       categoryId
-        ? updateDocumentCommitmentCategory(categoryId, name)
-        : createDocumentCommitmentCategory(name),
+        ? updateDocumentCommitmentCategory(categoryId, { name, slug })
+        : createDocumentCommitmentCategory({ name, slug }),
     onSuccess: async () => {
       setCategoryFormOpen(false)
       setCategoryToEdit(undefined)
@@ -106,13 +108,17 @@ function DocumentCommitmentCategoriesPage() {
   })
 
   function openCategoryForm(category?: DocumentCommitmentCategory) {
+    saveMutation.reset()
     setCategoryToEdit(category)
     setCategoryFormOpen(true)
   }
 
   function closeCategoryForm(open: boolean) {
     setCategoryFormOpen(open)
-    if (!open) setCategoryToEdit(undefined)
+    if (!open) {
+      saveMutation.reset()
+      setCategoryToEdit(undefined)
+    }
   }
 
   return (
@@ -222,10 +228,11 @@ function DocumentCommitmentCategoriesPage() {
         onOpenChange={closeCategoryForm}
         category={categoryToEdit}
         pending={saveMutation.isPending}
-        onSubmit={(name) =>
+        slugError={getConflictMessage(saveMutation.error)}
+        onSubmit={(values) =>
           saveMutation.mutate({
             ...(categoryToEdit ? { categoryId: categoryToEdit.id } : {}),
-            name,
+            ...values,
           })
         }
       />
@@ -289,6 +296,12 @@ function DocumentCommitmentCategoriesPage() {
       </Dialog>
     </div>
   )
+}
+
+function getConflictMessage(error: unknown): string | undefined {
+  return error instanceof Error && 'status' in error && error.status === 409
+    ? error.message
+    : undefined
 }
 
 function CategoryMessage({
