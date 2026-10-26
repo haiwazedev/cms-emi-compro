@@ -1,5 +1,5 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
-import type { DocumentCommitment } from '@/module/document_commitment/api/document-commitment.api'
+import type { DocumentCommitmentListItem } from '@/module/document_commitment/api/document-commitment.api'
 import { getDocumentCommitmentAssetUrl } from '@/module/document_commitment/api/document-commitment.api'
 import type { Dictionary } from '@/shared/lib/i18n/id'
 import { useI18n, type Locale } from '@/shared/lib/i18n/i18n-context'
@@ -41,15 +41,20 @@ import {
 } from 'lucide-react'
 import { useMemo } from 'react'
 
+export interface DocumentCommitmentTableRow extends DocumentCommitmentListItem {
+  titleTranslationMissing: boolean
+  categoryTranslationMissing: boolean
+}
+
 function createColumns(
   t: Dictionary,
   locale: Locale,
   { canWrite, canDelete }: { canWrite: boolean; canDelete: boolean },
-  onEdit: (document: DocumentCommitment) => void,
-  onDelete: (document: DocumentCommitment) => void,
+  onEdit: (document: DocumentCommitmentTableRow) => void,
+  onDelete: (document: DocumentCommitmentTableRow) => void,
   deletePending: boolean,
-): ColumnDef<DocumentCommitment>[] {
-  const columns: ColumnDef<DocumentCommitment>[] = [
+): ColumnDef<DocumentCommitmentTableRow>[] {
+  const columns: ColumnDef<DocumentCommitmentTableRow>[] = [
     {
       id: 'select',
       header: ({ table }) => (
@@ -84,6 +89,11 @@ function createColumns(
           <span className="text-accent font-semibold">
             {row.original.title}
           </span>
+          {row.original.titleTranslationMissing && (
+            <span className="text-muted text-xs">
+              {t.documentCommitment.translationMissing}
+            </span>
+          )}
           <a
             href={getDocumentCommitmentAssetUrl(row.original.file_path)}
             target="_blank"
@@ -100,9 +110,16 @@ function createColumns(
       id: 'category',
       header: t.documentCommitment.category,
       cell: ({ row }) => (
-        <span className="bg-secondary/10 text-accent inline-flex max-w-40 rounded-full px-3 py-1 text-xs font-semibold whitespace-normal">
-          {row.original.document_commitment_category.name}
-        </span>
+        <div className="flex flex-col gap-1">
+          <span className="bg-secondary/10 text-accent inline-flex max-w-40 rounded-full px-3 py-1 text-xs font-semibold whitespace-normal">
+            {row.original.document_commitment_category.name}
+          </span>
+          {row.original.categoryTranslationMissing && (
+            <span className="text-muted text-xs">
+              {t.documentCommitment.translationMissing}
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -172,7 +189,7 @@ function createColumns(
 }
 
 interface DocumentCommitmentDataTableProps {
-  documents: DocumentCommitment[]
+  documents: DocumentCommitmentTableRow[]
   pageIndex: number
   pageSize: number
   pageCount: number
@@ -180,8 +197,8 @@ interface DocumentCommitmentDataTableProps {
   deletePending: boolean
   rowSelection: RowSelectionState
   onRowSelectionChange: OnChangeFn<RowSelectionState>
-  onEdit: (document: DocumentCommitment) => void
-  onDelete: (document: DocumentCommitment) => void
+  onEdit: (document: DocumentCommitmentTableRow) => void
+  onDelete: (document: DocumentCommitmentTableRow) => void
   onPageIndexChange: (pageIndex: number) => void
   onPageSizeChange: (pageSize: number) => void
 }

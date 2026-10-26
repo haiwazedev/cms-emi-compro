@@ -1,16 +1,22 @@
 import { z } from 'zod'
 import type { Dictionary } from '@/shared/lib/i18n/id'
 
-export function createDocumentCommitmentFormSchema(t: Dictionary) {
+export function createDocumentCommitmentFormSchema(
+  t: Dictionary,
+  requireTitle = true,
+) {
+  const titleSchema = z
+    .string()
+    .trim()
+    .max(200, { error: t.documentCommitment.titleTooLong })
+
   return z.object({
     document_commitment_category_id: z
       .number()
       .positive({ error: t.documentCommitment.categoryRequired }),
-    title: z
-      .string()
-      .trim()
-      .min(1, { error: t.documentCommitment.titleRequired })
-      .max(200, { error: t.documentCommitment.titleTooLong }),
+    title: requireTitle
+      ? titleSchema.min(1, { error: t.documentCommitment.titleRequired })
+      : titleSchema,
     status: z.enum(['DRAFT', 'PUBLISHED']),
   })
 }

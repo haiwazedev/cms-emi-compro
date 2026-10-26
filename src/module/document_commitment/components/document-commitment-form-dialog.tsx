@@ -1,9 +1,8 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
-import type {
-  DocumentCommitment,
-  DocumentCommitmentCategory,
-} from '@/module/document_commitment/api/document-commitment.api'
+import type { DocumentCommitmentListItem } from '@/module/document_commitment/api/document-commitment.api'
 import { DOCUMENT_COMMITMENT_MAX_FILE_SIZE } from '@/module/document_commitment/constants/document-commitment.constants'
+import type { Language } from '@/module/language/api/language.api'
+import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { DocumentCommitmentFormValues } from '@/module/document_commitment/schemas/document-commitment-form.schema'
 import { createDocumentCommitmentFormSchema } from '@/module/document_commitment/schemas/document-commitment-form.schema'
@@ -25,18 +24,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { documentCommitmentCategoriesQueryOptions } from '@/module/document_commitment/queries/document-commitment.queries'
+import {
+  documentCommitmentCategoriesQueryOptions,
+  documentCommitmentCategoryQueryOptions,
+  documentCommitmentQueryOptions,
+} from '@/module/document_commitment/queries/document-commitment.queries'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { DownloadIcon, LoaderCircleIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 interface DocumentCommitmentFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  document?: DocumentCommitment
+  document?: DocumentCommitmentListItem
+  languages: Language[]
+  languageId: string
   pending: boolean
   onSubmit: (values: DocumentCommitmentFormValues, file?: File) => void
 }
@@ -45,6 +50,8 @@ function DocumentCommitmentFormDialog({
   open,
   onOpenChange,
   document,
+  languages,
+  languageId,
   pending,
   onSubmit,
 }: DocumentCommitmentFormDialogProps) {
@@ -52,23 +59,84 @@ function DocumentCommitmentFormDialog({
   const { canPublish } = usePermissions()
   const isEditing = document !== undefined
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
+  const documentQuery = useQuery({
+    ...documentCommitmentQueryOptions(document?.id ?? 0),
+    enabled: document !== undefined,
+  })
+  const categorySummaries = categoriesQuery.data ?? []
+  const categoryDetailQueries = useQueries({
+    queries: categorySummaries.map((category) =>
+      documentCommitmentCategoryQueryOptions(category.id),
+    ),
+  })
+  const localizedCategories = categorySummaries.map((category, index) => {
+    const details = categoryDetailQueries[index]?.data
+    const translation = details?.contents.find(
+      (content) => content.language_id === languageId,
+    )
+    const defaultTranslation = details?.contents.find(
+      (content) => content.language_id === DEFAULT_LANGUAGE_ID,
+    )
+
+    return {
+      ...category,
+      name: translation?.name ?? defaultTranslation?.name ?? category.name,
+      translationMissing: Boolean(details && !translation),
+    }
+  })
   const [selectedFile, setSelectedFile] = useState<File>()
   const [fileError, setFileError] = useState<string>()
+  const selectedLanguage =
+    languages.find((item) => item.id === languageId) ?? languages[0]
+  const selectedContent = documentQuery.data?.contents.find(
+    (content) => content.language_id === languageId,
+  )
+  const titleRequired = !isEditing || selectedContent !== undefined
   const {
     control,
-    formState: { errors },
+    formState: { errors, isDirty },
     handleSubmit,
     register,
+    reset,
   } = useForm<DocumentCommitmentFormValues>({
-    resolver: zodResolver(createDocumentCommitmentFormSchema(t)),
+    resolver: zodResolver(createDocumentCommitmentFormSchema(t, titleRequired)),
     defaultValues: {
       document_commitment_category_id:
         document?.document_commitment_category_id ?? 0,
-      title: document?.title ?? '',
+      title: '',
       status: document?.status ?? 'DRAFT',
     },
   })
   const titleValue = useWatch({ control, name: 'title' })
+  const categoryValue = useWatch({
+    control,
+    name: 'document_commitment_category_id',
+  })
+  const statusValue = useWatch({ control, name: 'status' })
+  const documentDetailReady = !isEditing || documentQuery.data !== undefined
+  const hasChangesInMissingTranslation = Boolean(
+    titleValue.trim() ||
+    selectedFile ||
+    (document &&
+      (categoryValue !== document.document_commitment_category_id ||
+        statusValue !== document.status)),
+  )
+  const cannotSaveEmptyTranslation =
+    isEditing && !selectedContent && !hasChangesInMissingTranslation
+
+  useEffect(() => {
+    if (!open || isDirty || (document && !documentQuery.data)) return
+
+    reset({
+      document_commitment_category_id:
+        document?.document_commitment_category_id ?? 0,
+      title:
+        documentQuery.data?.contents.find(
+          (content) => content.language_id === languageId,
+        )?.title ?? '',
+      status: document?.status ?? 'DRAFT',
+    })
+  }, [document, documentQuery.data, isDirty, languageId, open, reset])
 
   function handleFileChange(file: File | undefined) {
     setSelectedFile(undefined)
@@ -180,19 +248,54 @@ function DocumentCommitmentFormDialog({
               )}
             </div>
 
+            {documentQuery.isError && (
+              <div className="flex items-center gap-2">
+                <p role="alert" className="text-danger text-sm">
+                  {t.documentCommitment.documentDetailFailed}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={pending}
+                  onClick={() => void documentQuery.refetch()}
+                >
+                  {t.common.retry}
+                </Button>
+              </div>
+            )}
+            {documentQuery.isPending && document && (
+              <p role="status" className="text-muted text-sm">
+                {t.documentCommitment.translationLoading}
+              </p>
+            )}
+
             <div className="flex flex-col gap-2">
-              <Label htmlFor="document-commitment-title">
-                {t.documentCommitment.titleField}
-                <RequiredMark />
-              </Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label htmlFor="document-commitment-title">
+                  {t.documentCommitment.titleField}
+                  {titleRequired && <RequiredMark />}
+                </Label>
+                {selectedLanguage && (
+                  <span className="bg-secondary/10 text-accent rounded-full px-2 py-1 text-xs font-medium">
+                    <span aria-hidden="true">{selectedLanguage.flag}</span>{' '}
+                    {selectedLanguage.language}
+                  </span>
+                )}
+              </div>
               <Input
                 id="document-commitment-title"
                 autoFocus
                 maxLength={200}
-                disabled={pending}
+                disabled={pending || !documentDetailReady}
                 aria-invalid={Boolean(errors.title)}
                 {...register('title')}
               />
+              {isEditing && !selectedContent && (
+                <p className="text-muted text-xs">
+                  {t.documentCommitment.translationTitleOptional}
+                </p>
+              )}
               <p className="text-foreground/55 text-xs">
                 {t.common.characterCount(titleValue.length, 200)}
               </p>
@@ -218,6 +321,7 @@ function DocumentCommitmentFormDialog({
                       onValueChange={(value) => field.onChange(Number(value))}
                       disabled={
                         pending ||
+                        !documentDetailReady ||
                         categoriesQuery.isPending ||
                         categoriesQuery.isError
                       }
@@ -233,16 +337,16 @@ function DocumentCommitmentFormDialog({
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {categoriesQuery.data?.map(
-                          (category: DocumentCommitmentCategory) => (
-                            <SelectItem
-                              key={category.id}
-                              value={String(category.id)}
-                            >
-                              {category.name}
-                            </SelectItem>
-                          ),
-                        )}
+                        {localizedCategories.map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={String(category.id)}
+                          >
+                            {category.translationMissing
+                              ? `${category.name} · ${t.documentCommitment.translationMissing}`
+                              : category.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   )}
@@ -281,7 +385,7 @@ function DocumentCommitmentFormDialog({
                     <Select
                       value={canPublish ? field.value : 'DRAFT'}
                       onValueChange={field.onChange}
-                      disabled={pending || !canPublish}
+                      disabled={pending || !documentDetailReady || !canPublish}
                     >
                       <SelectTrigger id="document-commitment-status">
                         <SelectValue />
@@ -317,6 +421,8 @@ function DocumentCommitmentFormDialog({
               type="submit"
               disabled={
                 pending ||
+                !documentDetailReady ||
+                cannotSaveEmptyTranslation ||
                 categoriesQuery.isPending ||
                 categoriesQuery.isError ||
                 categoriesQuery.data?.length === 0

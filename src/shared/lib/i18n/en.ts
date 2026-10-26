@@ -515,6 +515,16 @@ const en: Dictionary = {
     pageTitle: 'Commitment Documents',
     description:
       'Certifications, policies, and reports that site visitors can download.',
+    language: 'Content language',
+    languageLoading: 'Loading languages...',
+    languagesFailed: 'Failed to load languages.',
+    noLanguages: 'No active languages yet.',
+    translationMissing: 'Translation is missing',
+    translationLoading: 'Loading translation...',
+    translationTitleOptional:
+      'Enter a title to add this translation. Leave it blank to update shared document details only.',
+    documentDetailFailed: 'Failed to load document details.',
+    categoryDetailFailed: 'Failed to load category details.',
     manageCategories: 'Manage Categories',
     upload: 'Upload Document',
     uploadTitle: 'Upload New Document',

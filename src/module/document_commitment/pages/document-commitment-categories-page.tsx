@@ -4,10 +4,19 @@ import {
   deleteDocumentCommitmentCategory,
   updateDocumentCommitmentCategory,
 } from '@/module/document_commitment/api/document-commitment.api'
-import type { DocumentCommitmentCategory } from '@/module/document_commitment/api/document-commitment.api'
+import type { DocumentCommitmentCategorySummary } from '@/module/document_commitment/api/document-commitment.api'
 import { DocumentCommitmentCategoryFormDialog } from '@/module/document_commitment/components/document-commitment-category-form-dialog'
+import { LanguageSelect } from '@/module/language/components/language-select'
+import {
+  DEFAULT_LANGUAGE_ID,
+  findDefaultLanguage,
+} from '@/module/language/constants/language.constants'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
-import { documentCommitmentQueryKeys } from '@/module/document_commitment/queries/document-commitment.queries'
+import {
+  documentCommitmentCategoryQueryOptions,
+  documentCommitmentQueryKeys,
+} from '@/module/document_commitment/queries/document-commitment.queries'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -18,45 +27,110 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { toast } from '@/shared/lib/toast'
-import { Link } from '@tanstack/react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { PencilIcon, PlusIcon, TagIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { documentCommitmentCategoriesQueryOptions } from '../queries/document-commitment.queries'
 
 function DocumentCommitmentCategoriesPage() {
   const { t } = useI18n()
   const { canWrite, canDelete } = usePermissions()
   const queryClient = useQueryClient()
+  const navigate = useNavigate({ from: '/document_commitment_categories' })
+  const { lang } = useSearch({
+    from: '/_authenticated/document_commitment_categories',
+  })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+  const languageId = language?.id ?? DEFAULT_LANGUAGE_ID
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
+  const categories = categoriesQuery.data ?? []
+  const categoryDetailQueries = useQueries({
+    queries: categories.map((category) =>
+      documentCommitmentCategoryQueryOptions(category.id),
+    ),
+  })
+  const localizedCategories = categories.map((category, index) => {
+    const details = categoryDetailQueries[index]?.data
+    const translation = details?.contents.find(
+      (content) => content.language_id === languageId,
+    )
+    const defaultTranslation = details?.contents.find(
+      (content) => content.language_id === DEFAULT_LANGUAGE_ID,
+    )
+
+    return {
+      ...category,
+      name: translation?.name ?? defaultTranslation?.name ?? category.name,
+      slug: translation?.slug ?? defaultTranslation?.slug ?? category.slug,
+      translationMissing: Boolean(details && !translation),
+    }
+  })
   const [categoryFormOpen, setCategoryFormOpen] = useState(false)
   const [categoryToEdit, setCategoryToEdit] =
-    useState<DocumentCommitmentCategory>()
+    useState<DocumentCommitmentCategorySummary>()
   const [categoryToDelete, setCategoryToDelete] =
-    useState<DocumentCommitmentCategory | null>(null)
+    useState<DocumentCommitmentCategorySummary | null>(null)
+
+  useEffect(() => {
+    if (!language || urlLanguage) return
+
+    void navigate({
+      search: (previous) => ({ ...previous, lang: language.id }),
+      replace: true,
+    })
+  }, [language, navigate, urlLanguage])
 
   const saveMutation = useMutation({
     mutationFn: ({
       categoryId,
       name,
       slug,
+      languageId: selectedLanguageId,
     }: {
       categoryId?: number
       name: string
       slug: string
+      languageId: string
     }) =>
       categoryId
-        ? updateDocumentCommitmentCategory(categoryId, { name, slug })
-        : createDocumentCommitmentCategory({ name, slug }),
-    onSuccess: async () => {
+        ? updateDocumentCommitmentCategory(categoryId, {
+            language_id: selectedLanguageId,
+            name,
+            slug,
+          })
+        : createDocumentCommitmentCategory({
+            language_id: DEFAULT_LANGUAGE_ID,
+            name,
+            slug,
+          }),
+    onSuccess: async (savedCategory) => {
       setCategoryFormOpen(false)
       setCategoryToEdit(undefined)
+      queryClient.setQueryData(
+        documentCommitmentQueryKeys.categoryDetail(savedCategory.id),
+        savedCategory,
+      )
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: documentCommitmentQueryKeys.categories(),
         }),
         queryClient.invalidateQueries({
+          queryKey: documentCommitmentQueryKeys.categoryDetails(),
+        }),
+        queryClient.invalidateQueries({
           queryKey: documentCommitmentQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: documentCommitmentQueryKeys.details(),
         }),
       ])
       toast.add({
@@ -86,7 +160,13 @@ function DocumentCommitmentCategoriesPage() {
           queryKey: documentCommitmentQueryKeys.categories(),
         }),
         queryClient.invalidateQueries({
+          queryKey: documentCommitmentQueryKeys.categoryDetails(),
+        }),
+        queryClient.invalidateQueries({
           queryKey: documentCommitmentQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: documentCommitmentQueryKeys.details(),
         }),
       ])
       toast.add({
@@ -107,7 +187,11 @@ function DocumentCommitmentCategoriesPage() {
     },
   })
 
-  function openCategoryForm(category?: DocumentCommitmentCategory) {
+  function updateLanguage(nextLanguageId: string) {
+    void navigate({ search: { lang: nextLanguageId } })
+  }
+
+  function openCategoryForm(category?: DocumentCommitmentCategorySummary) {
     saveMutation.reset()
     setCategoryToEdit(category)
     setCategoryFormOpen(true)
@@ -130,7 +214,7 @@ function DocumentCommitmentCategoriesPage() {
             variant="link"
             className="text-secondary h-auto self-start px-0"
           >
-            <Link to="/document_commitments">
+            <Link to="/document_commitments" search={{ lang: languageId }}>
               {t.documentCommitment.backToDocuments}
             </Link>
           </Button>
@@ -143,12 +227,48 @@ function DocumentCommitmentCategoriesPage() {
             </p>
           </div>
         </div>
-        {canWrite && (
-          <Button type="button" onClick={() => openCategoryForm()}>
-            <PlusIcon aria-hidden="true" className="size-4" />
-            {t.documentCommitment.addCategory}
-          </Button>
-        )}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          {languagesQuery.isPending ? (
+            <p role="status" className="text-muted text-sm">
+              {t.documentCommitment.languageLoading}
+            </p>
+          ) : languagesQuery.isError ? (
+            <div className="flex items-center gap-2">
+              <p role="alert" className="text-danger text-sm">
+                {t.documentCommitment.languagesFailed}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void languagesQuery.refetch()}
+              >
+                {t.common.retry}
+              </Button>
+            </div>
+          ) : language ? (
+            <LanguageSelect
+              label={t.documentCommitment.language}
+              languages={languages}
+              value={language.id}
+              onChange={updateLanguage}
+            />
+          ) : (
+            <p role="status" className="text-muted text-sm">
+              {t.documentCommitment.noLanguages}
+            </p>
+          )}
+          {canWrite && (
+            <Button
+              type="button"
+              disabled={!language}
+              onClick={() => openCategoryForm()}
+            >
+              <PlusIcon aria-hidden="true" className="size-4" />
+              {t.documentCommitment.addCategory}
+            </Button>
+          )}
+        </div>
       </header>
 
       <section
@@ -179,7 +299,7 @@ function DocumentCommitmentCategoriesPage() {
           <CategoryMessage message={t.documentCommitment.noCategories} />
         ) : (
           <ul className="divide-border divide-y">
-            {categoriesQuery.data?.map((category) => (
+            {localizedCategories.map((category) => (
               <li
                 key={category.id}
                 className="flex flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:px-6"
@@ -191,6 +311,11 @@ function DocumentCommitmentCategoriesPage() {
                   <span className="text-accent font-semibold break-words">
                     {category.name}
                   </span>
+                  {category.translationMissing && (
+                    <span className="text-muted text-xs">
+                      {t.documentCommitment.translationMissing}
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 self-end lg:self-auto">
                   {canWrite && (
@@ -227,11 +352,14 @@ function DocumentCommitmentCategoriesPage() {
         open={categoryFormOpen}
         onOpenChange={closeCategoryForm}
         category={categoryToEdit}
+        languages={languages}
+        languageId={categoryToEdit ? languageId : DEFAULT_LANGUAGE_ID}
         pending={saveMutation.isPending}
         slugError={getConflictMessage(saveMutation.error)}
         onSubmit={(values) =>
           saveMutation.mutate({
             ...(categoryToEdit ? { categoryId: categoryToEdit.id } : {}),
+            languageId: categoryToEdit ? languageId : DEFAULT_LANGUAGE_ID,
             ...values,
           })
         }

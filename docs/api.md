@@ -542,20 +542,22 @@ Results are sorted by `created_at` descending by default, with `id` as a stable
 tie-breaker. `sort_by=issue_date` sorts by `issue_date`, then `updated_at`, then
 `id`, all in `sort_order`; articles without an issue date or update come last.
 
-| Query parameter       | Type   | Rules                                                                                       |
-| --------------------- | ------ | ------------------------------------------------------------------------------------------- |
-| `page`                | number | Optional, 1-based; default `1`.                                                             |
-| `limit`               | number | Optional; default `20`, minimum `1`, maximum `100`.                                         |
-| `search`              | string | Optional, case-insensitive substring search in a content `title`.                           |
-| `article_category_id` | number | Optional positive category ID filter.                                                       |
-| `language_id`         | string | Optional; only articles with content in this language, shown in it.                         |
-| `status`              | string | Optional; `DRAFT` or `PUBLISHED`; matches a content row with this status. Admin route only. |
-| `sort_by`             | string | Optional; `created_at` or `issue_date`, default `created_at`.                               |
-| `sort_order`          | string | Optional; `asc` or `desc`, default `desc`.                                                  |
+| Query parameter         | Type   | Rules                                                                                       |
+| ----------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| `page`                  | number | Optional, 1-based; default `1`.                                                             |
+| `limit`                 | number | Optional; default `20`, minimum `1`, maximum `100`.                                         |
+| `search`                | string | Optional, case-insensitive substring search in a content `title`.                           |
+| `article_category_id`   | number | Optional positive category ID filter.                                                       |
+| `article_category_slug` | string | Optional category slug filter, maximum 100 characters.                                      |
+| `language_id`           | string | Optional; only articles with content in this language, shown in it.                         |
+| `status`                | string | Optional; `DRAFT` or `PUBLISHED`; matches a content row with this status. Admin route only. |
+| `sort_by`               | string | Optional; `created_at` or `issue_date`, default `created_at`.                               |
+| `sort_order`            | string | Optional; `asc` or `desc`, default `desc`.                                                  |
 
 Provided filters are combined using AND. `search`, `language_id`, and `status`
 must all match the same content row. Invalid query values return `400 Bad
-Request`.
+Request`. Provide at most one of `article_category_id` and
+`article_category_slug`. An unknown category slug returns an empty page.
 
 `title`, `slug`, `summary`, `status`, `read_time`, and `language_id` on each item come from
 the `language_id` content when that query is set, otherwise from the content
@@ -765,6 +767,8 @@ language and returned in a `contents` array ordered by the language registry's
 clients choose the language to display and handle a missing translation.
 Create requests and updates to translated fields require an active
 `language_id`; unknown or inactive language IDs return `400 Bad Request`.
+Creating a division or adding a translation requires an explicit `slug`; the
+API does not derive slugs from names.
 
 ### Divisions
 
@@ -788,19 +792,24 @@ Create bodies accept these fields:
 | ------------- | -------------- | --------------------------------------------------------------------- |
 | `language_id` | string         | Required; active language code such as `id`; normalized to lowercase. |
 | `name`        | string         | Required; trimmed; 1–200 characters.                                  |
+| `slug`        | string         | Required; trimmed; 1–255 characters; unique within the language.      |
 | `abbr`        | string         | Required; trimmed; 1–50 characters.                                   |
 | `description` | string or null | Optional; no length limit; blank string becomes `null`.               |
 | `icon_svg`    | string or null | Optional; SVG markup; up to 20,000 characters; sanitized on save.     |
 | `status`      | string         | Optional; `DRAFT` or `PUBLISHED`; defaults to `DRAFT` on create.      |
 
 Update bodies are partial. Updating `icon_svg` or `status` does not require a
-language. Updating `name`, `abbr`, or `description` requires `language_id`.
-Existing translations can be partially updated; adding a translation requires
-both `name` and `abbr`. Send `null` for `icon_svg` or `description` to clear it.
+language. Updating `name`, `slug`, `abbr`, or `description` requires
+`language_id`. Existing translations can be partially updated; adding a
+translation requires `name`, `slug`, and `abbr`. Division slugs are localized
+and unique within each language. Duplicate slugs return `409 Conflict`. Send
+`null` for `icon_svg` or `description` to clear it.
 `icon_svg` is sanitized like social icons: scripts, event handlers,
 `foreignObject`, and `javascript:` links are removed, and the stored value is
-the sanitized markup. Markup that is not an `<svg>` element after sanitizing
-returns `400 Bad Request` with `SVG file is invalid.`
+the sanitized markup. Division reads sanitize stored values again, including
+legacy rows; malformed values are returned as `null`. Markup that is not an
+`<svg>` element after sanitizing on create or update returns `400 Bad Request`
+with `SVG file is invalid.`
 The authenticated user's name is stored in `created_by`; updates set
 `updated_by` and `updated_at` on the division.
 
@@ -810,6 +819,7 @@ Example create request:
 {
   "language_id": "en",
   "name": "Customer Services",
+  "slug": "customer-services",
   "abbr": "CS",
   "icon_svg": "<svg></svg>",
   "description": "Energy management services for organizations.",
@@ -834,6 +844,7 @@ The response shape is:
       {
         "language_id": "en",
         "name": "Customer Services",
+        "slug": "customer-services",
         "abbr": "CS",
         "description": "Energy management services for organizations."
       }
@@ -849,6 +860,7 @@ For example, add Indonesian content to the same division with
 {
   "language_id": "id",
   "name": "Layanan Pelanggan",
+  "slug": "layanan-pelanggan",
   "abbr": "LP",
   "description": "Layanan manajemen energi untuk organisasi."
 }
@@ -1167,8 +1179,8 @@ renaming media keeps existing links working.
 
 | Type       | Accepted extensions                 | Maximum size |
 | ---------- | ----------------------------------- | ------------ |
-| `PICTURE`  | `png`, `jpg`, `jpeg`, `webp`, `svg` | 2 MiB        |
-| `DOCUMENT` | `pdf`                               | 5 MiB        |
+| `PICTURE`  | `png`, `jpg`, `jpeg`, `webp`, `svg` | 5 MiB        |
+| `DOCUMENT` | `pdf`                               | 20 MiB       |
 
 The server checks raster content against the extension and sanitizes SVG files.
 Raster picture metadata contains its pixel `width` and `height`; SVG picture
@@ -1308,23 +1320,57 @@ frontend `Origin` or `Referer`, as described under [Browser Sessions](#browser-s
 ### Categories
 
 - `GET /document_commitment_categories` returns
-  `{ "documentCommitmentCategories": [...] }` with `200 OK`.
+  `{ "documentCommitmentCategories": [...] }` with `200 OK`. It accepts an
+  optional `language_id` and returns that translation; without one it uses the
+  first available language by language sort order.
 - `GET /document_commitment_categories/:categoryId` returns
-  `{ "documentCommitmentCategory": ... }` with `200 OK`.
+  `{ "documentCommitmentCategory": ... }` with every translation and `200 OK`.
 - `POST /document_commitment_categories` creates a category and returns
-  `{ "documentCommitmentCategory": ... }` with `201 Created`.
+  `{ "documentCommitmentCategory": ... }` with `201 Created`. The first
+  translation must use `language_id: "id"`.
 - `PUT /document_commitment_categories/:categoryId` partially updates a
-  category and returns `{ "documentCommitmentCategory": ... }` with `200 OK`.
+  translation and returns `{ "documentCommitmentCategory": ... }` with
+  `200 OK`. The selected translation is created or replaced; other languages
+  are unchanged.
 - `DELETE /document_commitment_categories/:categoryId` returns
   `204 No Content`. Deleting a category also deletes its document records and
   stored PDF files.
 
-Category create and update requests use JSON with a `name` field, trimmed to
-1–100 characters. The name is required on create; omitted fields remain
-unchanged on update.
+Category create and update requests use JSON with `language_id`, `name`, and
+`slug`. Names and slugs are trimmed to 1–100 characters. Both translated fields
+are required on create. A translation update requires `language_id` and at
+least one of `name` or `slug`; adding a new language requires both fields.
+Slugs are unique within a language, so the same slug can be used in another
+language. A duplicate slug in the same language returns `409 Conflict`.
 
 ```json
-{ "name": "Board Decisions" }
+{
+  "language_id": "id",
+  "name": "Keputusan Direksi",
+  "slug": "keputusan-direksi"
+}
+```
+
+Category detail responses contain all translations:
+
+```json
+{
+  "documentCommitmentCategory": {
+    "id": 2,
+    "contents": [
+      {
+        "language_id": "id",
+        "name": "Keputusan Direksi",
+        "slug": "keputusan-direksi"
+      },
+      {
+        "language_id": "en",
+        "name": "Board Decisions",
+        "slug": "board-decisions"
+      }
+    ]
+  }
+}
 ```
 
 ### Documents
@@ -1351,12 +1397,13 @@ unchanged on update.
 Create requests use `multipart/form-data` with a `file` field and these text
 fields:
 
-| Field                             | Type   | Rules                                                  |
-| --------------------------------- | ------ | ------------------------------------------------------ |
-| `document_commitment_category_id` | number | Required; positive ID of an existing category.         |
-| `title`                           | string | Required; trimmed; 1–200 characters.                   |
-| `status`                          | string | Optional; `DRAFT` or `PUBLISHED`; defaults to `DRAFT`. |
-| `file`                            | file   | Required; valid PDF, maximum 50 MiB.                   |
+| Field                             | Type   | Rules                                                                |
+| --------------------------------- | ------ | -------------------------------------------------------------------- |
+| `document_commitment_category_id` | number | Required; positive ID of an existing category.                       |
+| `language_id`                     | string | Required; active language code. The first translation must use `id`. |
+| `title`                           | string | Required; trimmed; 1–200 characters.                                 |
+| `status`                          | string | Optional; `DRAFT` or `PUBLISHED`; defaults to `DRAFT`.               |
+| `file`                            | file   | Required; valid PDF, maximum 20 MiB.                                 |
 
 The server stores each file in the SeaweedFS bucket under
 `document_commitment/{filename}`, where `filename` is `{name}-{random}.pdf`,
@@ -1373,17 +1420,21 @@ defaults to the current time.
 streams the PDF with `Cache-Control: private, no-store`, and returns
 `404 Not Found` for a missing document.
 
-Updates are partial. Send JSON to update metadata only, or use
+Updates are partial. Include `language_id` with `title` to create or replace
+that translation; other language titles remain unchanged. `language_id` and
+`title` must be sent together. The document category, shared status, or file
+can be updated independently. Send JSON for metadata, or use
 `multipart/form-data` to replace the PDF and optionally update metadata. When
 no file is sent, the existing PDF is kept. A replacement PDF gets a new stored
-filename, and the old file is removed after the database update commits. Every update
-sets `updated_at` and `updated_by` to the current time and authenticated user's
-name.
+filename, and the old file is removed after the database update commits. Every
+update sets `updated_at` and `updated_by` to the current time and authenticated
+user's name.
 
 ```js
 const formData = new FormData();
 formData.append('document_commitment_category_id', '2');
-formData.append('title', 'Board decision 2026-10');
+formData.append('language_id', 'id');
+formData.append('title', 'Keputusan Direksi 2026-10');
 formData.append('status', 'PUBLISHED');
 formData.append('file', pdfFile);
 
@@ -1399,25 +1450,40 @@ if (!response.ok) throw new Error(data.message);
 
 `GET /document_commitments` accepts these optional query parameters:
 
-| Query parameter                   | Type   | Rules                                                   |
-| --------------------------------- | ------ | ------------------------------------------------------- |
-| `page`                            | number | Optional, 1-based; default `1`.                         |
-| `limit`                           | number | Optional; default `20`, minimum `1`, maximum `100`.     |
-| `search`                          | string | Optional, case-insensitive substring search in `title`. |
-| `document_commitment_category_id` | number | Optional positive category ID filter.                   |
-| `status`                          | string | Optional; `DRAFT` or `PUBLISHED`. Admin route only.     |
+| Query parameter                     | Type   | Rules                                                              |
+| ----------------------------------- | ------ | ------------------------------------------------------------------ |
+| `page`                              | number | Optional, 1-based; default `1`.                                    |
+| `limit`                             | number | Optional; default `20`, minimum `1`, maximum `100`.                |
+| `language_id`                       | string | Optional language code; limits results to that translation.        |
+| `search`                            | string | Optional, case-insensitive substring search in translated `title`. |
+| `document_commitment_category_id`   | number | Optional positive category ID filter.                              |
+| `document_commitment_category_slug` | string | Optional localized category slug filter, maximum 100 characters.   |
+| `status`                            | string | Optional; `DRAFT` or `PUBLISHED`. Admin route only.                |
 
-Filters are combined using AND. Results are ordered by `uploaded_at` descending
-with ID as a stable tie-breaker. Invalid query values return `400 Bad Request`.
+Filters are combined using AND. Provide at most one of
+`document_commitment_category_id` and `document_commitment_category_slug`. An
+unknown category slug returns an empty page. Slug filtering uses the requested
+`language_id`, or Indonesian (`id`) when omitted. When `language_id` is
+omitted, search matches any translation and the list displays the first
+available translation by language sort order. Public reads include published
+documents with active-language content; admin reads include drafts. Results
+are ordered by `uploaded_at` descending with ID as a stable tie-breaker.
+Invalid query values return `400 Bad Request`.
 
-A document response has this shape:
+A document list item projects the selected language's title and category name
+and slug. Detail, create, and update responses include a `contents` array.
+Public document detail contains active translations; admin reads and write
+responses include all saved translations:
 
 ```json
 {
   "documentCommitment": {
     "id": 21,
     "document_commitment_category_id": 2,
-    "title": "Board decision 2026-10",
+    "contents": [
+      { "language_id": "id", "title": "Keputusan Direksi 2026-10" },
+      { "language_id": "en", "title": "Board decision 2026-10" }
+    ],
     "file_path": "/public/document_commitment/board-decision-2026-10-3f9a1c7e5b2d4086.pdf",
     "filename": "board-decision-2026-10-3f9a1c7e5b2d4086.pdf",
     "size": 420,
@@ -1428,14 +1494,25 @@ A document response has this shape:
     "updated_by": null,
     "document_commitment_category": {
       "id": 2,
-      "name": "Board Decisions"
+      "contents": [
+        {
+          "language_id": "id",
+          "name": "Keputusan Direksi",
+          "slug": "keputusan-direksi"
+        },
+        {
+          "language_id": "en",
+          "name": "Board Decisions",
+          "slug": "board-decisions"
+        }
+      ]
     }
   }
 }
 ```
 
 Invalid fields, category references, or PDF files return `400 Bad Request`;
-missing document or category IDs return `404 Not Found`. Uploads over 50 MiB
+missing document or category IDs return `404 Not Found`. Uploads over 20 MiB
 return `413 Payload Too Large`.
 
 ## FAQs
@@ -1821,9 +1898,9 @@ language is also `null`. The CMS disables inputs whose key is `null`.
 | Field            | Type        | Rules                                                                                                     |
 | ---------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
 | `data`           | JSON string | Required; the settings payload below.                                                                     |
-| `danantara_logo` | file        | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 2 MiB. Omit to keep the current logo.                     |
+| `danantara_logo` | file        | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 5 MiB. Omit to keep the current logo.                     |
 | `pln_logo`       | file        | Optional; same rules as `danantara_logo`.                                                                 |
-| `social_icons`   | file[]      | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 1 MiB each; up to 20. Each must be referenced by an item. |
+| `social_icons`   | file[]      | Optional; PNG, JPG, JPEG, WEBP, or SVG; maximum 5 MiB each; up to 20. Each must be referenced by an item. |
 
 The `data` payload:
 
@@ -2229,7 +2306,7 @@ language of the matching content.
 | Group                  | Matched fields                                      |
 | ---------------------- | --------------------------------------------------- |
 | `articles`             | `title`, `summary`                                  |
-| `document_commitments` | `title`                                             |
+| `document_commitments` | translated `title`                                  |
 | `divisions`            | `name`, `abbr`, `description`                       |
 | `services`             | `name`, `description`                               |
 | `board_members`        | `name`, `company_name`, `role`, `description`       |
@@ -2242,7 +2319,9 @@ language of the matching content.
   "articles": [
     { "id": 3, "language_id": "id", "title": "Kompas.com x PLN EMI" }
   ],
-  "document_commitments": [{ "id": 2, "title": "Laporan Tahunan 2025" }],
+  "document_commitments": [
+    { "id": 2, "language_id": "id", "title": "Laporan Tahunan 2025" }
+  ],
   "divisions": [{ "id": 1, "language_id": "id", "title": "Energi Terbarukan" }],
   "services": [],
   "board_members": [{ "id": 7, "title": "Budi Santoso" }],
@@ -2253,7 +2332,7 @@ language of the matching content.
 ```
 
 `title` is the article/document title, division/service/board member/user/inbox sender name, or FAQ
-question. Document commitments, board members, users, and inboxes have no `language_id`.
+question. Document commitments now include the language of the matching title; board members, users, and inboxes do not.
 `users` is always empty unless the caller has the `manage_users` permission;
 user emails are matched but never returned. A missing or invalid `q`
 returns `400`.
@@ -2273,39 +2352,15 @@ failures return `503 Service Unavailable`.
 
 ## Article, Category, Media, and Document Commitment Errors
 
-| Status                  | Description                                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| `400 Bad Request`       | Invalid ID, body or query value, category, media or language reference, or uploaded image or PDF. |
-| `401 Unauthorized`      | A write request does not have a valid session.                                                    |
-| `403 Forbidden`         | A write request has a missing or disallowed `Origin`/`Referer`.                                   |
-| `404 Not Found`         | The requested article, category, media, or document commitment does not exist.                    |
-| `409 Conflict`          | Article slug, category slug, media filename, or document filename is already in use.              |
-| `413 Payload Too Large` | An uploaded file exceeds the limit for its media type or document commitment.                     |
+| Status                  | Description                                                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `400 Bad Request`       | Invalid ID, body or query value, category, media or language reference, or uploaded image or PDF.                            |
+| `401 Unauthorized`      | A write request does not have a valid session.                                                                               |
+| `403 Forbidden`         | A write request has a missing or disallowed `Origin`/`Referer`.                                                              |
+| `404 Not Found`         | The requested article, category, media, or document commitment does not exist.                                               |
+| `409 Conflict`          | Article/category slug, localized division or document category slug, media filename, or document filename is already in use. |
+| `413 Payload Too Large` | An uploaded image exceeds 5 MiB or a PDF exceeds 20 MiB.                                                                     |
 
 ## Health Check
 
 `GET /health` does not require authentication and returns `200 OK`:
-
-```json
-{
-  "message": "OK"
-}
-```
-
-## Common Errors
-
-Malformed JSON returns `400 Bad Request` with:
-
-```json
-{
-  "message": "Request body must contain valid JSON."
-}
-```
-
-Unexpected server errors return `500 Internal Server Error` with:
-
-```json
-{
-  "message": "Internal server error."
-}
-```

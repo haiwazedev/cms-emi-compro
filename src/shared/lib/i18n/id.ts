@@ -506,6 +506,16 @@ const id = {
     pageTitle: 'Dokumen Komitmen',
     description:
       'Sertifikasi, kebijakan, dan laporan yang dapat diunduh pengunjung situs.',
+    language: 'Bahasa konten',
+    languageLoading: 'Memuat bahasa...',
+    languagesFailed: 'Daftar bahasa gagal dimuat.',
+    noLanguages: 'Belum ada bahasa aktif.',
+    translationMissing: 'Terjemahan belum tersedia',
+    translationLoading: 'Memuat terjemahan...',
+    translationTitleOptional:
+      'Isi judul untuk menambahkan terjemahan ini. Kosongkan untuk mengubah detail dokumen bersama saja.',
+    documentDetailFailed: 'Detail dokumen gagal dimuat.',
+    categoryDetailFailed: 'Detail kategori gagal dimuat.',
     manageCategories: 'Kelola Kategori',
     upload: 'Unggah Dokumen',
     uploadTitle: 'Unggah Dokumen Baru',

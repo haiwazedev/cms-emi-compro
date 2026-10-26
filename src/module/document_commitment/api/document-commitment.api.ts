@@ -2,16 +2,31 @@ import { apiClient } from '@/shared/lib/api-client'
 
 export type DocumentCommitmentStatus = 'DRAFT' | 'PUBLISHED'
 
-export interface DocumentCommitmentCategory {
+export interface DocumentCommitmentCategoryContent {
+  language_id: string
+  name: string
+  slug: string
+}
+
+export interface DocumentCommitmentCategorySummary {
   id: number
   name: string
   slug: string
 }
 
-export interface DocumentCommitment {
+export interface DocumentCommitmentCategory {
+  id: number
+  contents: DocumentCommitmentCategoryContent[]
+}
+
+export interface DocumentCommitmentContent {
+  language_id: string
+  title: string
+}
+
+interface DocumentCommitmentMetadata {
   id: number
   document_commitment_category_id: number
-  title: string
   file_path: string
   filename: string
   size: number
@@ -20,7 +35,19 @@ export interface DocumentCommitment {
   uploaded_by: string
   updated_at: string | null
   updated_by: string | null
-  document_commitment_category: DocumentCommitmentCategory
+}
+
+export interface DocumentCommitmentListItem extends DocumentCommitmentMetadata {
+  title: string
+  document_commitment_category: DocumentCommitmentCategorySummary
+}
+
+export interface DocumentCommitment extends DocumentCommitmentMetadata {
+  contents: DocumentCommitmentContent[]
+  document_commitment_category: {
+    id: number
+    contents: DocumentCommitmentCategoryContent[]
+  }
 }
 
 export interface DocumentCommitmentListParams {
@@ -39,18 +66,27 @@ export interface DocumentCommitmentPagination {
 }
 
 export interface DocumentCommitmentListResponse {
-  documentCommitments: DocumentCommitment[]
+  documentCommitments: DocumentCommitmentListItem[]
   pagination: DocumentCommitmentPagination
 }
 
-export interface DocumentCommitmentFields {
+interface DocumentCommitmentSharedFields {
   document_commitment_category_id: number
-  title: string
   status: DocumentCommitmentStatus
 }
 
+export type DocumentCommitmentFields =
+  | (DocumentCommitmentSharedFields & {
+      language_id: string
+      title: string
+    })
+  | (DocumentCommitmentSharedFields & {
+      language_id?: never
+      title?: never
+    })
+
 interface DocumentCommitmentCategoriesResponse {
-  documentCommitmentCategories: DocumentCommitmentCategory[]
+  documentCommitmentCategories: DocumentCommitmentCategorySummary[]
 }
 
 interface DocumentCommitmentCategoryResponse {
@@ -72,6 +108,14 @@ export async function getDocumentCommitments(
   return data
 }
 
+export async function getDocumentCommitment(documentId: number) {
+  const { data } = await apiClient.get<DocumentCommitmentResponse>(
+    `/admin/document_commitments/${documentId}`,
+  )
+
+  return data.documentCommitment
+}
+
 export async function getDocumentCommitmentCategories() {
   const { data } = await apiClient.get<DocumentCommitmentCategoriesResponse>(
     '/document_commitment_categories',
@@ -80,8 +124,19 @@ export async function getDocumentCommitmentCategories() {
   return data.documentCommitmentCategories
 }
 
+export async function getDocumentCommitmentCategory(categoryId: number) {
+  const { data } = await apiClient.get<DocumentCommitmentCategoryResponse>(
+    `/document_commitment_categories/${categoryId}`,
+  )
+
+  return data.documentCommitmentCategory
+}
+
 export async function createDocumentCommitment(
-  fields: DocumentCommitmentFields,
+  fields: DocumentCommitmentSharedFields & {
+    language_id: string
+    title: string
+  },
   file: File,
 ) {
   const formData = new FormData()
@@ -131,6 +186,7 @@ export async function bulkDeleteDocumentCommitments(ids: number[]) {
 }
 
 export async function createDocumentCommitmentCategory(fields: {
+  language_id: string
   name: string
   slug: string
 }) {
@@ -144,7 +200,7 @@ export async function createDocumentCommitmentCategory(fields: {
 
 export async function updateDocumentCommitmentCategory(
   categoryId: number,
-  fields: { name: string; slug: string },
+  fields: { language_id: string; name: string; slug: string },
 ) {
   const { data } = await apiClient.put<DocumentCommitmentCategoryResponse>(
     `/document_commitment_categories/${categoryId}`,
@@ -173,6 +229,9 @@ function appendDocumentCommitmentFields(
     'document_commitment_category_id',
     String(fields.document_commitment_category_id),
   )
-  formData.append('title', fields.title)
+  if (fields.language_id && fields.title) {
+    formData.append('language_id', fields.language_id)
+    formData.append('title', fields.title)
+  }
   formData.append('status', fields.status)
 }

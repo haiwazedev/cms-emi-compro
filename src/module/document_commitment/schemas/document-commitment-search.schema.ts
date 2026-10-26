@@ -2,6 +2,7 @@ import { DOCUMENT_COMMITMENT_DEFAULT_PAGE_SIZE } from '../constants/document-com
 import { z } from 'zod'
 
 export const documentCommitmentSearchSchema = z.object({
+  lang: z.string().toLowerCase().optional().catch(undefined),
   page: z.coerce
     .number()
     .int()
@@ -30,6 +31,10 @@ export const documentCommitmentSearchSchema = z.object({
     .optional()
     .catch(undefined),
   status: z.enum(['DRAFT', 'PUBLISHED']).optional().catch(undefined),
+})
+
+export const documentCommitmentCategorySearchSchema = z.object({
+  lang: z.string().toLowerCase().optional().catch(undefined),
 })
 
 export type DocumentCommitmentSearch = z.infer<

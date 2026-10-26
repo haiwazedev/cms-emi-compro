@@ -6,17 +6,28 @@ import {
   updateDocumentCommitment,
 } from '@/module/document_commitment/api/document-commitment.api'
 import type {
-  DocumentCommitment,
   DocumentCommitmentFields,
+  DocumentCommitmentListItem,
   DocumentCommitmentListParams,
   DocumentCommitmentStatus,
 } from '@/module/document_commitment/api/document-commitment.api'
-import { DocumentCommitmentDataTable } from '@/module/document_commitment/components/document-commitment-data-table'
+import {
+  DocumentCommitmentDataTable,
+  type DocumentCommitmentTableRow,
+} from '@/module/document_commitment/components/document-commitment-data-table'
 import { DocumentCommitmentFormDialog } from '@/module/document_commitment/components/document-commitment-form-dialog'
+import {
+  DEFAULT_LANGUAGE_ID,
+  findDefaultLanguage,
+} from '@/module/language/constants/language.constants'
+import { LanguageSelect } from '@/module/language/components/language-select'
+import { languagesQueryOptions } from '@/module/language/queries/language.queries'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import {
   documentCommitmentQueryKeys,
+  documentCommitmentCategoryQueryOptions,
   documentCommitmentCategoriesQueryOptions,
+  documentCommitmentQueryOptions,
   documentCommitmentsQueryOptions,
 } from '@/module/document_commitment/queries/document-commitment.queries'
 import type { DocumentCommitmentFormValues } from '@/module/document_commitment/schemas/document-commitment-form.schema'
@@ -40,7 +51,12 @@ import {
 } from '@/shared/components/ui/select'
 import { toast } from '@/shared/lib/toast'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import type { RowSelectionState } from '@tanstack/react-table'
 import { PlusIcon, SearchIcon, Trash2Icon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -52,13 +68,28 @@ function DocumentCommitmentsPage() {
   const { canWrite } = usePermissions()
   const navigate = useNavigate({ from: '/document_commitments' })
   const queryClient = useQueryClient()
-  const { page, limit, search, document_commitment_category_id, status } =
+  const { lang, page, limit, search, document_commitment_category_id, status } =
     useSearch({ from: '/_authenticated/document_commitments' })
+  const languagesQuery = useQuery(languagesQueryOptions())
+  const languages = languagesQuery.data ?? []
+  const urlLanguage = languages.find((item) => item.id === lang)
+  const language = urlLanguage ?? findDefaultLanguage(languages)
+  const languageId = language?.id ?? DEFAULT_LANGUAGE_ID
   const [documentFormOpen, setDocumentFormOpen] = useState(false)
-  const [documentToEdit, setDocumentToEdit] = useState<DocumentCommitment>()
+  const [documentToEdit, setDocumentToEdit] =
+    useState<DocumentCommitmentListItem>()
   const [documentToDelete, setDocumentToDelete] =
-    useState<DocumentCommitment | null>(null)
+    useState<DocumentCommitmentTableRow | null>(null)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+
+  useEffect(() => {
+    if (!language || urlLanguage) return
+
+    void navigate({
+      search: (previous) => ({ ...previous, lang: language.id }),
+      replace: true,
+    })
+  }, [language, navigate, urlLanguage])
 
   const documentParams = useMemo<DocumentCommitmentListParams>(
     () => ({
@@ -77,8 +108,68 @@ function DocumentCommitmentsPage() {
   )
   const categoriesQuery = useQuery(documentCommitmentCategoriesQueryOptions())
   const documents = documentsQuery.data?.documentCommitments ?? []
+  const categorySummaries = categoriesQuery.data ?? []
+  const documentDetailQueries = useQueries({
+    queries: documents.map((document) =>
+      documentCommitmentQueryOptions(document.id),
+    ),
+  })
+  const categoryDetailQueries = useQueries({
+    queries: categorySummaries.map((category) =>
+      documentCommitmentCategoryQueryOptions(category.id),
+    ),
+  })
+  const localizedDocuments = documents.map((document, index) => {
+    const details = documentDetailQueries[index]?.data
+    const translation = details?.contents.find(
+      (content) => content.language_id === languageId,
+    )
+    const defaultTranslation = details?.contents.find(
+      (content) => content.language_id === DEFAULT_LANGUAGE_ID,
+    )
+    const categoryTranslation =
+      details?.document_commitment_category.contents.find(
+        (content) => content.language_id === languageId,
+      )
+    const defaultCategoryTranslation =
+      details?.document_commitment_category.contents.find(
+        (content) => content.language_id === DEFAULT_LANGUAGE_ID,
+      )
+
+    return {
+      ...document,
+      title: translation?.title ?? defaultTranslation?.title ?? document.title,
+      titleTranslationMissing: Boolean(details && !translation),
+      document_commitment_category: {
+        ...document.document_commitment_category,
+        name:
+          categoryTranslation?.name ??
+          defaultCategoryTranslation?.name ??
+          document.document_commitment_category.name,
+        slug:
+          categoryTranslation?.slug ??
+          defaultCategoryTranslation?.slug ??
+          document.document_commitment_category.slug,
+      },
+      categoryTranslationMissing: Boolean(details && !categoryTranslation),
+    }
+  })
+  const localizedCategories = categorySummaries.map((category, index) => {
+    const details = categoryDetailQueries[index]?.data
+    const translation = details?.contents.find(
+      (content) => content.language_id === languageId,
+    )
+    const defaultTranslation = details?.contents.find(
+      (content) => content.language_id === DEFAULT_LANGUAGE_ID,
+    )
+
+    return {
+      ...category,
+      name: translation?.name ?? defaultTranslation?.name ?? category.name,
+    }
+  })
   const pagination = documentsQuery.data?.pagination
-  const selectedIds = documents
+  const selectedIds = localizedDocuments
     .filter((document) => rowSelection[document.id])
     .map((document) => document.id)
 
@@ -87,21 +178,44 @@ function DocumentCommitmentsPage() {
       documentId,
       values,
       file,
+      languageId: selectedLanguageId,
     }: {
       documentId?: number
       values: DocumentCommitmentFormValues
       file?: File
+      languageId: string
     }) => {
-      const fields: DocumentCommitmentFields = values
+      const sharedFields = {
+        document_commitment_category_id: values.document_commitment_category_id,
+        status: values.status,
+      }
       if (documentId) {
+        const fields: DocumentCommitmentFields = values.title
+          ? {
+              ...sharedFields,
+              language_id: selectedLanguageId,
+              title: values.title,
+            }
+          : sharedFields
         return updateDocumentCommitment(documentId, fields, file)
       }
       if (!file) throw new Error(t.documentCommitment.pdfRequired)
-      return createDocumentCommitment(fields, file)
+      return createDocumentCommitment(
+        {
+          ...sharedFields,
+          language_id: selectedLanguageId,
+          title: values.title,
+        },
+        file,
+      )
     },
-    onSuccess: async () => {
+    onSuccess: async (savedDocument) => {
       setDocumentFormOpen(false)
       setDocumentToEdit(undefined)
+      queryClient.setQueryData(
+        documentCommitmentQueryKeys.detail(savedDocument.id),
+        savedDocument,
+      )
       await queryClient.invalidateQueries({
         queryKey: documentCommitmentQueryKeys.lists(),
       })
@@ -216,7 +330,17 @@ function DocumentCommitmentsPage() {
     })
   }
 
-  function openDocumentForm(document?: DocumentCommitment) {
+  function updateLanguage(nextLanguageId: string) {
+    void navigate({
+      search: (previous) => ({
+        ...previous,
+        page: 1,
+        lang: nextLanguageId,
+      }),
+    })
+  }
+
+  function openDocumentForm(document?: DocumentCommitmentListItem) {
     setDocumentToEdit(document)
     setDocumentFormOpen(true)
   }
@@ -239,12 +363,19 @@ function DocumentCommitmentsPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button asChild variant="outline">
-            <Link to="/document_commitment_categories">
+            <Link
+              to="/document_commitment_categories"
+              search={{ lang: languageId }}
+            >
               {t.documentCommitment.manageCategories}
             </Link>
           </Button>
           {canWrite && (
-            <Button type="button" onClick={() => openDocumentForm()}>
+            <Button
+              type="button"
+              disabled={!language}
+              onClick={() => openDocumentForm()}
+            >
               <PlusIcon aria-hidden="true" className="size-4" />
               {t.documentCommitment.upload}
             </Button>
@@ -257,6 +388,37 @@ function DocumentCommitmentsPage() {
         className="bg-background border-border overflow-hidden rounded-xl border shadow-sm"
       >
         <div className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
+          {languagesQuery.isPending ? (
+            <p role="status" className="text-muted text-sm">
+              {t.documentCommitment.languageLoading}
+            </p>
+          ) : languagesQuery.isError ? (
+            <div className="flex items-center gap-2">
+              <p role="alert" className="text-danger text-sm">
+                {t.documentCommitment.languagesFailed}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void languagesQuery.refetch()}
+              >
+                {t.common.retry}
+              </Button>
+            </div>
+          ) : language ? (
+            <LanguageSelect
+              label={t.documentCommitment.language}
+              languages={languages}
+              value={language.id}
+              onChange={updateLanguage}
+            />
+          ) : (
+            <p role="status" className="text-muted text-sm">
+              {t.documentCommitment.noLanguages}
+            </p>
+          )}
+
           <DocumentSearchInput key={search ?? ''} search={search} />
 
           <Select
@@ -274,7 +436,7 @@ function DocumentCommitmentsPage() {
               <SelectItem value="ALL">
                 {t.documentCommitment.allCategories}
               </SelectItem>
-              {categoriesQuery.data?.map((category) => (
+              {localizedCategories.map((category) => (
                 <SelectItem key={category.id} value={String(category.id)}>
                   {category.name}
                 </SelectItem>
@@ -347,7 +509,7 @@ function DocumentCommitmentsPage() {
           <DocumentMessage message={t.documentCommitment.noDocuments} />
         ) : (
           <DocumentCommitmentDataTable
-            documents={documents}
+            documents={localizedDocuments}
             pageIndex={page - 1}
             pageSize={limit}
             pageCount={pagination?.totalPages ?? 0}
@@ -379,16 +541,19 @@ function DocumentCommitmentsPage() {
       </section>
 
       <DocumentCommitmentFormDialog
-        key={`${documentToEdit?.id ?? 'new'}-${documentFormOpen}`}
+        key={`${documentToEdit?.id ?? 'new'}-${documentFormOpen}-${languageId}`}
         open={documentFormOpen}
         onOpenChange={closeDocumentForm}
         document={documentToEdit}
+        languages={languages}
+        languageId={documentToEdit ? languageId : DEFAULT_LANGUAGE_ID}
         pending={saveMutation.isPending}
         onSubmit={(values, file) =>
           saveMutation.mutate({
             ...(documentToEdit ? { documentId: documentToEdit.id } : {}),
             values,
             file,
+            languageId: documentToEdit ? languageId : DEFAULT_LANGUAGE_ID,
           })
         }
       />

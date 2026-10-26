@@ -1,4 +1,6 @@
-import type { DocumentCommitmentCategory } from '@/module/document_commitment/api/document-commitment.api'
+import type { DocumentCommitmentCategorySummary } from '@/module/document_commitment/api/document-commitment.api'
+import type { Language } from '@/module/language/api/language.api'
+import { DEFAULT_LANGUAGE_ID } from '@/module/language/constants/language.constants'
 import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { DocumentCommitmentCategoryFormValues } from '@/module/document_commitment/schemas/document-commitment-form.schema'
 import { createDocumentCommitmentCategoryFormSchema } from '@/module/document_commitment/schemas/document-commitment-form.schema'
@@ -14,7 +16,9 @@ import {
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { slugify } from '@/shared/lib/utils'
+import { documentCommitmentCategoryQueryOptions } from '@/module/document_commitment/queries/document-commitment.queries'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
@@ -22,7 +26,9 @@ import { useForm, useWatch } from 'react-hook-form'
 interface DocumentCommitmentCategoryFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  category?: DocumentCommitmentCategory
+  category?: DocumentCommitmentCategorySummary
+  languages: Language[]
+  languageId: string
   pending: boolean
   slugError?: string
   onSubmit: (values: DocumentCommitmentCategoryFormValues) => void
@@ -32,35 +38,53 @@ function DocumentCommitmentCategoryFormDialog({
   open,
   onOpenChange,
   category,
+  languages,
+  languageId,
   pending,
   slugError,
   onSubmit,
 }: DocumentCommitmentCategoryFormDialogProps) {
   const { t } = useI18n()
+  const formLanguageId = category ? languageId : DEFAULT_LANGUAGE_ID
+  const detailQuery = useQuery({
+    ...documentCommitmentCategoryQueryOptions(category?.id ?? 0),
+    enabled: category !== undefined,
+  })
+  const selectedLanguage =
+    languages.find((item) => item.id === formLanguageId) ?? languages[0]
+  const selectedContent = detailQuery.data?.contents.find(
+    (content) => content.language_id === formLanguageId,
+  )
+  const isNewTranslation = Boolean(
+    category && detailQuery.data && !selectedContent,
+  )
   const {
     control,
-    formState: { dirtyFields, errors },
+    formState: { dirtyFields, errors, isDirty },
     handleSubmit,
     register,
     reset,
     setValue,
   } = useForm<DocumentCommitmentCategoryFormValues>({
     resolver: zodResolver(createDocumentCommitmentCategoryFormSchema(t)),
-    defaultValues: { name: category?.name ?? '', slug: category?.slug ?? '' },
+    defaultValues: { name: '', slug: '' },
   })
   const nameValue = useWatch({ control, name: 'name' })
 
   useEffect(() => {
-    if (open) {
-      reset({ name: category?.name ?? '', slug: category?.slug ?? '' })
-    }
-  }, [category, open, reset])
+    if (!open || isDirty || (category && !detailQuery.data)) return
+
+    reset({
+      name: selectedContent?.name ?? '',
+      slug: selectedContent?.slug ?? '',
+    })
+  }, [category, detailQuery.data, isDirty, open, reset, selectedContent])
 
   useEffect(() => {
-    if (!category && !dirtyFields.slug) {
+    if ((!category || isNewTranslation) && !dirtyFields.slug) {
       setValue('slug', slugify(nameValue), { shouldValidate: true })
     }
-  }, [category, dirtyFields.slug, nameValue, setValue])
+  }, [category, dirtyFields.slug, isNewTranslation, nameValue, setValue])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -74,9 +98,36 @@ function DocumentCommitmentCategoryFormDialog({
           <DialogDescription>
             {t.documentCommitment.categoryFormDescription}
           </DialogDescription>
+          {selectedLanguage && (
+            <span className="text-muted text-sm">
+              {t.documentCommitment.language}: {selectedLanguage.flag}{' '}
+              {selectedLanguage.language}
+            </span>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+          {detailQuery.isPending && category && (
+            <p role="status" className="text-muted px-5 pt-4 text-sm">
+              {t.documentCommitment.translationLoading}
+            </p>
+          )}
+          {detailQuery.isError && (
+            <div className="flex items-center gap-2 px-5 pt-4">
+              <p role="alert" className="text-danger text-sm">
+                {t.documentCommitment.categoryDetailFailed}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={pending}
+                onClick={() => void detailQuery.refetch()}
+              >
+                {t.common.retry}
+              </Button>
+            </div>
+          )}
           <div className="flex flex-col gap-2 px-5 py-5">
             <Label htmlFor="document-commitment-category-name">
               {t.documentCommitment.categoryName}
@@ -85,7 +136,9 @@ function DocumentCommitmentCategoryFormDialog({
               id="document-commitment-category-name"
               autoFocus
               maxLength={100}
-              disabled={pending}
+              disabled={
+                pending || (category !== undefined && !detailQuery.data)
+              }
               aria-invalid={Boolean(errors.name)}
               {...register('name')}
             />
@@ -106,7 +159,9 @@ function DocumentCommitmentCategoryFormDialog({
             <Input
               id="document-commitment-category-slug"
               maxLength={100}
-              disabled={pending}
+              disabled={
+                pending || (category !== undefined && !detailQuery.data)
+              }
               aria-invalid={Boolean(errors.slug)}
               {...register('slug')}
             />
@@ -131,7 +186,12 @@ function DocumentCommitmentCategoryFormDialog({
             >
               {t.common.cancel}
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button
+              type="submit"
+              disabled={
+                pending || (category !== undefined && !detailQuery.data)
+              }
+            >
               {pending ? (
                 <>
                   <LoaderCircleIcon
