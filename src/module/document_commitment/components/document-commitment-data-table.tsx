@@ -1,6 +1,6 @@
 import { usePermissions } from '@/module/auth/hooks/use-permissions'
 import type { DocumentCommitmentListItem } from '@/module/document_commitment/api/document-commitment.api'
-import { getDocumentCommitmentAssetUrl } from '@/module/document_commitment/api/document-commitment.api'
+import { getDocumentCommitmentFileUrl } from '@/module/document_commitment/api/document-commitment.api'
 import type { Dictionary } from '@/shared/lib/i18n/id'
 import { useI18n, type Locale } from '@/shared/lib/i18n/i18n-context'
 import { DOCUMENT_COMMITMENT_PAGE_SIZES } from '@/module/document_commitment/constants/document-commitment.constants'
@@ -95,7 +95,7 @@ function createColumns(
             </span>
           )}
           <a
-            href={getDocumentCommitmentAssetUrl(row.original.file_path)}
+            href={getDocumentCommitmentFileUrl(row.original.id)}
             target="_blank"
             rel="noreferrer"
             className="text-muted text-sm hover:underline"

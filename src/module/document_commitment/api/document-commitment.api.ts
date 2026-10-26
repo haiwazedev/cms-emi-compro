@@ -214,9 +214,9 @@ export async function deleteDocumentCommitmentCategory(categoryId: number) {
   await apiClient.delete<void>(`/document_commitment_categories/${categoryId}`)
 }
 
-export function getDocumentCommitmentAssetUrl(path: string) {
+export function getDocumentCommitmentFileUrl(documentId: number) {
   return new URL(
-    path,
+    `/admin/document_commitments/${documentId}/file`,
     apiClient.defaults.baseURL ?? window.location.origin,
   ).toString()
 }
