@@ -26,14 +26,22 @@ export interface Division {
 export interface ServiceContent {
   language_id: string
   name: string
+}
+
+export interface ServiceMediaContent {
+  language_id: string
   description: string | null
+}
+
+export interface ServiceMedia extends Media {
+  contents: ServiceMediaContent[]
 }
 
 export interface Service {
   id: number
   division_id: number
   contents: ServiceContent[]
-  media?: Media[]
+  media?: ServiceMedia[]
   sort_order: number
   created_at: string
   created_by: string
@@ -43,7 +51,7 @@ export interface Service {
 }
 
 export interface ServiceDetails extends Service {
-  media: Media[]
+  media: ServiceMedia[]
   division: Division
 }
 
@@ -61,8 +69,10 @@ export interface ServiceWriteFields {
   language_id: string
   division_id: number
   name: string
-  description: string | null
-  media_ids: number[]
+  media: {
+    media_id: number
+    description: string | null
+  }[]
 }
 
 interface DivisionsResponse {

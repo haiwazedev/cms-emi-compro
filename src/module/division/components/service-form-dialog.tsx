@@ -4,10 +4,9 @@ import type {
   ServiceWriteFields,
 } from '@/module/division/api/division.api'
 import { serviceQueryOptions } from '@/module/division/queries/division.queries'
-import { useI18n } from '@/shared/lib/i18n/i18n-context'
-import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import type { Media } from '@/module/media/api/media.api'
 import { getMediaAssetUrl } from '@/module/media/api/media.api'
+import { MediaPickerDialog } from '@/module/media/components/media-picker-dialog'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -27,10 +26,11 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select'
 import { Textarea } from '@/shared/components/ui/textarea'
-import { useQuery } from '@tanstack/react-query'
-import { DragDropProvider } from '@dnd-kit/react'
+import { useI18n } from '@/shared/lib/i18n/i18n-context'
 import type { DragEndEvent } from '@dnd-kit/react'
+import { DragDropProvider } from '@dnd-kit/react'
 import { isSortable, useSortable } from '@dnd-kit/react/sortable'
+import { useQuery } from '@tanstack/react-query'
 import {
   GripVerticalIcon,
   ImagePlusIcon,
@@ -142,11 +142,22 @@ function ServiceFormFields({
     (item) => item.language_id === languageId,
   )
   const [name, setName] = useState(content?.name ?? '')
-  const [description, setDescription] = useState(content?.description ?? '')
   const [divisionId, setDivisionId] = useState<number | undefined>(
     service?.division_id ?? selectedDivisionId ?? divisions[0]?.id,
   )
   const [media, setMedia] = useState<Media[]>(service?.media ?? [])
+  const [imageDescriptions, setImageDescriptions] = useState<
+    Record<number, string>
+  >(() =>
+    Object.fromEntries(
+      (service?.media ?? []).map((item) => [
+        item.id,
+        item.contents.find(
+          (itemContent) => itemContent.language_id === languageId,
+        )?.description ?? '',
+      ]),
+    ),
+  )
   const [pickerOpen, setPickerOpen] = useState(false)
   const [formError, setFormError] = useState<string>()
   const mediaIds = useMemo(() => media.map((item) => item.id), [media])
@@ -170,9 +181,24 @@ function ServiceFormFields({
       language_id: languageId,
       division_id: divisionId,
       name: name.trim(),
-      description: description.trim() || null,
-      media_ids: mediaIds,
+      media: media.map((item) => ({
+        media_id: item.id,
+        description: imageDescriptions[item.id]?.trim() || null,
+      })),
     })
+  }
+
+  function handleMediaSelection(selectedMedia: Media[]) {
+    setImageDescriptions((current) => {
+      const next = { ...current }
+
+      for (const item of selectedMedia) {
+        if (next[item.id] === undefined) next[item.id] = ''
+      }
+
+      return next
+    })
+    setMedia(selectedMedia)
   }
 
   function handleGalleryDragEnd(event: DragEndEvent) {
@@ -213,20 +239,6 @@ function ServiceFormFields({
                 <p className="text-foreground/55 text-xs">
                   {t.common.characterCount(name.length, 200)}
                 </p>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="service-description">
-                  {t.division.serviceDescription}
-                </Label>
-                <Textarea
-                  id="service-description"
-                  disabled={pending}
-                  value={description}
-                  onChange={(event) =>
-                    setDescription(event.currentTarget.value)
-                  }
-                />
               </div>
 
               <div className="flex flex-col gap-2">
@@ -288,6 +300,13 @@ function ServiceFormFields({
                           media={item}
                           index={index}
                           disabled={pending}
+                          description={imageDescriptions[item.id] ?? ''}
+                          onDescriptionChange={(description) =>
+                            setImageDescriptions((current) => ({
+                              ...current,
+                              [item.id]: description,
+                            }))
+                          }
                           onRemove={() =>
                             setMedia((current) =>
                               current.filter(
@@ -348,7 +367,7 @@ function ServiceFormFields({
           onOpenChange={setPickerOpen}
           selectionMode="multiple"
           selectedMediaIds={mediaIds}
-          onSelectMultiple={setMedia}
+          onSelectMultiple={handleMediaSelection}
         />
       )}
     </>
@@ -359,11 +378,15 @@ function SortableServiceImage({
   media,
   index,
   disabled,
+  description,
+  onDescriptionChange,
   onRemove,
 }: {
   media: Media
   index: number
   disabled: boolean
+  description: string
+  onDescriptionChange: (description: string) => void
   onRemove: () => void
 }) {
   const { t } = useI18n()
@@ -376,7 +399,7 @@ function SortableServiceImage({
   return (
     <article
       ref={sortableRef}
-      className="bg-background relative flex w-36 flex-col overflow-hidden rounded-md border"
+      className="bg-background relative flex w-full flex-col overflow-hidden rounded-md border"
     >
       <img
         src={getMediaAssetUrl(media.path)}
@@ -403,9 +426,25 @@ function SortableServiceImage({
       >
         <Trash2Icon aria-hidden="true" className="size-3.5" />
       </Button>
-      <span className="text-foreground/70 truncate p-2 text-xs">
-        {media.filename}
-      </span>
+      <div className="flex flex-col gap-2 p-2">
+        <span className="text-foreground/70 truncate text-xs">
+          {media.filename}
+        </span>
+        <Label
+          htmlFor={`service-image-description-${media.id}`}
+          className="text-xs"
+        >
+          {t.division.serviceImageDescription} :
+        </Label>
+        <Textarea
+          id={`service-image-description-${media.id}`}
+          value={description}
+          disabled={disabled}
+          rows={2}
+          className="min-h-20 text-xs"
+          onChange={(event) => onDescriptionChange(event.currentTarget.value)}
+        />
+      </div>
     </article>
   )
 }
