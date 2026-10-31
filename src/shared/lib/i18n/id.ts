@@ -580,12 +580,14 @@ const id = {
     categoryDescription:
       'Kelola kategori untuk mengelompokkan dokumen komitmen.',
     backToDocuments: 'Kembali ke Dokumen Komitmen',
-    categoryFormDescription: 'Atur nama kategori dokumen komitmen.',
+    categoryFormDescription:
+      'Atur nama, slug, dan deskripsi opsional kategori dokumen komitmen.',
     addCategory: 'Tambah Kategori',
     createCategory: 'Tambah Kategori',
     editCategory: 'Ubah Kategori',
     categoryName: 'Nama kategori',
     categorySlug: 'Slug URL',
+    categoryDescriptionField: 'Deskripsi (opsional)',
     categorySlugRequired: 'Slug URL wajib diisi.',
     categorySlugTooLong: 'Slug URL maksimal 100 karakter.',
     categoryNameRequired: 'Nama kategori wajib diisi.',

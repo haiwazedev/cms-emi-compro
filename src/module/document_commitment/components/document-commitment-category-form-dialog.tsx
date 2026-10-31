@@ -15,6 +15,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { Textarea } from '@/shared/components/ui/textarea'
 import { slugify } from '@/shared/lib/utils'
 import { documentCommitmentCategoryQueryOptions } from '@/module/document_commitment/queries/document-commitment.queries'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -67,16 +68,22 @@ function DocumentCommitmentCategoryFormDialog({
     setValue,
   } = useForm<DocumentCommitmentCategoryFormValues>({
     resolver: zodResolver(createDocumentCommitmentCategoryFormSchema(t)),
-    defaultValues: { name: '', slug: '' },
+    defaultValues: { name: '', slug: '', description: '' },
   })
   const nameValue = useWatch({ control, name: 'name' })
 
   useEffect(() => {
-    if (!open || isDirty || (category && !detailQuery.data)) return
+    if (!open) {
+      reset({ name: '', slug: '', description: '' })
+      return
+    }
+
+    if (isDirty || (category && !detailQuery.data)) return
 
     reset({
       name: selectedContent?.name ?? '',
       slug: selectedContent?.slug ?? '',
+      description: selectedContent?.description ?? '',
     })
   }, [category, detailQuery.data, isDirty, open, reset, selectedContent])
 
@@ -173,6 +180,25 @@ function DocumentCommitmentCategoryFormDialog({
             {slugError && (
               <p role="alert" className="text-danger text-sm">
                 {slugError}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 px-5 pb-5">
+            <Label htmlFor="document-commitment-category-description">
+              {t.documentCommitment.categoryDescriptionField}
+            </Label>
+            <Textarea
+              id="document-commitment-category-description"
+              disabled={
+                pending || (category !== undefined && !detailQuery.data)
+              }
+              aria-invalid={Boolean(errors.description)}
+              {...register('description')}
+            />
+            {errors.description?.message && (
+              <p role="alert" className="text-danger text-sm">
+                {errors.description.message}
               </p>
             )}
           </div>

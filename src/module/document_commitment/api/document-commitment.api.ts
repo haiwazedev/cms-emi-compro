@@ -6,12 +6,14 @@ export interface DocumentCommitmentCategoryContent {
   language_id: string
   name: string
   slug: string
+  description: string | null
 }
 
 export interface DocumentCommitmentCategorySummary {
   id: number
   name: string
   slug: string
+  description: string | null
 }
 
 export interface DocumentCommitmentCategory {
@@ -189,6 +191,7 @@ export async function createDocumentCommitmentCategory(fields: {
   language_id: string
   name: string
   slug: string
+  description?: string | null
 }) {
   const { data } = await apiClient.post<DocumentCommitmentCategoryResponse>(
     '/document_commitment_categories',
@@ -200,7 +203,12 @@ export async function createDocumentCommitmentCategory(fields: {
 
 export async function updateDocumentCommitmentCategory(
   categoryId: number,
-  fields: { language_id: string; name: string; slug: string },
+  fields: {
+    language_id: string
+    name: string
+    slug: string
+    description?: string | null
+  },
 ) {
   const { data } = await apiClient.put<DocumentCommitmentCategoryResponse>(
     `/document_commitment_categories/${categoryId}`,

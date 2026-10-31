@@ -37,6 +37,7 @@ export function createDocumentCommitmentCategoryFormSchema(t: Dictionary) {
       .trim()
       .min(1, { error: t.documentCommitment.categorySlugRequired })
       .max(100, { error: t.documentCommitment.categorySlugTooLong }),
+    description: z.string(),
   })
 }
 

@@ -94,11 +94,13 @@ function DocumentCommitmentCategoriesPage() {
       categoryId,
       name,
       slug,
+      description,
       languageId: selectedLanguageId,
     }: {
       categoryId?: number
       name: string
       slug: string
+      description: string
       languageId: string
     }) =>
       categoryId
@@ -106,11 +108,13 @@ function DocumentCommitmentCategoriesPage() {
             language_id: selectedLanguageId,
             name,
             slug,
+            description,
           })
         : createDocumentCommitmentCategory({
             language_id: DEFAULT_LANGUAGE_ID,
             name,
             slug,
+            description,
           }),
     onSuccess: async (savedCategory) => {
       setCategoryFormOpen(false)
